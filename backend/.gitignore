@@ -1,0 +1,5 @@
+node_modules/
+/dist/
+# Demandes de contact stockées localement (données personnelles) — pas src/data !
+/data/
+.env
