@@ -1,0 +1,51 @@
+name: defenders
+
+services:
+  backend:
+    build:
+      context: ./backend
+    container_name: defenders-backend
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      PORT: 4000
+      DATA_DIR: /app/data
+      CORS_ORIGINS: http://localhost:3000
+    volumes:
+      - backend-data:/app/data
+    networks:
+      - defenders-net
+    # Exposé uniquement sur la machine locale (pratique pour tester l'API).
+    ports:
+      - "127.0.0.1:4000:4000"
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:4000/api/health"]
+      interval: 15s
+      timeout: 3s
+      retries: 3
+      start_period: 10s
+
+  frontend:
+    build:
+      context: ./frontend
+    container_name: defenders-frontend
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      # Le frontend parle à l'API via le nom du service sur le réseau Docker.
+      BACKEND_URL: http://backend:4000
+    depends_on:
+      backend:
+        condition: service_healthy
+    networks:
+      - defenders-net
+    ports:
+      - "3000:3000"
+
+networks:
+  defenders-net:
+    driver: bridge
+
+volumes:
+  # Persiste les demandes de contact (contacts.jsonl) entre les redémarrages.
+  backend-data:
