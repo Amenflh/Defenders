@@ -5,11 +5,19 @@ export const site = {
   group: "Defenders Academy",
   approval: "Agrément n° 21-340-24",
   phone: { label: "+216 92 204 005", href: "tel:+21692204005" },
+  phone2: { label: "+216 29 039 493", href: "tel:+21629039493" },
   email: { label: "direction-dsp@outlook.com", href: "mailto:direction-dsp@outlook.com" },
-  // TODO : remplacer par l'URL exacte de la page Facebook.
+  address: {
+    lines: ["Avenue Abou Dhabi", "8050 Hammamet, Tunisie"],
+    href: "https://www.google.com/maps/search/?api=1&query=Avenue+Abou+Dhabi+Hammamet+8050+Tunisia",
+  },
   facebook: {
-    label: "Tunisian Security Academy",
-    href: "https://www.facebook.com/search/top?q=Tunisian%20Security%20Academy",
+    label: "Defenders Fitness Academy",
+    href: "https://www.facebook.com/DefendersFitnessAcademy",
+  },
+  instagram: {
+    label: "@defenders_fitness_academy",
+    href: "https://www.instagram.com/defenders_fitness_academy",
   },
   partner: "RITEJ — Company for Recruitment",
 } as const;

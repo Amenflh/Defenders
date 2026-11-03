@@ -85,6 +85,12 @@ export function Sidebar({ open, onClose, pathname }: Props) {
           <a href={site.facebook.href} target="_blank" rel="noreferrer" className="flex items-center gap-3 text-mist hover:text-bone">
             <Icon name="facebook" className="text-gold" /> {site.facebook.label}
           </a>
+          <a href={site.instagram.href} target="_blank" rel="noreferrer" className="flex items-center gap-3 text-mist hover:text-bone">
+            <Icon name="instagram" className="text-gold" /> {site.instagram.label}
+          </a>
+          <a href={site.address.href} target="_blank" rel="noreferrer" className="flex items-center gap-3 text-mist hover:text-bone">
+            <Icon name="pin" className="text-gold" /> {site.address.lines.join(", ")}
+          </a>
           <Link href="/contact" onClick={onClose} className="btn btn-primary mt-2 w-full">
             Demander une inscription <Icon name="arrow" />
           </Link>

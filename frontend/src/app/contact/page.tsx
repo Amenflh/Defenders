@@ -17,9 +17,12 @@ export default async function ContactPage({ searchParams }: PageProps<"/contact"
   const preselected = DISCIPLINE_SLUGS.includes(formation as DisciplineSlug) ? (formation as DisciplineSlug) : undefined;
 
   const contacts = [
+    { icon: "pin" as const, label: "Adresse", value: site.address.lines.join(", "), href: site.address.href, external: true },
     { icon: "phone" as const, label: "Téléphone", value: site.phone.label, href: site.phone.href },
+    { icon: "phone" as const, label: "Téléphone 2", value: site.phone2.label, href: site.phone2.href },
     { icon: "mail" as const, label: "E-mail", value: site.email.label, href: site.email.href },
     { icon: "facebook" as const, label: "Facebook", value: site.facebook.label, href: site.facebook.href, external: true },
+    { icon: "instagram" as const, label: "Instagram", value: site.instagram.label, href: site.instagram.href, external: true },
   ];
 
   return (

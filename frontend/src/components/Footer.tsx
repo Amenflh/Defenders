@@ -38,9 +38,21 @@ export function Footer() {
 
         <FooterColumn title="Contact">
           <li>
-            <a href={site.phone.href} className="flex items-center gap-3 hover:text-bone">
-              <Icon name="phone" width={16} height={16} className="text-gold" /> {site.phone.label}
+            <a href={site.address.href} target="_blank" rel="noreferrer" className="flex items-start gap-3 hover:text-bone">
+              <Icon name="pin" width={16} height={16} className="mt-0.5 shrink-0 text-gold" />
+              <span>
+                {site.address.lines.map((l) => (
+                  <span key={l} className="block">{l}</span>
+                ))}
+              </span>
             </a>
+          </li>
+          <li className="flex items-start gap-3">
+            <Icon name="phone" width={16} height={16} className="mt-0.5 shrink-0 text-gold" />
+            <span>
+              <a href={site.phone.href} className="block hover:text-bone">{site.phone.label}</a>
+              <a href={site.phone2.href} className="block hover:text-bone">{site.phone2.label}</a>
+            </span>
           </li>
           <li>
             <a href={site.email.href} className="flex items-center gap-3 break-all hover:text-bone">
@@ -50,6 +62,11 @@ export function Footer() {
           <li>
             <a href={site.facebook.href} target="_blank" rel="noreferrer" className="flex items-center gap-3 hover:text-bone">
               <Icon name="facebook" width={16} height={16} className="text-gold" /> {site.facebook.label}
+            </a>
+          </li>
+          <li>
+            <a href={site.instagram.href} target="_blank" rel="noreferrer" className="flex items-center gap-3 hover:text-bone">
+              <Icon name="instagram" width={16} height={16} className="text-gold" /> {site.instagram.label}
             </a>
           </li>
         </FooterColumn>
