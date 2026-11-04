@@ -38,6 +38,9 @@ export function BannerMarquee({ photos, duration = 70, reverse = false, height =
               <Image
                 src={photo.src}
                 alt={duplicate ? "" : photo.alt}
+                // Les images entrent dans l'écran par animation (et non par défilement) :
+                // en « lazy », le navigateur ne les chargerait jamais → cadres vides.
+                loading="eager"
                 placeholder="blur"
                 sizes="(min-width: 1024px) 40vw, 70vw"
                 className="h-full w-full object-cover grayscale-[35%] transition duration-700 group-hover:scale-105 group-hover:grayscale-0"

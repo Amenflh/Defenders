@@ -24,18 +24,31 @@ export function ScrollStory({ items }: { items: StoryItem[] }) {
       .map((item) => document.getElementById(item.id))
       .filter((el): el is HTMLElement => el !== null);
 
-    const observer = new IntersectionObserver(
+    // 1) Apparition : dès qu'un bloc entre par le bas de l'écran.
+    const revealObserver = new IntersectionObserver(
       (entries) => {
         for (const entry of entries) {
           if (entry.isIntersecting) {
-            setActive(entry.target.id);
             (entry.target as HTMLElement).dataset.visible = "true";
+            revealObserver.unobserve(entry.target);
           }
+        }
+      },
+      { rootMargin: "0px 0px -10% 0px" },
+    );
+    // 2) Sommaire : le bloc actif est celui qui traverse le milieu de l'écran.
+    const activeObserver = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (entry.isIntersecting) setActive(entry.target.id);
         }
       },
       { rootMargin: "-45% 0px -45% 0px" },
     );
-    blocks.forEach((b) => observer.observe(b));
+    blocks.forEach((b) => {
+      revealObserver.observe(b);
+      activeObserver.observe(b);
+    });
 
     const onScroll = () => {
       const el = sectionRef.current;
@@ -49,7 +62,8 @@ export function ScrollStory({ items }: { items: StoryItem[] }) {
     window.addEventListener("scroll", onScroll, { passive: true });
 
     return () => {
-      observer.disconnect();
+      revealObserver.disconnect();
+      activeObserver.disconnect();
       window.removeEventListener("scroll", onScroll);
     };
   }, [items]);
@@ -88,7 +102,7 @@ export function ScrollStory({ items }: { items: StoryItem[] }) {
       </aside>
 
       {/* Blocs de contenu */}
-      <div className="space-y-24 lg:space-y-40 lg:py-[12vh]">
+      <div className="space-y-20 lg:space-y-28 lg:py-[8vh]">
         {items.map((item, i) => (
           <article key={item.id} id={item.id} data-reveal="" className="scroll-mt-32">
             <p className="eyebrow mb-4">
