@@ -120,8 +120,13 @@ export function Footer() {
       </div>
 
       <div className="border-t border-line">
-        <div className="container-site flex flex-col gap-2 py-6 text-xs text-mist sm:flex-row sm:items-center sm:justify-between">
+        <div className="container-site flex flex-col gap-3 py-6 text-xs text-mist sm:flex-row sm:items-center sm:justify-between">
           <p>© {new Date().getFullYear()} {site.name}. Tous droits réservés.</p>
+          <nav aria-label="Informations légales" className="flex flex-wrap gap-x-4 gap-y-2">
+            <Link href="/mentions-legales" className="hover:text-bone">Mentions légales</Link>
+            <Link href="/politique-de-confidentialite" className="hover:text-bone">Politique de confidentialité</Link>
+            <Link href="/cookies" className="hover:text-bone">Cookies</Link>
+          </nav>
         </div>
       </div>
     </footer>
