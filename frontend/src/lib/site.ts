@@ -28,7 +28,7 @@ export const site = {
         description: "Agence spécialisée dans le recrutement à l'étranger depuis 2010.",
         href: "https://www.facebook.com/ritejcampanyforrecruitment",
         linkLabel: "Page officielle",
-        logo: "/pics/partners/RITEJ.jpg",
+        logo: "/pics/partners/RITEJ-embleme.jpg",
       },
       {
         name: "Bayrak El Arab",
