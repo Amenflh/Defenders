@@ -1,8 +1,19 @@
-import path from "node:path";
+import { existsSync } from "node:fs";
+
+// En local, charge backend/.env (Node ≥ 20.12). Dans Docker, les variables viennent de docker-compose.
+if (existsSync(".env")) process.loadEnvFile(".env");
 
 function toInt(value: string | undefined, fallback: number): number {
   const n = Number.parseInt(value ?? "", 10);
   return Number.isFinite(n) ? n : fallback;
+}
+
+function required(name: string): string {
+  const value = process.env[name];
+  if (!value) {
+    throw new Error(`Variable d'environnement manquante : ${name} (voir backend/.env.example)`);
+  }
+  return value;
 }
 
 export const config = {
@@ -13,6 +24,14 @@ export const config = {
     .split(",")
     .map((o) => o.trim())
     .filter(Boolean),
-  /** Dossier où sont stockées les demandes de contact (monté en volume dans Docker). */
-  dataDir: path.resolve(process.env.DATA_DIR ?? "data"),
+  /** Chaîne de connexion PostgreSQL : postgres://utilisateur:motdepasse@hôte:5432/base */
+  databaseUrl: required("DATABASE_URL"),
+  /** Durée de validité d'une session admin. */
+  sessionTtlHours: toInt(process.env.SESSION_TTL_HOURS, 12),
+  /** Compte admin créé au démarrage s'il n'existe encore aucun admin. */
+  adminSeed: {
+    email: process.env.ADMIN_EMAIL,
+    password: process.env.ADMIN_PASSWORD,
+    name: process.env.ADMIN_NAME ?? "Administrateur",
+  },
 } as const;

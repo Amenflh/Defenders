@@ -5,6 +5,9 @@ import { config } from "./config.js";
 import { healthRouter } from "./routes/health.js";
 import { planningRouter } from "./routes/planning.js";
 import { contactRouter } from "./routes/contact.js";
+import { authRouter } from "./routes/auth.js";
+import { adminRouter } from "./routes/admin.js";
+import { meRouter } from "./routes/me.js";
 
 export function createApp() {
   const app = express();
@@ -19,6 +22,9 @@ export function createApp() {
   app.use("/api/health", healthRouter);
   app.use("/api/planning", planningRouter);
   app.use("/api/contact", contactRouter);
+  app.use("/api/auth", authRouter);
+  app.use("/api/admin", adminRouter);
+  app.use("/api/me", meRouter);
 
   app.use((_req, res) => {
     res.status(404).json({ error: "Ressource introuvable" });
