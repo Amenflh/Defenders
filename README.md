@@ -3,6 +3,8 @@
 Site professionnel du centre de formation continue Defenders Fitness Academy
 (coaching privé et sciences du sport : Pilates, Football, Personal Training).
 
+Organisation du code, conventions et choix techniques : [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
+
 ## Stack
 
 | Composant | Technologies |
