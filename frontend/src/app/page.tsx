@@ -153,7 +153,7 @@ export default function HomePage() {
               <Link href="#formations" className="btn btn-primary">
                 Nos formations <Icon name="arrow" />
               </Link>
-              <Link href="/contact" className="btn btn-ghost">
+              <Link href="/contact?popup=1" className="btn btn-ghost">
                 Demander mon inscription
               </Link>
             </Reveal>

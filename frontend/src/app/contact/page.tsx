@@ -6,6 +6,7 @@ import { DISCIPLINE_SLUGS, type DisciplineSlug } from "@/lib/disciplines";
 import { brand } from "@/lib/images";
 import { site } from "@/lib/site";
 import { ContactForm } from "./ContactForm";
+import { ContactPopup } from "./ContactPopup";
 
 export const metadata: Metadata = {
   title: "Contact & inscription",
@@ -13,8 +14,9 @@ export const metadata: Metadata = {
 };
 
 export default async function ContactPage({ searchParams }: PageProps<"/contact">) {
-  const { formation } = await searchParams;
+  const { formation, popup } = await searchParams;
   const preselected = DISCIPLINE_SLUGS.includes(formation as DisciplineSlug) ? (formation as DisciplineSlug) : undefined;
+  const popupMode = popup === "1";
 
   const contacts = [
     { icon: "pin" as const, label: "Adresse", value: site.address.lines.join(", "), href: site.address.href, external: true },
@@ -31,6 +33,8 @@ export default async function ContactPage({ searchParams }: PageProps<"/contact"
         Coach professionnel ou jeune diplômé, dites-nous qui vous êtes et quelle formation vous intéresse : nous vous
         recontactons pour vous orienter et vous communiquer les prochaines dates.
       </PageIntro>
+
+      {popupMode && <ContactPopup preselected={preselected} />}
 
       <section className="py-16 lg:py-24">
         <div className="container-site grid gap-14 lg:grid-cols-[1fr_22rem] lg:gap-20">

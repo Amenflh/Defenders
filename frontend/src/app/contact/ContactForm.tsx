@@ -125,6 +125,17 @@ export function ContactForm({ preselected }: { preselected?: DisciplineSlug }) {
         {err("message") && <p className="mt-2 text-sm text-red-300">{err("message")}</p>}
       </Fieldset>
 
+      <Fieldset legend="6. Pièce jointe" hint="PDF, JPG ou PNG — 5 Mo max">
+        <label htmlFor="attachment" className="sr-only">Pièce jointe</label>
+        <input
+          id="attachment"
+          name="attachment"
+          type="file"
+          accept=".pdf,.jpg,.jpeg,.png,application/pdf,image/jpeg,image/png"
+          className="block w-full border border-line bg-ink px-4 py-3 text-sm text-mist file:mr-4 file:border-0 file:bg-gold file:px-4 file:py-2 file:font-display file:text-xs file:uppercase file:text-ink"
+        />
+      </Fieldset>
+
       <div>
         <label className="flex items-start gap-3 text-sm text-mist">
           <input type="checkbox" name="consent" defaultChecked={val("consent") === "on"} className="mt-1 size-4 accent-[var(--color-gold)]" />
