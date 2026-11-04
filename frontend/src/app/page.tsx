@@ -100,21 +100,6 @@ const faqs = [
   },
 ];
 
-const testimonials = [
-  {
-    discipline: "Formation Pilates",
-    quote: "La formation m'a permis de mieux structurer mes séances et d'adapter les exercices à chaque profil.",
-  },
-  {
-    discipline: "Formation Football",
-    quote: "J'ai apprécié l'équilibre entre les apports théoriques et les mises en pratique sur le terrain.",
-  },
-  {
-    discipline: "Personal Training",
-    quote: "Le parcours m'a aidé à organiser mon accompagnement client avec plus de méthode.",
-  },
-];
-
 export default function HomePage() {
   return (
     <>
@@ -338,7 +323,7 @@ export default function HomePage() {
             <p className="eyebrow mb-3">Témoignages</p>
             <h2 className="heading-lg">Leurs expériences de formation</h2>
             <p className="mt-5 max-w-2xl border-l-2 border-gold pl-4 text-sm leading-relaxed text-mist">
-              Exemples fictifs pour la maquette. Ils seront remplacés par des avis réels, publiés avec l&apos;accord des stagiaires.
+              Les retours de nos stagiaires seront publiés ici avec leur accord.
             </p>
           </Reveal>
           <Reveal delay={120} className="border-t border-gold pt-6 lg:border-t-0 lg:border-l lg:pt-0 lg:pl-8">
@@ -349,14 +334,10 @@ export default function HomePage() {
             </a>
           </Reveal>
         </div>
-        <div className="container-site mt-10 grid gap-4 md:grid-cols-3">
-          {testimonials.map((testimonial) => (
-            <article key={testimonial.discipline} className="flex min-h-48 flex-col border border-line bg-ink-2 p-6">
-              <p className="eyebrow text-[0.65rem]">Exemple fictif</p>
-              <p className="mt-4 flex-1 leading-relaxed text-bone">&ldquo;{testimonial.quote}&rdquo;</p>
-              <p className="mt-5 border-t border-line pt-4 font-display text-sm uppercase text-gold-soft">{testimonial.discipline}</p>
-            </article>
-          ))}
+        <div className="container-site mt-10">
+          <p className="border border-line bg-ink-2 px-6 py-8 text-center text-sm text-mist">
+            Témoignages vérifiés à venir.
+          </p>
         </div>
       </section>
 
@@ -369,7 +350,7 @@ export default function HomePage() {
             <p className="mt-5 max-w-md text-mist">
               Vous avez besoin d&apos;un renseignement sur votre profil ou une session ? Notre équipe vous répond.
             </p>
-            <Link href="/contact" className="btn btn-primary mt-7">
+            <Link href="/contact?popup=1" className="btn btn-primary mt-7">
               Nous contacter <Icon name="arrow" />
             </Link>
           </Reveal>
@@ -400,7 +381,7 @@ export default function HomePage() {
             </p>
           </Reveal>
           <Reveal delay={150} className="flex flex-wrap gap-4">
-            <Link href="/contact" className="btn btn-primary">
+            <Link href="/contact?popup=1" className="btn btn-primary">
               S&apos;inscrire <Icon name="arrow" />
             </Link>
             <a href={site.phone.href} className="btn btn-ghost">

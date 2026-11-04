@@ -35,7 +35,7 @@ export const contactSchema = z.object({
   consent: z.literal(true, { error: "Vous devez accepter d'être recontacté" }),
   attachment: z.object({
     filename: z.string().min(1).max(180),
-    contentType: z.string().min(1).max(120),
+    contentType: z.enum(["application/pdf", "image/jpeg", "image/png"]),
     base64: z.string().max(7_000_000),
   }).optional(),
 });
@@ -64,9 +64,14 @@ contactRouter.post(
     try {
       // Si un client est connecté, la demande est rattachée à son compte.
       const saved = await saveContact(parsed.data, req.user?.id);
-      await sendContactEmail(saved, parsed.data.attachment);
+      let emailSent = false;
+      try {
+        emailSent = await sendContactEmail(saved, parsed.data.attachment);
+      } catch (emailError) {
+        console.error("[contact] échec d'envoi de l'e-mail", emailError);
+      }
       console.info(`[contact] nouvelle demande ${saved.id} (${saved.trainings.join(", ")})`);
-      res.status(201).json({ ok: true, id: saved.id });
+      res.status(201).json({ ok: true, id: saved.id, emailSent });
     } catch (err) {
       next(err);
     }

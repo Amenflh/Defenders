@@ -38,6 +38,9 @@ export async function submitContact(prev: ContactState, formData: FormData): Pro
     if (attachment.size > 5 * 1024 * 1024) {
       return { status: "error", message: "La pièce jointe ne doit pas dépasser 5 Mo.", attempt: prev.attempt + 1 };
     }
+    if (!["application/pdf", "image/jpeg", "image/png"].includes(attachment.type)) {
+      return { status: "error", message: "La pièce jointe doit être un PDF, JPG/JPEG ou PNG.", attempt: prev.attempt + 1 };
+    }
     const bytes = await attachment.arrayBuffer();
     attachmentPayload = {
       filename: attachment.name,
@@ -91,9 +94,12 @@ export async function submitContact(prev: ContactState, formData: FormData): Pro
     });
 
     if (res.ok) {
+      const data = (await res.json().catch(() => null)) as { emailSent?: boolean } | null;
       return {
         status: "success",
-        message: `Merci ${payload.firstName} ! Votre demande a bien été envoyée. Notre équipe vous recontacte très rapidement.`,
+        message: data?.emailSent
+          ? `Merci ${payload.firstName} ! Votre demande a bien été envoyée. Notre équipe vous recontacte très rapidement.`
+          : `Merci ${payload.firstName} ! Votre demande a été enregistrée. Vous pouvez aussi nous joindre par téléphone si vous souhaitez accélérer le contact.`,
         attempt,
       };
     }

@@ -72,7 +72,7 @@ export function Header() {
           </nav>
 
           <div className="flex shrink-0 items-center gap-2 sm:gap-3">
-            <Link href="/contact" className="btn btn-primary !py-2 !px-2.5 !text-[0.62rem] sm:!py-2.5 sm:!px-3 sm:!text-xs xl:!px-4">
+            <Link href="/contact?popup=1" className="btn btn-primary !py-2 !px-2.5 !text-[0.62rem] sm:!py-2.5 sm:!px-3 sm:!text-xs xl:!px-4">
               <span className="sm:hidden">Inscription</span>
               <span className="hidden sm:inline">Réserver ma place</span>
             </Link>

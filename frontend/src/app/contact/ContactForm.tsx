@@ -54,7 +54,7 @@ export function ContactForm({ preselected }: { preselected?: DisciplineSlug }) {
 
   return (
     // La clé change à chaque envoi : le formulaire est remonté avec les valeurs renvoyées.
-    <form key={state.attempt} action={action} noValidate className="space-y-10">
+    <form key={state.attempt} action={action} noValidate encType="multipart/form-data" className="space-y-10">
       {state.status === "error" && (
         <div ref={statusRef} tabIndex={-1} role="alert" className="border border-red-500/50 bg-red-500/10 px-5 py-4 text-sm text-red-200 outline-none">
           {state.message}

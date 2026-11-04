@@ -98,7 +98,7 @@ export function PlanningBoard({ sessions, initial }: { sessions: Session[]; init
           <p className="text-mist">
             Intéressé par la formation <span className="text-bone">{META[filter].label}</span> ?
           </p>
-          <Link href={`/contact?formation=${filter}`} className="btn btn-primary">
+          <Link href={`/contact?popup=1&formation=${filter}`} className="btn btn-primary">
             Demander une inscription
           </Link>
         </div>
