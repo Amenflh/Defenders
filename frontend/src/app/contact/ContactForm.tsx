@@ -27,13 +27,27 @@ const AVAILABILITIES = [
 
 const initialState: ContactState = { status: "idle", attempt: 0 };
 
-export function ContactForm({ preselected }: { preselected?: DisciplineSlug }) {
+export function ContactForm({
+  preselected,
+  variant = "classic",
+  onSuccess,
+}: {
+  preselected?: DisciplineSlug;
+  variant?: "classic" | "reservation";
+  onSuccess?: (message: string) => void;
+}) {
   const [state, action, pending] = useActionState(submitContact, initialState);
   const statusRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (state.status !== "idle") statusRef.current?.focus();
   }, [state]);
+
+  useEffect(() => {
+    if (variant === "reservation" && state.status === "success") {
+      onSuccess?.(state.message ?? "Votre demande a bien été envoyée.");
+    }
+  }, [onSuccess, state, variant]);
 
   const v = state.status === "error" ? state.values : undefined;
   const val = (k: string) => (typeof v?.[k] === "string" ? (v[k] as string) : "");

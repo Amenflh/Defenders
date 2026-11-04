@@ -100,9 +100,17 @@ const faqs = [
   },
 ];
 
-export default function HomePage() {
+export default async function HomePage({ searchParams }: PageProps<"/">) {
+  const params = await searchParams;
+  const inscriptionSuccess = params.inscription === "success";
+
   return (
     <>
+      {inscriptionSuccess && (
+        <div role="status" className="fixed bottom-5 left-1/2 z-[70] w-[calc(100%-2rem)] max-w-xl -translate-x-1/2 border border-gold bg-ink-2 px-5 py-4 text-center text-sm text-bone shadow-2xl">
+          Votre demande d&apos;inscription a bien été envoyée. Notre équipe vous recontactera prochainement.
+        </div>
+      )}
       {/* ---------------- HÉRO ---------------- */}
       <section className="relative isolate flex min-h-[100svh] items-center overflow-hidden pt-24 pb-16">
         <HeroSlideshow photos={bannerPhotos.slice(0, 6).map((photo) => photo.src)} />
@@ -350,7 +358,7 @@ export default function HomePage() {
             <p className="mt-5 max-w-md text-mist">
               Vous avez besoin d&apos;un renseignement sur votre profil ou une session ? Notre équipe vous répond.
             </p>
-            <Link href="/contact?popup=1" className="btn btn-primary mt-7">
+            <Link href="/contact" className="btn btn-primary mt-7">
               Nous contacter <Icon name="arrow" />
             </Link>
           </Reveal>

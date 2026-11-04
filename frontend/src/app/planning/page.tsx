@@ -40,7 +40,7 @@ export default async function PlanningPage({ searchParams }: PageProps<"/plannin
                 sessions.
               </p>
               <div className="mt-6 flex flex-wrap justify-center gap-4">
-                <Link href="/contact?popup=1" className="btn btn-primary">Nous contacter</Link>
+                <Link href="/contact" className="btn btn-primary">Nous contacter</Link>
                 <a href={site.phone.href} className="btn btn-ghost">{site.phone.label}</a>
               </div>
             </div>
