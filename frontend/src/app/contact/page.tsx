@@ -23,6 +23,8 @@ export default async function ContactPage({ searchParams }: PageProps<"/contact"
     { icon: "phone" as const, label: "Téléphone", value: site.phone.label, href: site.phone.href },
     { icon: "phone" as const, label: "Téléphone 2", value: site.phone2.label, href: site.phone2.href },
     { icon: "mail" as const, label: "E-mail", value: site.email.label, href: site.email.href },
+    { icon: "phone" as const, label: "WhatsApp", value: site.phone2.label, href: site.whatsapp.href, external: true },
+    { icon: "mail" as const, label: "E-mail Security Protection", value: site.securityEmail.label, href: site.securityEmail.href },
     { icon: "facebook" as const, label: "Facebook", value: site.facebook.label, href: site.facebook.href, external: true },
     { icon: "instagram" as const, label: "Instagram", value: site.instagram.label, href: site.instagram.href, external: true },
   ];

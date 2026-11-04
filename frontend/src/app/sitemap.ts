@@ -8,6 +8,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     "/football",
     "/personal-training",
     "/planning",
+    "/securite",
     "/contact",
     "/mentions-legales",
     "/politique-de-confidentialite",

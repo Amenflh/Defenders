@@ -7,6 +7,12 @@ export const site = {
   phone: { label: "+216 92 204 005", href: "tel:+21692204005" },
   phone2: { label: "+216 29 039 493", href: "tel:+21629039493" },
   email: { label: "direction-dsp@outlook.com", href: "mailto:direction-dsp@outlook.com" },
+  securityEmail: { label: "akkari-dsp@outlook.com", href: "mailto:akkari-dsp@outlook.com" },
+  whatsapp: { label: "WhatsApp", href: "https://wa.me/21629039493" },
+  securityFacebook: [
+    { label: "Defenders Security Protection", href: "https://www.facebook.com/100077382387038" },
+    { label: "Defenders Security Protection", href: "https://www.facebook.com/profile.php?id=61556110269629" },
+  ],
   address: {
     lines: ["Avenue Abou Dhabi", "8050 Hammamet, Tunisie"],
     href: "https://www.google.com/maps/search/?api=1&query=Avenue+Abou+Dhabi+Hammamet+8050+Tunisia",
@@ -67,6 +73,7 @@ export const mainNav: NavItem[] = [
   { href: "/", label: "Accueil" },
   { href: "/#formations", label: "Nos formations" },
   { href: "/#galerie", label: "Galerie" },
+  { href: "/securite", label: "Sécurité Protection" },
   { href: "/planning", label: "Planning" },
   { href: "/contact", label: "Contact" },
 ];

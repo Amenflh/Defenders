@@ -24,6 +24,7 @@ Site vitrine professionnel pour les formations Pilates, football et personal tra
 | Personal Training | `/personal-training` |
 | Planning | `/planning` |
 | Contact | `/contact` |
+| Security Protection | `/securite` |
 | Formulaire d'inscription popup | `/contact?popup=1` |
 | Mentions légales | `/mentions-legales` |
 | Confidentialité | `/politique-de-confidentialite` |
