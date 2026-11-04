@@ -1,7 +1,6 @@
 "use server";
 
-import { headers } from "next/headers";
-import { backendUrl } from "@/lib/api";
+import { apiFetch } from "@/lib/session";
 
 export type ContactFields =
   | "firstName"
@@ -53,20 +52,10 @@ export async function submitContact(prev: ContactState, formData: FormData): Pro
   };
   const attempt = prev.attempt + 1;
 
-  // L'API limite le nombre d'envois par IP : on lui transmet l'IP du visiteur,
-  // sinon toutes les demandes sembleraient venir du conteneur frontend.
-  const requestHeaders = await headers();
-  const clientIp =
-    requestHeaders.get("x-forwarded-for")?.split(",")[0]?.trim() || requestHeaders.get("x-real-ip") || "unknown";
-
   try {
-    const res = await fetch(backendUrl("/api/contact"), {
-      method: "POST",
-      headers: { "Content-Type": "application/json", "X-Forwarded-For": clientIp },
-      body: JSON.stringify(payload),
-      cache: "no-store",
-      signal: AbortSignal.timeout(8000),
-    });
+    // apiFetch transmet l'IP du visiteur (rate limit) et le jeton de session :
+    // la demande est ainsi rattachée au compte client connecté.
+    const res = await apiFetch("/api/contact", { method: "POST", body: JSON.stringify(payload) });
 
     if (res.ok) {
       return {

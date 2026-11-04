@@ -27,7 +27,9 @@ const AVAILABILITIES = [
 
 const initialState: ContactState = { status: "idle", attempt: 0 };
 
-export function ContactForm({ preselected }: { preselected?: DisciplineSlug }) {
+export type ContactDefaults = Partial<Record<"firstName" | "lastName" | "email" | "phone", string>>;
+
+export function ContactForm({ preselected, defaults = {} }: { preselected?: DisciplineSlug; defaults?: ContactDefaults }) {
   const [state, action, pending] = useActionState(submitContact, initialState);
   const statusRef = useRef<HTMLDivElement>(null);
 
@@ -36,7 +38,9 @@ export function ContactForm({ preselected }: { preselected?: DisciplineSlug }) {
   }, [state]);
 
   const v = state.status === "error" ? state.values : undefined;
-  const val = (k: string) => (typeof v?.[k] === "string" ? (v[k] as string) : "");
+  // Valeurs renvoyées après une erreur, sinon pré-remplissage avec le compte connecté.
+  const val = (k: string) =>
+    typeof v?.[k] === "string" ? (v[k] as string) : v ? "" : (defaults[k as keyof ContactDefaults] ?? "");
   const err = (k: ContactFields) => state.errors?.[k]?.[0];
   const trainings = v ? (Array.isArray(v.trainings) ? v.trainings : []) : preselected ? [preselected] : [];
 
