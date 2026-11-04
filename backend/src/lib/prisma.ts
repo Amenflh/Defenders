@@ -1,28 +1,23 @@
-import pg from "pg";
+import { PrismaPg } from "@prisma/adapter-pg";
+import { PrismaClient } from "../generated/prisma/client.js";
 import { config } from "../config.js";
 
-export const pool = new pg.Pool({
-  connectionString: config.databaseUrl,
-  max: 10,
-  idleTimeoutMillis: 30_000,
-  connectionTimeoutMillis: 5_000,
+/** Client Prisma unique pour toute l'application (adaptateur PostgreSQL « pg »). */
+export const prisma = new PrismaClient({
+  adapter: new PrismaPg({ connectionString: config.databaseUrl, max: 10, connectionTimeoutMillis: 5_000 }),
 });
 
-pool.on("error", (err) => {
-  // Erreur sur une connexion inactive (ex. redémarrage de PostgreSQL) : on log sans planter.
-  console.error("[db] erreur inattendue du pool :", err.message);
-});
-
-export type DbStatus = { ok: true; latencyMs: number; version: string; database: string } | { ok: false; error: string };
+export type DbStatus =
+  | { ok: true; latencyMs: number; version: string; database: string }
+  | { ok: false; error: string };
 
 /** Vérifie que la base répond (utilisé par /api/health et `npm run db:check`). */
 export async function checkDatabase(): Promise<DbStatus> {
   const start = Date.now();
   try {
-    const { rows } = await pool.query<{ version: string; database: string }>(
-      "SELECT split_part(version(), ' ', 2) AS version, current_database() AS database",
-    );
-    return { ok: true, latencyMs: Date.now() - start, version: rows[0].version, database: rows[0].database };
+    const [row] = await prisma.$queryRaw<{ version: string; database: string }[]>`
+      SELECT split_part(version(), ' ', 2) AS version, current_database() AS database`;
+    return { ok: true, latencyMs: Date.now() - start, version: row.version, database: row.database };
   } catch (err) {
     return { ok: false, error: err instanceof Error ? err.message : String(err) };
   }
