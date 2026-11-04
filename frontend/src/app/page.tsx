@@ -10,6 +10,7 @@ import { site } from "@/lib/site";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { AnimatedAccent } from "@/components/AnimatedAccent";
 import { HeroSlideshow } from "@/components/HeroSlideshow";
+import { BannerMarquee } from "@/components/BannerMarquee";
 
 const domain: StoryItem[] = [
   {
@@ -100,24 +101,17 @@ const faqs = [
   },
 ];
 
-const testimonials = [
-  {
-    discipline: "Formation Pilates",
-    quote: "La formation m'a permis de mieux structurer mes séances et d'adapter les exercices à chaque profil.",
-  },
-  {
-    discipline: "Formation Football",
-    quote: "J'ai apprécié l'équilibre entre les apports théoriques et les mises en pratique sur le terrain.",
-  },
-  {
-    discipline: "Personal Training",
-    quote: "Le parcours m'a aidé à organiser mon accompagnement client avec plus de méthode.",
-  },
-];
+export default async function HomePage({ searchParams }: PageProps<"/">) {
+  const params = await searchParams;
+  const inscriptionSuccess = params.inscription === "success";
 
-export default function HomePage() {
   return (
     <>
+      {inscriptionSuccess && (
+        <div role="status" className="fixed bottom-5 left-1/2 z-[70] w-[calc(100%-2rem)] max-w-xl -translate-x-1/2 border border-gold bg-ink-2 px-5 py-4 text-center text-sm text-bone shadow-2xl">
+          Votre demande d&apos;inscription a bien été envoyée. Notre équipe vous recontactera prochainement.
+        </div>
+      )}
       {/* ---------------- HÉRO ---------------- */}
       <section className="relative isolate flex min-h-[100svh] items-center overflow-hidden pt-24 pb-16">
         <HeroSlideshow photos={bannerPhotos.slice(0, 6).map((photo) => photo.src)} />
@@ -153,7 +147,7 @@ export default function HomePage() {
               <Link href="#formations" className="btn btn-primary">
                 Nos formations <Icon name="arrow" />
               </Link>
-              <Link href="/contact?popup=1" className="btn btn-ghost">
+              <Link href="/contact" className="btn btn-ghost">
                 Demander mon inscription
               </Link>
             </Reveal>
@@ -187,57 +181,15 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ---------------- GALERIE ---------------- */}
-      <section id="galerie" className="py-20 lg:py-24">
-        <div className="container-site">
-          <Reveal className="mb-10 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-            <div>
-              <p className="eyebrow mb-3">Galerie</p>
-              <h2 className="heading-lg">Promotions & certificats</h2>
-            </div>
-            <p className="max-w-sm text-sm leading-relaxed text-mist">
-              La vie de l&apos;académie entre séances, promotions, certificats et moments marquants.
-            </p>
+      {/* ---------------- PROMOTIONS ---------------- */}
+      <section id="galerie" className="border-b border-line bg-ink-2 py-12 lg:py-16" aria-label="Promotions">
+        <div className="container-site mb-8">
+          <Reveal>
+            <p className="eyebrow mb-3">Promotions & certificats</p>
+            <h2 className="heading-lg">Moments marquants de nos formations</h2>
           </Reveal>
-
-          <div className="columns-1 gap-5 sm:columns-2 lg:columns-3">
-            {bannerPhotos.map((photo, index) => (
-              <Reveal key={photo.src.src ?? photo.alt} delay={(index % 5) * 60} className="mb-5 break-inside-avoid">
-                <figure className="group overflow-hidden border border-line bg-ink-2">
-                  <Image
-                    src={photo.src}
-                    alt={photo.alt}
-                    sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
-                    className="h-auto w-full object-contain"
-                  />
-                </figure>
-              </Reveal>
-            ))}
-
-            {[
-              { title: "Une équipe, une formation", src: "/videos/1-Video by defenders_fitness_academy.mp4" },
-              { title: "Pilates Matwork & Reformer", src: "/videos/2-Video by defenders_fitness_academy.mp4" },
-            ].map((video, index) => (
-              <Reveal key={video.src} delay={(index + 2) * 60} className="mb-5 break-inside-avoid">
-                <figure className="overflow-hidden border border-line bg-ink-2">
-                  <video
-                    src={video.src}
-                    autoPlay
-                    loop
-                    muted
-                    playsInline
-                    preload="metadata"
-                    controls
-                    className="h-auto max-h-[620px] w-full bg-black object-contain"
-                  />
-                  <figcaption className="px-5 py-4 font-display text-sm uppercase text-gold-soft">
-                    {video.title}
-                  </figcaption>
-                </figure>
-              </Reveal>
-            ))}
-          </div>
         </div>
+        <BannerMarquee photos={bannerPhotos} duration={70} />
       </section>
 
       {/* ---------------- DOMAINE D'ACTIVITÉ (scroll) ---------------- */}
@@ -254,6 +206,40 @@ export default function HomePage() {
             </p>
           </Reveal>
           <ScrollStory items={domain} />
+        </div>
+      </section>
+
+      {/* ---------------- VIDÉOS ---------------- */}
+      <section className="border-b border-line bg-ink py-20 lg:py-24" aria-label="Vidéos de l'académie">
+        <div className="container-site">
+          <Reveal className="mb-10 max-w-2xl">
+            <p className="eyebrow mb-3">Vidéos</p>
+            <h2 className="heading-lg">Au cœur de nos formations</h2>
+          </Reveal>
+          <div className="grid gap-6 md:grid-cols-2">
+            {[
+              { title: "Une équipe, une formation", src: "/videos/1-Video by defenders_fitness_academy.mp4" },
+              { title: "Pilates Matwork & Reformer", src: "/videos/2-Video by defenders_fitness_academy.mp4" },
+            ].map((video, index) => (
+              <Reveal key={video.src} delay={index * 120}>
+                <figure className="overflow-hidden border border-line bg-ink-2">
+                  <video
+                    src={video.src}
+                    autoPlay
+                    loop
+                    muted
+                    playsInline
+                    preload="metadata"
+                    controls
+                    className="aspect-video w-full bg-black object-cover"
+                  />
+                  <figcaption className="px-5 py-4 font-display text-sm uppercase text-gold-soft">
+                    {video.title}
+                  </figcaption>
+                </figure>
+              </Reveal>
+            ))}
+          </div>
         </div>
       </section>
 
@@ -338,7 +324,7 @@ export default function HomePage() {
             <p className="eyebrow mb-3">Témoignages</p>
             <h2 className="heading-lg">Leurs expériences de formation</h2>
             <p className="mt-5 max-w-2xl border-l-2 border-gold pl-4 text-sm leading-relaxed text-mist">
-              Exemples fictifs pour la maquette. Ils seront remplacés par des avis réels, publiés avec l&apos;accord des stagiaires.
+              Les retours de nos stagiaires seront publiés ici avec leur accord.
             </p>
           </Reveal>
           <Reveal delay={120} className="border-t border-gold pt-6 lg:border-t-0 lg:border-l lg:pt-0 lg:pl-8">
@@ -349,14 +335,10 @@ export default function HomePage() {
             </a>
           </Reveal>
         </div>
-        <div className="container-site mt-10 grid gap-4 md:grid-cols-3">
-          {testimonials.map((testimonial) => (
-            <article key={testimonial.discipline} className="flex min-h-48 flex-col border border-line bg-ink-2 p-6">
-              <p className="eyebrow text-[0.65rem]">Exemple fictif</p>
-              <p className="mt-4 flex-1 leading-relaxed text-bone">&ldquo;{testimonial.quote}&rdquo;</p>
-              <p className="mt-5 border-t border-line pt-4 font-display text-sm uppercase text-gold-soft">{testimonial.discipline}</p>
-            </article>
-          ))}
+        <div className="container-site mt-10">
+          <p className="border border-line bg-ink-2 px-6 py-8 text-center text-sm text-mist">
+            Témoignages vérifiés à venir.
+          </p>
         </div>
       </section>
 

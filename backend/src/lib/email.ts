@@ -8,10 +8,10 @@ type AttachmentPayload = {
   base64: string;
 };
 
-export async function sendContactEmail(contact: Contact, attachment?: AttachmentPayload): Promise<void> {
+export async function sendContactEmail(contact: Contact, attachment?: AttachmentPayload): Promise<boolean> {
   if (!config.smtp.user || !config.smtp.pass || !config.smtp.contactTo) {
     console.warn("[contact] SMTP non configuré : demande enregistrée, aucun e-mail envoyé");
-    return;
+    return false;
   }
 
   const transporter = nodemailer.createTransport({
@@ -49,4 +49,5 @@ export async function sendContactEmail(contact: Contact, attachment?: Attachment
       contentType: attachment.contentType,
     }] : [],
   });
+  return true;
 }

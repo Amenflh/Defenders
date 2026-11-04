@@ -27,13 +27,27 @@ const AVAILABILITIES = [
 
 const initialState: ContactState = { status: "idle", attempt: 0 };
 
-export function ContactForm({ preselected }: { preselected?: DisciplineSlug }) {
+export function ContactForm({
+  preselected,
+  variant = "classic",
+  onSuccess,
+}: {
+  preselected?: DisciplineSlug;
+  variant?: "classic" | "reservation";
+  onSuccess?: (message: string) => void;
+}) {
   const [state, action, pending] = useActionState(submitContact, initialState);
   const statusRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (state.status !== "idle") statusRef.current?.focus();
   }, [state]);
+
+  useEffect(() => {
+    if (variant === "reservation" && state.status === "success") {
+      onSuccess?.(state.message ?? "Votre demande a bien été envoyée.");
+    }
+  }, [onSuccess, state, variant]);
 
   const v = state.status === "error" ? state.values : undefined;
   const val = (k: string) => (typeof v?.[k] === "string" ? (v[k] as string) : "");
@@ -54,7 +68,7 @@ export function ContactForm({ preselected }: { preselected?: DisciplineSlug }) {
 
   return (
     // La clé change à chaque envoi : le formulaire est remonté avec les valeurs renvoyées.
-    <form key={state.attempt} action={action} noValidate className="space-y-10">
+    <form key={state.attempt} action={action} noValidate encType="multipart/form-data" className="space-y-10">
       {state.status === "error" && (
         <div ref={statusRef} tabIndex={-1} role="alert" className="border border-red-500/50 bg-red-500/10 px-5 py-4 text-sm text-red-200 outline-none">
           {state.message}
