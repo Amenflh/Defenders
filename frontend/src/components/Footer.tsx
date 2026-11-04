@@ -1,5 +1,8 @@
+"use client";
+
 import Link from "next/link";
 import Image from "next/image";
+import { usePathname } from "next/navigation";
 import { disciplineList } from "@/lib/disciplines";
 import { mainNav, site } from "@/lib/site";
 import { Icon } from "./Icon";
@@ -7,9 +10,11 @@ import { Logo } from "./Logo";
 import { HoverCard, HoverCardContent, HoverCardTrigger } from "./ui/hover-card";
 
 export function Footer() {
+  const pathname = usePathname();
+
   return (
     <footer className="border-t border-line bg-ink-2">
-      <section className="border-b border-line bg-ink py-7" aria-label="Partenaires">
+      {pathname === "/" && <section className="border-b border-line bg-ink py-7" aria-label="Partenaires">
         <div className="container-site flex flex-wrap items-center justify-center gap-4 sm:justify-between sm:gap-6">
           {[
             { name: "RITEJ", href: site.partners.employment[0].href, logo: "/pics/partners/RITEJ.jpg", description: "Partenaire emploi et accompagnement professionnel." },
@@ -37,7 +42,7 @@ export function Footer() {
             </HoverCard>
           ))}
         </div>
-      </section>
+      </section>}
       <div className="container-site grid gap-12 py-16 md:grid-cols-2 lg:grid-cols-[1.4fr_1fr_1fr_1.3fr]">
         <div className="space-y-5">
           <Logo />

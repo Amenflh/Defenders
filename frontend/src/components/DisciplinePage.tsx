@@ -40,7 +40,7 @@ export function DisciplinePage({ d }: { d: Discipline }) {
               </dl>
             </Reveal>
             <Reveal delay={320} className="mt-10 flex flex-wrap gap-4">
-              <Link href={`/contact?popup=1&formation=${d.slug}`} className="btn btn-primary">
+              <Link href={`/contact?formation=${d.slug}`} className="btn btn-primary">
                 S&apos;inscrire <Icon name="arrow" />
               </Link>
               <Link href={`/planning?discipline=${d.slug}`} className="btn btn-ghost">
@@ -155,7 +155,7 @@ export function DisciplinePage({ d }: { d: Discipline }) {
         <div className="container-site">
           <Reveal className="mb-10 flex flex-wrap items-end justify-between gap-6">
             <h2 className="heading-lg">Découvrez aussi</h2>
-            <Link href={`/contact?popup=1&formation=${d.slug}`} className="btn btn-primary">
+            <Link href={`/contact?formation=${d.slug}`} className="btn btn-primary">
               Demander une inscription <Icon name="arrow" />
             </Link>
           </Reveal>

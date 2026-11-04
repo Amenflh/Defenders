@@ -91,7 +91,7 @@ export function Sidebar({ open, onClose, pathname }: Props) {
           <a href={site.address.href} target="_blank" rel="noreferrer" className="flex items-center gap-3 text-mist hover:text-bone">
             <Icon name="pin" className="text-gold" /> {site.address.lines.join(", ")}
           </a>
-          <Link href="/contact?popup=1" onClick={onClose} className="btn btn-primary mt-2 w-full">
+          <Link href="/contact" onClick={onClose} className="btn btn-primary mt-2 w-full">
             Réserver ma place <Icon name="arrow" />
           </Link>
         </div>
