@@ -31,6 +31,21 @@ export async function submitContact(prev: ContactState, formData: FormData): Pro
     return typeof v === "string" ? v : "";
   };
 
+  const attachment = formData.get("attachment");
+  let attachmentPayload: { filename: string; contentType: string; base64: string } | undefined;
+
+  if (typeof attachment === "object" && attachment instanceof File && attachment.size > 0) {
+    if (attachment.size > 5 * 1024 * 1024) {
+      return { status: "error", message: "La pièce jointe ne doit pas dépasser 5 Mo.", attempt: prev.attempt + 1 };
+    }
+    const bytes = await attachment.arrayBuffer();
+    attachmentPayload = {
+      filename: attachment.name,
+      contentType: attachment.type || "application/octet-stream",
+      base64: Buffer.from(bytes).toString("base64"),
+    };
+  }
+
   const payload = {
     firstName: str("firstName"),
     lastName: str("lastName"),
@@ -43,10 +58,17 @@ export async function submitContact(prev: ContactState, formData: FormData): Pro
     message: str("message"),
     consent: formData.get("consent") === "on",
     website: str("website"),
+    attachment: attachmentPayload,
   };
 
   const values = {
-    ...payload,
+    firstName: payload.firstName,
+    lastName: payload.lastName,
+    email: payload.email,
+    phone: payload.phone,
+    city: payload.city,
+    trainings: payload.trainings,
+    message: payload.message,
     profile: payload.profile ?? "",
     availability: payload.availability ?? "",
     consent: payload.consent ? "on" : "",

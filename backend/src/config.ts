@@ -34,4 +34,12 @@ export const config = {
     password: process.env.ADMIN_PASSWORD,
     name: process.env.ADMIN_NAME ?? "Administrateur",
   },
+  smtp: {
+    host: process.env.SMTP_HOST ?? "smtp.gmail.com",
+    port: toInt(process.env.SMTP_PORT, 587),
+    secure: process.env.SMTP_SECURE === "true",
+    user: process.env.SMTP_USER,
+    pass: process.env.SMTP_PASS,
+    contactTo: process.env.CONTACT_TO ?? "",
+  },
 } as const;

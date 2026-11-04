@@ -10,7 +10,7 @@ export function Logo({ compact = false }: { compact?: boolean }) {
         alt=""
         width={44}
         height={44}
-        className="size-11 rounded-full ring-1 ring-white/15 transition-transform duration-500 group-hover:rotate-[360deg]"
+        className={`${compact ? "size-10" : "size-10 sm:size-11"} rounded-full ring-1 ring-white/15 transition-transform duration-500 group-hover:rotate-[360deg]`}
       />
       {!compact && (
         <span className="leading-none">

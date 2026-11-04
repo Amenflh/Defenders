@@ -4,6 +4,7 @@ import { z } from "zod";
 import { DISCIPLINES } from "../data/disciplines.js";
 import { saveContact } from "../lib/contacts.js";
 import { optionalAuth } from "../lib/auth.js";
+import { sendContactEmail } from "../lib/email.js";
 
 export const PROFILES = ["coach-pro", "jeune-diplome", "etudiant", "reconversion"] as const;
 export const AVAILABILITIES = ["semaine", "week-end", "soir", "intensif"] as const;
@@ -32,6 +33,11 @@ export const contactSchema = z.object({
   availability: z.enum(AVAILABILITIES, { error: "Veuillez choisir une disponibilité" }),
   message: z.string().trim().max(2000, "Message trop long (2000 caractères max)").optional().default(""),
   consent: z.literal(true, { error: "Vous devez accepter d'être recontacté" }),
+  attachment: z.object({
+    filename: z.string().min(1).max(180),
+    contentType: z.string().min(1).max(120),
+    base64: z.string().max(7_000_000),
+  }).optional(),
 });
 
 export type ContactInput = z.infer<typeof contactSchema>;
@@ -58,6 +64,7 @@ contactRouter.post(
     try {
       // Si un client est connecté, la demande est rattachée à son compte.
       const saved = await saveContact(parsed.data, req.user?.id);
+      await sendContactEmail(saved, parsed.data.attachment);
       console.info(`[contact] nouvelle demande ${saved.id} (${saved.trainings.join(", ")})`);
       res.status(201).json({ ok: true, id: saved.id });
     } catch (err) {

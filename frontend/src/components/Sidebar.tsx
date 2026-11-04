@@ -92,7 +92,7 @@ export function Sidebar({ open, onClose, pathname }: Props) {
             <Icon name="pin" className="text-gold" /> {site.address.lines.join(", ")}
           </a>
           <Link href="/contact" onClick={onClose} className="btn btn-primary mt-2 w-full">
-            Demander une inscription <Icon name="arrow" />
+            Réserver ma place <Icon name="arrow" />
           </Link>
         </div>
       </aside>

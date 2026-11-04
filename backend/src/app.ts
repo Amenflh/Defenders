@@ -17,7 +17,7 @@ export function createApp() {
   app.set("trust proxy", 1);
   app.use(helmet());
   app.use(cors({ origin: config.corsOrigins }));
-  app.use(express.json({ limit: "20kb" }));
+  app.use(express.json({ limit: "6mb" }));
 
   app.use("/api/health", healthRouter);
   app.use("/api/planning", planningRouter);
