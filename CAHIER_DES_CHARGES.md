@@ -285,3 +285,138 @@ Prévoir l'accès aux demandes enregistrées :
 - La page classique reste disponible.
 - Les demandes sont enregistrées et envoyées par e-mail.
 - Le dépôt ne contient aucun mot de passe ou secret SMTP.
+
+## 13. Issues et éléments restant à finaliser
+
+### Priorité 1 - Bloquants
+
+#### IS-001 - Configurer l'envoi Gmail SMTP
+
+- Ajouter l'adresse Gmail dans `SMTP_USER`.
+- Ajouter un mot de passe d'application Gmail dans `SMTP_PASS`.
+- Vérifier `CONTACT_TO=ahannachi193@gmail.com`.
+- Ne jamais utiliser ni enregistrer le mot de passe Google principal.
+- Tester un envoi réel depuis la popup et depuis la page classique.
+
+#### IS-002 - Ajouter les valeurs réelles des chiffres
+
+Remplacer les valeurs provisoires :
+
+- 3 disciplines.
+- 2 vidéos.
+- 7+ promotions.
+- 5904+ abonnés Facebook.
+
+Les chiffres doivent être confirmés officiellement par Defenders Academy avant publication.
+
+#### IS-003 - Finaliser les logos partenaires
+
+Les logos actuels peuvent ne pas être des logos officiels.
+
+À confirmer et remplacer si nécessaire :
+
+- RITEJ Company for Recruitment.
+- Bayrak El Arab.
+- Tunisian Security Academy.
+- Sunset Studio Pilates.
+
+#### IS-004 - Vérifier la mise en production Docker
+
+- Reconstruire le frontend après chaque modification.
+- Reconstruire le backend après chaque modification.
+- Vérifier que `localhost:3001` affiche la dernière build.
+- Vider le cache du navigateur ou rafraîchir avec `Ctrl+F5` lors des tests visuels.
+- Vérifier que les deux branches locale et distante sont synchronisées.
+
+### Priorité 2 - Éléments importants
+
+#### IS-005 - Corriger définitivement l'affichage de la galerie
+
+- Vérifier la galerie en largeur desktop, tablette et mobile.
+- Conserver les dimensions naturelles des photos.
+- Éliminer les grands espaces verticaux.
+- Contrôler la mosaïque avec les formats portrait, paysage et carré.
+- Vérifier que les vidéos suivent la même logique sans écraser les photos.
+- Mélanger les images et les vidéos conformément aux demandes finales.
+
+#### IS-006 - Vérifier les images promotions et certificats
+
+- Valider les images publiques utilisées dans la galerie.
+- Vérifier les droits et la présence éventuelle de données personnelles.
+- Ajouter uniquement les promotions approuvées.
+- Retirer toute image obsolète ou non validée.
+- Préparer les formats WebP pour les futures optimisations si nécessaire.
+
+#### IS-007 - Vérifier les vidéos promotionnelles
+
+- Vérifier que les deux vidéos sont en lecture automatique, en boucle et sans son.
+- Vérifier la compatibilité mobile et le mode plein écran.
+- Ajouter les contrôles uniquement si le client les souhaite.
+- Vérifier la taille et les formats MP4 pour éviter un chargement trop lourd.
+- Prévoir une affiche `poster` pour chaque vidéo si nécessaire.
+
+#### IS-008 - Finaliser le bandeau partenaires
+
+- Garder le fond noir.
+- Garder les logos circulaires.
+- Afficher les informations au survol.
+- Vérifier le comportement tactile sur mobile.
+- Éviter tout texte ou titre parasite autour des logos.
+- Ajouter les liens Facebook ou Instagram officiels.
+
+#### IS-009 - Vérifier tous les boutons d'inscription
+
+Tester que chaque bouton ouvre la bonne destination :
+
+- Popup `/contact?popup=1`.
+- Page classique `/contact`.
+- Formation pré-sélectionnée dans `/contact?popup=1&formation=pilates`.
+- Formation pré-sélectionnée dans `/contact?popup=1&formation=football`.
+- Formation pré-sélectionnée dans `/contact?popup=1&formation=personal-training`.
+
+### Priorité 3 - Améliorations
+
+#### IS-010 - Finaliser l'administration des demandes
+
+- Vérifier l'accès administrateur.
+- Ajouter ou améliorer les filtres par statut et formation.
+- Ajouter les détails complets de chaque demande.
+- Vérifier la gestion des pièces jointes si elles sont activées.
+- Ajouter les statuts contacté, inscrit ou archivé.
+- Exporter éventuellement les demandes en CSV.
+
+#### IS-011 - Ajouter les métadonnées SEO
+
+- Ajouter les balises Open Graph pour Facebook.
+- Ajouter les balises Twitter/X.
+- Ajouter les descriptions et titres spécifiques.
+- Ajouter les images de partage.
+- Ajouter les données structurées de l'organisation si nécessaires.
+
+#### IS-012 - Vérifier l'accessibilité
+
+- Vérifier le contraste des textes.
+- Vérifier les tailles de zones cliquables.
+- Vérifier le focus clavier.
+- Vérifier les labels des formulaires.
+- Vérifier les messages d'erreur et la navigation dans les dialogues.
+- Vérifier le lecteur d'écran.
+- Garder une alternative lisible lorsque les animations sont désactivées.
+
+#### IS-013 - Mesurer les performances
+
+- Mesurer le chargement du héros et de la galerie.
+- Vérifier la taille des vidéos.
+- Vérifier le cache Next.js.
+- Vérifier les images `next/image`.
+- Mesurer le score Lighthouse.
+- Réduire les transitions inutiles sur mobile.
+
+#### IS-014 - Préparer la production
+
+- Réserver ou confirmer le nom de domaine.
+- Configurer le certificat HTTPS.
+- Configurer les variables SMTP en production.
+- Configurer les sauvegardes PostgreSQL.
+- Vérifier les limites de stockage et de pièces jointes.
+- Vérifier les redirections de domaine et les URL canonicals.
