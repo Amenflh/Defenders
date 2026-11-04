@@ -8,7 +8,9 @@ import { Icon } from "./Icon";
 import { Logo } from "./Logo";
 import { Sidebar } from "./Sidebar";
 
-export function Header() {
+export type HeaderUser = { name: string; email: string; role: "admin" | "client" };
+
+export function Header({ user }: { user: HeaderUser | null }) {
   const pathname = usePathname();
   const [scrolled, setScrolled] = useState(false);
   const [progress, setProgress] = useState(0);
@@ -33,7 +35,7 @@ export function Header() {
       </a>
       <header
         className={`fixed inset-x-0 top-0 z-40 transition-[background-color,border-color,backdrop-filter] duration-500 ${
-          scrolled ? "border-b border-line bg-ink/85 backdrop-blur-md" : "border-b border-transparent bg-transparent"
+          scrolled ? "border-b border-line bg-ink-2/95 shadow-lg shadow-black/30 backdrop-blur-md" : "border-b border-line/70 bg-ink-2/80 backdrop-blur-md"
         }`}
       >
         <div className="container-site flex h-18 items-center justify-between gap-6">
@@ -61,9 +63,23 @@ export function Header() {
           </nav>
 
           <div className="flex items-center gap-3">
-            <Link href="/contact" className="btn btn-primary hidden !py-2.5 !px-4 !text-xs sm:inline-flex">
-              S&apos;inscrire
-            </Link>
+            {user?.role !== "admin" && (
+              <Link href="/contact" className="btn btn-primary hidden !py-2.5 !px-4 !text-xs sm:inline-flex">
+                S&apos;inscrire
+              </Link>
+            )}
+            {user && (
+              <Link
+                href={user.role === "admin" ? "/admin" : "/mon-espace"}
+                title={user.role === "admin" ? "Espace admin" : "Mon espace"}
+                className="hidden items-center gap-2.5 rounded-full border border-white/20 py-1 pr-4 pl-1 transition-colors hover:border-gold md:flex"
+              >
+                <span className="grid size-8 place-items-center rounded-full bg-gold font-display text-sm text-ink uppercase">
+                  {user.name.trim().charAt(0)}
+                </span>
+                <span className="max-w-32 truncate text-sm">{user.role === "admin" ? "Admin" : user.name.split(" ")[0]}</span>
+              </Link>
+            )}
             <button
               onClick={() => setMenuOpen(true)}
               className="grid size-11 place-items-center rounded-full border border-white/20 transition-colors hover:border-bone"
@@ -78,7 +94,7 @@ export function Header() {
         <div className="h-px origin-left bg-gold" style={{ transform: `scaleX(${progress})` }} aria-hidden="true" />
       </header>
 
-      <Sidebar open={menuOpen} onClose={closeMenu} pathname={pathname} />
+      <Sidebar open={menuOpen} onClose={closeMenu} pathname={pathname} user={user} />
     </>
   );
 }

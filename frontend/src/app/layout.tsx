@@ -1,7 +1,5 @@
 import type { Metadata, Viewport } from "next";
 import { Inter, Oswald } from "next/font/google";
-import { Header } from "@/components/Header";
-import { Footer } from "@/components/Footer";
 import { site } from "@/lib/site";
 import "./globals.css";
 
@@ -25,11 +23,11 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html lang="fr" className={`${inter.variable} ${oswald.variable} antialiased`}>
       <body className="flex min-h-dvh flex-col font-sans">
-        <Header />
-        <main id="contenu" className="flex-1">
-          {children}
-        </main>
-        <Footer />
+        {/* Sans JavaScript, les animations d'apparition ne doivent jamais masquer le contenu. */}
+        <noscript>
+          <style>{`[data-reveal]{opacity:1!important;transform:none!important}`}</style>
+        </noscript>
+        {children}
       </body>
     </html>
   );
