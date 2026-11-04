@@ -1,13 +1,16 @@
-import express, { type ErrorRequestHandler } from "express";
+import express from "express";
 import cors from "cors";
 import helmet from "helmet";
 import { config } from "./config.js";
-import { healthRouter } from "./routes/health.js";
-import { planningRouter } from "./routes/planning.js";
-import { contactRouter } from "./routes/contact.js";
-import { authRouter } from "./routes/auth.js";
-import { adminRouter } from "./routes/admin.js";
-import { meRouter } from "./routes/me.js";
+import { errorHandler, notFoundHandler } from "./middlewares/error.js";
+import { authRoutes } from "./modules/auth/auth.routes.js";
+import { healthRoutes } from "./modules/health/health.routes.js";
+import { planningRoutes } from "./modules/planning/planning.routes.js";
+import {
+  adminRegistrationRoutes,
+  myRegistrationRoutes,
+  publicRegistrationRoutes,
+} from "./modules/registrations/registrations.routes.js";
 
 export function createApp() {
   const app = express();
@@ -19,26 +22,16 @@ export function createApp() {
   app.use(cors({ origin: config.corsOrigins }));
   app.use(express.json({ limit: "20kb" }));
 
-  app.use("/api/health", healthRouter);
-  app.use("/api/planning", planningRouter);
-  app.use("/api/contact", contactRouter);
-  app.use("/api/auth", authRouter);
-  app.use("/api/admin", adminRouter);
-  app.use("/api/me", meRouter);
+  // Routes par module (une responsabilité par dossier : routes → contrôleur → service → Prisma)
+  app.use("/api/health", healthRoutes);
+  app.use("/api/planning", planningRoutes);
+  app.use("/api/auth", authRoutes);
+  app.use("/api/contact", publicRegistrationRoutes);
+  app.use("/api/admin/contacts", adminRegistrationRoutes);
+  app.use("/api/me/inscriptions", myRegistrationRoutes);
 
-  app.use((_req, res) => {
-    res.status(404).json({ error: "Ressource introuvable" });
-  });
-
-  const onError: ErrorRequestHandler = (err, _req, res, _next) => {
-    if (err?.type === "entity.parse.failed") {
-      res.status(400).json({ error: "JSON invalide" });
-      return;
-    }
-    console.error(err);
-    res.status(500).json({ error: "Erreur interne du serveur" });
-  };
-  app.use(onError);
+  app.use(notFoundHandler);
+  app.use(errorHandler);
 
   return app;
 }

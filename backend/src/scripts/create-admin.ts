@@ -2,9 +2,8 @@
  * Crée un admin (ou réinitialise son mot de passe / le promeut admin s'il existe déjà).
  * Usage : npm run admin:create -- <email> <motdepasse> [nom]
  */
-import { upsertAdmin } from "../lib/auth.js";
-import { runMigrations } from "../db/migrations.js";
-import { pool } from "../db/pool.js";
+import { prisma } from "../lib/prisma.js";
+import { upsertAdmin } from "../modules/auth/auth.service.js";
 
 const [email, password, ...nameParts] = process.argv.slice(2);
 
@@ -17,7 +16,9 @@ if (password.length < 10) {
   process.exit(1);
 }
 
-await runMigrations();
-const admin = await upsertAdmin(email, password, nameParts.join(" ") || "Administrateur");
-console.log(`✅ Admin prêt : ${admin.email} (id ${admin.id})`);
-await pool.end();
+try {
+  const admin = await upsertAdmin(email, password, nameParts.join(" ") || "Administrateur");
+  console.log(`✅ Admin prêt : ${admin.email} (id ${admin.id})`);
+} finally {
+  await prisma.$disconnect();
+}
