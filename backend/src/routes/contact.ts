@@ -2,7 +2,8 @@ import { Router } from "express";
 import rateLimit from "express-rate-limit";
 import { z } from "zod";
 import { DISCIPLINES } from "../data/disciplines.js";
-import { saveContact } from "../lib/contactStore.js";
+import { saveContact } from "../lib/contacts.js";
+import { optionalAuth } from "../lib/auth.js";
 
 export const PROFILES = ["coach-pro", "jeune-diplome", "etudiant", "reconversion"] as const;
 export const AVAILABILITIES = ["semaine", "week-end", "soir", "intensif"] as const;
@@ -40,6 +41,7 @@ export const contactRouter = Router();
 contactRouter.post(
   "/",
   rateLimit({ windowMs: 15 * 60 * 1000, limit: 10, standardHeaders: "draft-8", legacyHeaders: false }),
+  optionalAuth,
   async (req, res, next) => {
     // Champ piège anti-spam : un humain ne le remplit jamais.
     if (typeof req.body?.website === "string" && req.body.website.trim() !== "") {
@@ -54,7 +56,8 @@ contactRouter.post(
     }
 
     try {
-      const saved = await saveContact(parsed.data);
+      // Si un client est connecté, la demande est rattachée à son compte.
+      const saved = await saveContact(parsed.data, req.user?.id);
       console.info(`[contact] nouvelle demande ${saved.id} (${saved.trainings.join(", ")})`);
       res.status(201).json({ ok: true, id: saved.id });
     } catch (err) {
