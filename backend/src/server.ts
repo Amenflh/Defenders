@@ -1,13 +1,13 @@
 import { createApp } from "./app.js";
 import { config } from "./config.js";
-import { runMigrations } from "./db/migrations.js";
-import { pool, waitForDatabase } from "./db/pool.js";
-import { seedAdmin } from "./lib/auth.js";
+import { ensureSeedData } from "./db/seed.js";
+import { prisma, waitForDatabase } from "./lib/prisma.js";
 
+// Les migrations sont appliquées avant le démarrage : `prisma migrate deploy`
+// (automatique dans Docker, `npm run db:migrate` en local).
 async function main() {
   await waitForDatabase();
-  await runMigrations();
-  await seedAdmin();
+  await ensureSeedData();
 
   const server = createApp().listen(config.port, config.host, () => {
     console.info(`API Defenders prête sur http://${config.host}:${config.port}`);
@@ -17,7 +17,7 @@ async function main() {
     process.on(signal, () => {
       console.info(`${signal} reçu, arrêt du serveur…`);
       server.close(() => {
-        void pool.end().finally(() => process.exit(0));
+        void prisma.$disconnect().finally(() => process.exit(0));
       });
     });
   }

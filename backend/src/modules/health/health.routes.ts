@@ -1,9 +1,10 @@
 import { Router } from "express";
-import { checkDatabase } from "../db/pool.js";
+import { checkDatabase } from "../../lib/prisma.js";
 
-export const healthRouter = Router();
+/** /api/health — état du service et de la base (issue #27). */
+export const healthRoutes = Router();
 
-healthRouter.get("/", async (_req, res) => {
+healthRoutes.get("/", async (_req, res) => {
   const db = await checkDatabase();
   res.status(db.ok ? 200 : 503).json({
     status: db.ok ? "ok" : "degraded",
