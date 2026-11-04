@@ -1,13 +1,15 @@
 import Image from "next/image";
 import Link from "next/link";
-import { BannerMarquee, KeywordTicker } from "@/components/BannerMarquee";
 import { Icon } from "@/components/Icon";
 import { Reveal } from "@/components/Reveal";
 import { RotatingWord } from "@/components/RotatingWord";
 import { ScrollStory, type StoryItem } from "@/components/ScrollStory";
 import { disciplineList } from "@/lib/disciplines";
-import { bannerPhotos, brand } from "@/lib/images";
+import { bannerPhotos } from "@/lib/images";
 import { site } from "@/lib/site";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import { AnimatedAccent } from "@/components/AnimatedAccent";
+import { HeroSlideshow } from "@/components/HeroSlideshow";
 
 const domain: StoryItem[] = [
   {
@@ -53,19 +55,64 @@ const domain: StoryItem[] = [
     title: "Une certification qui ouvre des portes",
     body: (
       <p>
-        Centre de formation certifié ({site.approval}), nous délivrons des certificats à l&apos;issue de chaque parcours et
-        accompagnons nos diplômés vers l&apos;emploi, notamment à l&apos;international grâce à notre partenaire RITEJ.
+        Centre de formation certifié ({site.approval}), nous combinons apprentissages théoriques, pratique et évaluation
+        pour préparer chaque stagiaire à transmettre ses compétences sur le terrain.
       </p>
     ),
-    points: ["Certificats délivrés en fin de parcours", "Évaluations théoriques et pratiques", "Réseau de partenaires employeurs", "Opportunités de contrats à l'étranger"],
+    points: ["Évaluations théoriques et pratiques", "Certificat en fin de parcours", "Accompagnement vers l'emploi", "Réseau de partenaires professionnels"],
   },
 ];
 
 const steps = [
-  { title: "Prise de contact", text: "Remplissez le formulaire ou appelez-nous : nous répondons à toutes vos questions." },
-  { title: "Orientation", text: "Selon votre profil, nous vous conseillons la formation et la session adaptées." },
-  { title: "Formation intensive", text: "Théorie, pratique et mises en situation avec nos formateurs experts." },
-  { title: "Certification", text: "Évaluation finale, remise du certificat et accompagnement vers l'emploi." },
+  { title: "Orientation", text: "L'équipe vous aide à choisir une discipline et une session adaptées à votre profil." },
+  { title: "Formation", text: "Un parcours intensif qui associe notions théoriques, pratique et mises en situation." },
+  { title: "Évaluation", text: "Chaque parcours se termine par une évaluation théorique et pratique." },
+];
+
+const faqs = [
+  {
+    question: "À qui s'adressent les formations ?",
+    answer: "Aux coachs qui souhaitent se spécialiser et aux jeunes diplômés en sciences du sport qui veulent développer des compétences pratiques. Contactez l'équipe pour vérifier les prérequis d'une session.",
+  },
+  {
+    question: "Que comprend la formation Pilates ?",
+    answer: "Les publications de l'académie présentent un parcours Matwork et Reformer, Level 1 & 2, sur 40 heures et 6 jours, avec anatomie, posture, pratique et support pédagogique. Les détails varient selon la session.",
+  },
+  {
+    question: "Quelles spécialités football sont proposées ?",
+    answer: "Les spécialités présentées par l'académie comprennent l'entraînement de football, la préparation physique, l'entraînement des gardiens et la direction technique ou sportive.",
+  },
+  {
+    question: "Une certification est-elle délivrée ?",
+    answer: `Les parcours comprennent une évaluation théorique et pratique, avec certificat en fin de formation (${site.approval}).`,
+  },
+  {
+    question: "Où ont lieu les sessions ?",
+    answer: "L'adresse de l'académie est à Hammamet. Le lieu de formation dépend de la session ; certaines annonces indiquent Nabeul ou Sunset Studio à Lac 1. Consultez le planning ou contactez l'équipe pour confirmer le lieu exact.",
+  },
+  {
+    question: "Les services de recrutement à l'étranger sont-ils payants ?",
+    answer: "Bayrak El Arab annonce des services gratuits pour les entretiens, les contrats et l'accompagnement. Les offres et recrutements dépendent du profil ; aucun emploi n'est garanti.",
+  },
+  {
+    question: "Comment connaître les tarifs et les prochaines dates ?",
+    answer: "Les tarifs et les places disponibles ne sont pas publiés de façon constante. Consultez le planning et contactez l'académie pour les informations à jour.",
+  },
+];
+
+const testimonials = [
+  {
+    discipline: "Formation Pilates",
+    quote: "La formation m'a permis de mieux structurer mes séances et d'adapter les exercices à chaque profil.",
+  },
+  {
+    discipline: "Formation Football",
+    quote: "J'ai apprécié l'équilibre entre les apports théoriques et les mises en pratique sur le terrain.",
+  },
+  {
+    discipline: "Personal Training",
+    quote: "Le parcours m'a aidé à organiser mon accompagnement client avec plus de méthode.",
+  },
 ];
 
 export default function HomePage() {
@@ -73,20 +120,12 @@ export default function HomePage() {
     <>
       {/* ---------------- HÉRO ---------------- */}
       <section className="relative isolate flex min-h-[100svh] items-center overflow-hidden pt-24 pb-16">
-        <Image
-          src={bannerPhotos[4].src}
-          alt=""
-          fill
-          preload
-          placeholder="blur"
-          sizes="100vw"
-          className="-z-20 object-cover opacity-30 grayscale"
-        />
-        <div className="absolute inset-0 -z-10 bg-[radial-gradient(ellipse_at_top_right,transparent_0%,var(--color-ink)_70%)]" />
+        <HeroSlideshow photos={bannerPhotos.slice(0, 6).map((photo) => photo.src)} />
+        <div className="absolute inset-0 -z-10 bg-[radial-gradient(ellipse_at_top_right,color-mix(in_oklab,var(--color-gold)_12%,transparent)_0%,transparent_58%)]" />
         <div className="absolute inset-0 -z-10 bg-gradient-to-b from-ink/40 via-ink/60 to-ink" />
 
-        <div className="container-site grid items-center gap-14 lg:grid-cols-[1.35fr_1fr]">
-          <div>
+        <div className="container-site flex items-center">
+          <div className="w-full max-w-5xl">
             <Reveal>
               <p className="mb-6 inline-flex items-center gap-2 border border-gold/40 bg-gold/10 px-3 py-1.5 text-xs tracking-[0.2em] text-gold-soft uppercase">
                 <Icon name="shield" width={14} height={14} /> Centre de formation certifié · {site.approval}
@@ -101,8 +140,8 @@ export default function HomePage() {
             </Reveal>
             <Reveal delay={200}>
               <p className="mt-6 max-w-xl text-lg leading-relaxed text-mist sm:text-xl">
-                Centre de formation continue spécialisé en <strong className="font-medium text-bone">coaching privé</strong> et{" "}
-                <strong className="font-medium text-bone">sciences du sport</strong>.
+                Des formations certifiantes pour les <strong className="font-medium text-bone">coachs</strong> et les{" "}
+                <strong className="font-medium text-bone">professionnels du sport</strong>.
               </p>
             </Reveal>
             <Reveal delay={300}>
@@ -115,25 +154,15 @@ export default function HomePage() {
                 Nos formations <Icon name="arrow" />
               </Link>
               <Link href="/contact" className="btn btn-ghost">
-                Demander une inscription
+                Demander mon inscription
               </Link>
             </Reveal>
           </div>
 
-          <Reveal from="zoom" delay={250} className="relative mx-auto hidden w-full max-w-sm lg:block">
-            <div className="absolute inset-0 -z-10 rounded-full bg-gold/20 blur-3xl" />
-            <Image
-              src={brand.logo}
-              alt="Écusson Defenders Fitness Academy"
-              preload
-              sizes="384px"
-              className="w-full rounded-full ring-1 ring-white/10"
-            />
-          </Reveal>
         </div>
 
         <a
-          href="#promotions"
+          href="#statistiques"
           className="absolute bottom-6 left-1/2 hidden -translate-x-1/2 flex-col items-center gap-2 text-[0.65rem] tracking-[0.3em] text-mist uppercase sm:flex"
         >
           Défiler
@@ -141,29 +170,81 @@ export default function HomePage() {
         </a>
       </section>
 
-      {/* ---------------- BANDEAU D'IMAGES ---------------- */}
-      <section id="promotions" className="py-20">
-        <div className="container-site mb-10 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-          <Reveal>
-            <p className="eyebrow mb-3">Nos promotions</p>
-            <h2 className="heading-lg">Ils ont choisi l&apos;excellence</h2>
-          </Reveal>
-          <Reveal delay={100}>
-            <p className="max-w-sm text-mist">
-              Cérémonies de certification, sessions en salle, travail sur le terrain : la vie de l&apos;académie en images.
-            </p>
-          </Reveal>
+      {/* ---------------- CHIFFRES ---------------- */}
+      <section id="statistiques" className="border-y border-line bg-ink-2 py-14">
+        <div className="container-site grid grid-cols-2 gap-px overflow-hidden border border-line bg-line lg:grid-cols-4">
+          {[
+            ["3", "Disciplines"],
+            ["2", "Vidéos"],
+            ["7+", "Promotions"],
+            ["5904+", "Abonnés Facebook"],
+          ].map(([value, label]) => (
+            <div key={label} className="bg-ink-2 px-4 py-8 text-center sm:px-6 sm:py-10">
+              <AnimatedAccent className="block font-display text-4xl text-gold sm:text-5xl">{value}</AnimatedAccent>
+              <p className="mt-2 font-display text-xs uppercase tracking-[0.12em] text-mist sm:text-sm">{label}</p>
+            </div>
+          ))}
         </div>
-        <BannerMarquee photos={bannerPhotos} />
       </section>
 
-      <KeywordTicker words={["Coaching privé", "Sciences du sport", "Pilates", "Football", "Personal Training", "Certification"]} />
+      {/* ---------------- GALERIE ---------------- */}
+      <section id="galerie" className="py-20 lg:py-24">
+        <div className="container-site">
+          <Reveal className="mb-10 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+            <div>
+              <p className="eyebrow mb-3">Galerie</p>
+              <h2 className="heading-lg">Promotions & certificats</h2>
+            </div>
+            <p className="max-w-sm text-sm leading-relaxed text-mist">
+              La vie de l&apos;académie entre séances, promotions, certificats et moments marquants.
+            </p>
+          </Reveal>
+
+          <div className="columns-1 gap-5 sm:columns-2 lg:columns-3">
+            {bannerPhotos.map((photo, index) => (
+              <Reveal key={photo.src.src ?? photo.alt} delay={(index % 5) * 60} className="mb-5 break-inside-avoid">
+                <figure className="group overflow-hidden border border-line bg-ink-2">
+                  <Image
+                    src={photo.src}
+                    alt={photo.alt}
+                    sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
+                    className="h-auto w-full object-contain"
+                  />
+                </figure>
+              </Reveal>
+            ))}
+
+            {[
+              { title: "Une équipe, une formation", src: "/videos/1-Video by defenders_fitness_academy.mp4" },
+              { title: "Pilates Matwork & Reformer", src: "/videos/2-Video by defenders_fitness_academy.mp4" },
+            ].map((video, index) => (
+              <Reveal key={video.src} delay={(index + 2) * 60} className="mb-5 break-inside-avoid">
+                <figure className="overflow-hidden border border-line bg-ink-2">
+                  <video
+                    src={video.src}
+                    autoPlay
+                    loop
+                    muted
+                    playsInline
+                    preload="metadata"
+                    controls
+                    className="h-auto max-h-[620px] w-full bg-black object-contain"
+                  />
+                  <figcaption className="px-5 py-4 font-display text-sm uppercase text-gold-soft">
+                    {video.title}
+                  </figcaption>
+                </figure>
+              </Reveal>
+            ))}
+          </div>
+        </div>
+      </section>
 
       {/* ---------------- DOMAINE D'ACTIVITÉ (scroll) ---------------- */}
-      <section id="domaine" className="py-24 lg:py-32">
+      <section id="a-propos" className="py-24 lg:py-32">
         <div className="container-site">
           <Reveal className="mb-16 max-w-3xl lg:mb-8">
-            <p className="eyebrow mb-3">Notre domaine d&apos;activité</p>
+            <p className="eyebrow mb-3">À propos de l&apos;académie</p>
             <h2 className="heading-lg">
               Former les coachs <span className="text-gold">de demain</span>
             </h2>
@@ -192,7 +273,7 @@ export default function HomePage() {
           <div className="grid gap-6 md:grid-cols-3">
             {disciplineList.map((d, i) => (
               <Reveal key={d.slug} delay={i * 120}>
-                <Link href={`/${d.slug}`} className="group relative block aspect-[4/5] overflow-hidden bg-ink">
+                <Link href={`/${d.slug}`} className="group relative block aspect-[4/5] overflow-hidden bg-ink transition duration-500 hover:-translate-y-2 hover:shadow-[0_24px_60px_rgba(201,162,39,0.16)]">
                   <Image
                     src={d.cover.src}
                     alt={d.cover.alt}
@@ -205,9 +286,9 @@ export default function HomePage() {
                   <div className="absolute inset-x-0 bottom-0 p-7 text-bone">
                     <span className={`mb-4 block h-1 w-12 ${d.accent.bg} transition-all duration-500 group-hover:w-24`} />
                     <h3 className="font-display text-3xl tracking-wide uppercase">{d.name}</h3>
-                    <p className="mt-3 line-clamp-3 text-sm text-bone/75">{d.summary}</p>
+                    <p className="mt-3 text-sm leading-relaxed text-bone/80 transition-all duration-500 sm:translate-y-4 sm:opacity-0 sm:group-hover:translate-y-0 sm:group-hover:opacity-100">{d.summary}</p>
                     <span className="mt-5 inline-flex items-center gap-2 font-display text-sm tracking-[0.15em] uppercase">
-                      Découvrir <Icon name="arrow" className="transition-transform group-hover:translate-x-1" />
+                      Découvrir la formation <Icon name="arrow" className="transition-transform group-hover:translate-x-1" />
                     </span>
                   </div>
                 </Link>
@@ -217,60 +298,91 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ---------------- POUR QUI ---------------- */}
-      <section className="py-24 lg:py-32">
+      {/* ---------------- PUBLIC ET PARCOURS ---------------- */}
+      <section className="border-y border-line bg-ink-2 py-20 lg:py-24">
         <div className="container-site">
-          <Reveal className="mb-14 max-w-2xl">
-            <p className="eyebrow mb-3">Pour qui ?</p>
-            <h2 className="heading-lg">Que vous débutiez ou que vous exerciez déjà</h2>
-          </Reveal>
-          <div className="grid gap-6 md:grid-cols-2">
-            {[
-              {
-                title: "Coach professionnel",
-                text: "Vous exercez déjà ? Spécialisez-vous, actualisez vos connaissances scientifiques et obtenez une nouvelle certification pour développer votre clientèle.",
-                items: ["Spécialisation Pilates ou football", "Mise à jour scientifique", "Certification complémentaire"],
-              },
-              {
-                title: "Jeune diplômé",
-                text: "Fraîchement diplômé en sciences du sport ? Complétez votre formation par une expertise pratique, recherchée par les employeurs.",
-                items: ["Expérience pratique encadrée", "Certificats reconnus", "Accompagnement vers l'emploi"],
-              },
-            ].map((card, i) => (
-              <Reveal key={card.title} from={i === 0 ? "left" : "right"}>
-                <div className="h-full border border-line bg-ink-2 p-8 transition-colors hover:border-gold/60 lg:p-10">
-                  <h3 className="font-display text-3xl tracking-wide uppercase">{card.title}</h3>
-                  <p className="mt-4 text-mist">{card.text}</p>
-                  <ul className="mt-6 space-y-2">
-                    {card.items.map((it) => (
-                      <li key={it} className="flex items-center gap-3 text-sm">
-                        <Icon name="check" className="text-gold" /> {it}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              </Reveal>
-            ))}
+          <div className="grid gap-12 lg:grid-cols-[1fr_1.2fr]">
+            <Reveal>
+              <p className="eyebrow mb-3">Pour qui ?</p>
+              <h2 className="heading-lg">Un parcours pour les professionnels du sport</h2>
+              <p className="mt-5 max-w-xl leading-relaxed text-mist">
+                Coachs en activité et jeunes diplômés peuvent choisir une spécialisation, puis contacter l&apos;équipe pour vérifier les conditions de la session.
+              </p>
+              <ul className="mt-6 space-y-3 text-sm text-bone">
+                {["Coachs qui souhaitent se spécialiser", "Diplômés en sciences du sport", "Professionnels qui veulent actualiser leurs pratiques"].map((item) => (
+                  <li key={item} className="flex items-center gap-3">
+                    <Icon name="check" className="shrink-0 text-gold" /> {item}
+                  </li>
+                ))}
+              </ul>
+            </Reveal>
+            <ol className="border-l border-line pl-6 sm:pl-8">
+              {steps.map((step, i) => (
+                <Reveal as="li" key={step.title} delay={i * 100} className="relative pb-7 last:pb-0">
+                  <span className="absolute -left-[2.05rem] top-0 grid size-8 place-items-center border border-gold bg-ink-2 font-display text-sm text-gold sm:-left-[2.55rem]">
+                    0{i + 1}
+                  </span>
+                  <h3 className="font-display text-xl uppercase">{step.title}</h3>
+                  <p className="mt-2 max-w-xl text-sm leading-relaxed text-mist">{step.text}</p>
+                </Reveal>
+              ))}
+            </ol>
           </div>
         </div>
       </section>
 
-      {/* ---------------- PARCOURS ---------------- */}
-      <section className="border-y border-line bg-ink-2 py-24">
-        <div className="container-site">
-          <Reveal className="mb-14 text-center">
-            <p className="eyebrow mb-3">Votre parcours</p>
-            <h2 className="heading-lg">De l&apos;inscription à la certification</h2>
+      {/* ---------------- TÉMOIGNAGES ---------------- */}
+      <section id="temoignages" className="py-24 lg:py-28">
+        <div className="container-site grid gap-10 lg:grid-cols-[1.2fr_0.8fr] lg:items-end">
+          <Reveal>
+            <p className="eyebrow mb-3">Témoignages</p>
+            <h2 className="heading-lg">Leurs expériences de formation</h2>
+            <p className="mt-5 max-w-2xl border-l-2 border-gold pl-4 text-sm leading-relaxed text-mist">
+              Exemples fictifs pour la maquette. Ils seront remplacés par des avis réels, publiés avec l&apos;accord des stagiaires.
+            </p>
           </Reveal>
-          <ol className="grid gap-8 md:grid-cols-2 lg:grid-cols-4">
-            {steps.map((step, i) => (
-              <Reveal as="li" key={step.title} delay={i * 120} className="relative">
-                <span className="font-display text-6xl text-gold/25">0{i + 1}</span>
-                <h3 className="mt-2 font-display text-xl tracking-wide uppercase">{step.title}</h3>
-                <p className="mt-3 text-sm leading-relaxed text-mist">{step.text}</p>
-              </Reveal>
-            ))}
-          </ol>
+          <Reveal delay={120} className="border-t border-gold pt-6 lg:border-t-0 lg:border-l lg:pt-0 lg:pl-8">
+            <Icon name="star" className="text-gold" />
+            <p className="mt-4 font-display text-2xl uppercase">Partagez votre expérience</p>
+            <a href={site.email.href} className="btn btn-ghost mt-6">
+              Nous écrire <Icon name="arrow" />
+            </a>
+          </Reveal>
+        </div>
+        <div className="container-site mt-10 grid gap-4 md:grid-cols-3">
+          {testimonials.map((testimonial) => (
+            <article key={testimonial.discipline} className="flex min-h-48 flex-col border border-line bg-ink-2 p-6">
+              <p className="eyebrow text-[0.65rem]">Exemple fictif</p>
+              <p className="mt-4 flex-1 leading-relaxed text-bone">&ldquo;{testimonial.quote}&rdquo;</p>
+              <p className="mt-5 border-t border-line pt-4 font-display text-sm uppercase text-gold-soft">{testimonial.discipline}</p>
+            </article>
+          ))}
+        </div>
+      </section>
+
+      {/* ---------------- FAQ ---------------- */}
+      <section id="faq" className="border-y border-line bg-ink-2 py-24 lg:py-28">
+        <div className="container-site grid gap-12 lg:grid-cols-[0.8fr_1.2fr]">
+          <Reveal>
+            <p className="eyebrow mb-3">FAQ</p>
+            <h2 className="heading-lg">Vos questions, nos réponses</h2>
+            <p className="mt-5 max-w-md text-mist">
+              Vous avez besoin d&apos;un renseignement sur votre profil ou une session ? Notre équipe vous répond.
+            </p>
+            <Link href="/contact" className="btn btn-primary mt-7">
+              Nous contacter <Icon name="arrow" />
+            </Link>
+          </Reveal>
+          <div>
+            <Accordion type="single" collapsible className="border-t border-line">
+              {faqs.map((faq) => (
+                <AccordionItem key={faq.question} value={faq.question}>
+                  <AccordionTrigger>{faq.question}</AccordionTrigger>
+                  <AccordionContent>{faq.answer}</AccordionContent>
+                </AccordionItem>
+              ))}
+            </Accordion>
+          </div>
         </div>
       </section>
 
@@ -281,7 +393,7 @@ export default function HomePage() {
         <div className="container-site flex flex-col items-start gap-8 lg:flex-row lg:items-center lg:justify-between">
           <Reveal>
             <h2 className="heading-lg max-w-2xl">
-              Prêt à rejoindre la <span className="text-gold">prochaine promotion</span> ?
+              Prêt à rejoindre la <AnimatedAccent className="text-gold">prochaine promotion</AnimatedAccent> ?
             </h2>
             <p className="mt-4 max-w-xl text-mist">
               Places limitées par session. Contactez-nous pour connaître les prochaines dates et réserver votre place.

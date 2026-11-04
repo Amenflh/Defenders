@@ -36,19 +36,21 @@ export function Header() {
           scrolled ? "border-b border-line bg-ink/85 backdrop-blur-md" : "border-b border-transparent bg-transparent"
         }`}
       >
-        <div className="container-site flex h-18 items-center justify-between gap-6">
-          <Logo />
+        <div className="container-site flex h-14 items-center justify-between gap-2 sm:h-16 sm:gap-4">
+          <span className="sm:hidden"><Logo compact /></span>
+          <span className="hidden sm:inline-flex"><Logo /></span>
 
           <nav aria-label="Navigation principale" className="hidden lg:block">
             <ul className="flex items-center gap-1">
-              {mainNav.slice(1).map((item) => {
-                const active = pathname.startsWith(item.href);
+              {mainNav.map((item) => {
+                const route = item.href.split("#")[0] || "/";
+                const active = item.href === "/" ? pathname === "/" : pathname.startsWith(route) && route !== "/";
                 return (
                   <li key={item.href}>
                     <Link
                       href={item.href}
                       aria-current={active ? "page" : undefined}
-                      className={`relative px-3 py-2 font-display text-sm tracking-[0.14em] uppercase transition-colors after:absolute after:inset-x-3 after:-bottom-0.5 after:h-px after:origin-left after:bg-gold after:transition-transform after:duration-300 ${
+                      className={`relative px-1.5 py-2 font-display text-[0.68rem] tracking-[0.08em] uppercase transition-colors after:absolute after:inset-x-1.5 after:-bottom-0.5 after:h-px after:origin-left after:bg-gold after:transition-transform after:duration-300 xl:px-2 xl:text-xs ${
                         active ? "text-bone after:scale-x-100" : "text-mist after:scale-x-0 hover:text-bone hover:after:scale-x-100"
                       }`}
                     >
@@ -60,13 +62,23 @@ export function Header() {
             </ul>
           </nav>
 
-          <div className="flex items-center gap-3">
-            <Link href="/contact" className="btn btn-primary hidden !py-2.5 !px-4 !text-xs sm:inline-flex">
-              S&apos;inscrire
+          <nav aria-label="Liens rapides" className="hidden items-center gap-2 sm:flex lg:hidden">
+            <Link href="/#formations" className="whitespace-nowrap font-display text-xs uppercase text-bone hover:text-gold">
+              Formations
+            </Link>
+            <Link href="/#galerie" className="whitespace-nowrap font-display text-xs uppercase text-mist hover:text-gold">
+              Galerie
+            </Link>
+          </nav>
+
+          <div className="flex shrink-0 items-center gap-2 sm:gap-3">
+            <Link href="/contact" className="btn btn-primary !py-2 !px-2.5 !text-[0.62rem] sm:!py-2.5 sm:!px-3 sm:!text-xs xl:!px-4">
+              <span className="sm:hidden">Inscription</span>
+              <span className="hidden sm:inline">Réserver ma place</span>
             </Link>
             <button
               onClick={() => setMenuOpen(true)}
-              className="grid size-11 place-items-center rounded-full border border-white/20 transition-colors hover:border-bone"
+              className="grid size-10 place-items-center rounded-full border border-white/20 transition-colors hover:border-bone sm:size-11"
               aria-label="Ouvrir le menu"
               aria-expanded={menuOpen}
               aria-controls="site-sidebar"
