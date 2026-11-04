@@ -4,8 +4,9 @@ import { Icon } from "@/components/Icon";
 import { PageIntro } from "@/components/PageIntro";
 import { DISCIPLINE_SLUGS, type DisciplineSlug } from "@/lib/disciplines";
 import { brand } from "@/lib/images";
+import { getCurrentUser } from "@/lib/session";
 import { site } from "@/lib/site";
-import { ContactForm } from "./ContactForm";
+import { ContactForm, type ContactDefaults } from "./ContactForm";
 
 export const metadata: Metadata = {
   title: "Contact & inscription",
@@ -15,6 +16,14 @@ export const metadata: Metadata = {
 export default async function ContactPage({ searchParams }: PageProps<"/contact">) {
   const { formation } = await searchParams;
   const preselected = DISCIPLINE_SLUGS.includes(formation as DisciplineSlug) ? (formation as DisciplineSlug) : undefined;
+
+  // Client connecté : coordonnées pré-remplies depuis son compte.
+  const user = await getCurrentUser();
+  let defaults: ContactDefaults = {};
+  if (user && user !== "unavailable" && user.role === "client") {
+    const [firstName, ...rest] = user.name.trim().split(/\s+/);
+    defaults = { firstName, lastName: rest.join(" "), email: user.email, phone: user.phone };
+  }
 
   const contacts = [
     { icon: "pin" as const, label: "Adresse", value: site.address.lines.join(", "), href: site.address.href, external: true },
@@ -34,7 +43,7 @@ export default async function ContactPage({ searchParams }: PageProps<"/contact"
 
       <section className="py-16 lg:py-24">
         <div className="container-site grid gap-14 lg:grid-cols-[1fr_22rem] lg:gap-20">
-          <ContactForm preselected={preselected} />
+          <ContactForm preselected={preselected} defaults={defaults} />
 
           <aside className="space-y-6 lg:sticky lg:top-28 lg:self-start">
             <div className="border border-line bg-ink-2 p-7">
