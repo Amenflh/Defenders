@@ -26,7 +26,8 @@ export function Reveal({ children, as: Tag = "div", from = "up", delay = 0, clas
           observer.disconnect();
         }
       },
-      { threshold: 0.15, rootMargin: "0px 0px -8% 0px" },
+      // threshold 0 : fonctionne aussi pour les blocs plus hauts que l'écran.
+      { threshold: 0, rootMargin: "0px 0px -8% 0px" },
     );
     observer.observe(el);
     return () => observer.disconnect();

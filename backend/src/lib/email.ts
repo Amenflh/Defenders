@@ -1,6 +1,6 @@
 import nodemailer from "nodemailer";
 import { config } from "../config.js";
-import type { Contact } from "./contacts.js";
+import type { RegistrationDto } from "../modules/registrations/registrations.service.js";
 
 type AttachmentPayload = {
   filename: string;
@@ -8,10 +8,10 @@ type AttachmentPayload = {
   base64: string;
 };
 
-export async function sendContactEmail(contact: Contact, attachment?: AttachmentPayload): Promise<void> {
+export async function sendRegistrationEmail(contact: RegistrationDto, attachment?: AttachmentPayload): Promise<boolean> {
   if (!config.smtp.user || !config.smtp.pass || !config.smtp.contactTo) {
     console.warn("[contact] SMTP non configuré : demande enregistrée, aucun e-mail envoyé");
-    return;
+    return false;
   }
 
   const transporter = nodemailer.createTransport({
@@ -49,4 +49,5 @@ export async function sendContactEmail(contact: Contact, attachment?: Attachment
       contentType: attachment.contentType,
     }] : [],
   });
+  return true;
 }

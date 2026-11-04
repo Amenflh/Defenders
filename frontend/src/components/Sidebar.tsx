@@ -2,14 +2,16 @@
 
 import Link from "next/link";
 import { useEffect, useRef } from "react";
+import { logoutAction } from "@/app/(auth)/actions";
 import { mainNav, site } from "@/lib/site";
+import type { HeaderUser } from "./Header";
 import { Icon } from "./Icon";
 import { Logo } from "./Logo";
 
-type Props = { open: boolean; onClose: () => void; pathname: string };
+type Props = { open: boolean; onClose: () => void; pathname: string; user: HeaderUser | null };
 
-/** Panneau latéral : navigation complète, coordonnées et appel à l'action. */
-export function Sidebar({ open, onClose, pathname }: Props) {
+/** Panneau latéral : compte, navigation complète, coordonnées et appel à l'action. */
+export function Sidebar({ open, onClose, pathname, user }: Props) {
   const closeRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
@@ -49,6 +51,25 @@ export function Sidebar({ open, onClose, pathname }: Props) {
             <Icon name="close" />
           </button>
         </div>
+
+        {user && (
+          <div className="flex items-center gap-3 border-b border-line px-6 py-4">
+            <span className="grid size-10 shrink-0 place-items-center rounded-full bg-gold font-display text-ink uppercase">
+              {user.name.trim().charAt(0)}
+            </span>
+            <div className="min-w-0 flex-1">
+              <p className="truncate font-medium">{user.name}</p>
+              <p className="truncate text-xs text-mist">{user.role === "admin" ? "Administrateur" : user.email}</p>
+            </div>
+            <Link
+              href={user.role === "admin" ? "/admin" : "/mon-espace"}
+              onClick={onClose}
+              className="shrink-0 border border-line px-3 py-1.5 text-xs tracking-widest uppercase hover:border-gold hover:text-gold"
+            >
+              {user.role === "admin" ? "Admin" : "Mon espace"}
+            </Link>
+          </div>
+        )}
 
         <nav className="flex-1 overflow-y-auto px-6 py-6" aria-label="Navigation principale">
           <ol className="space-y-1">
@@ -91,9 +112,18 @@ export function Sidebar({ open, onClose, pathname }: Props) {
           <a href={site.address.href} target="_blank" rel="noreferrer" className="flex items-center gap-3 text-mist hover:text-bone">
             <Icon name="pin" className="text-gold" /> {site.address.lines.join(", ")}
           </a>
-          <Link href="/contact" onClick={onClose} className="btn btn-primary mt-2 w-full">
-            Réserver ma place <Icon name="arrow" />
-          </Link>
+          {user?.role !== "admin" && (
+            <Link href="/contact" onClick={onClose} className="btn btn-primary mt-2 w-full">
+              Réserver ma place <Icon name="arrow" />
+            </Link>
+          )}
+          {user && (
+            <form action={logoutAction}>
+              <button type="submit" className="btn btn-ghost w-full">
+                Se déconnecter
+              </button>
+            </form>
+          )}
         </div>
       </aside>
     </div>
