@@ -1,5 +1,6 @@
 import { createHash, randomBytes } from "node:crypto";
 import bcrypt from "bcryptjs";
+import { errors as joseErrors, jwtVerify, SignJWT } from "jose";
 import { config } from "../../config.js";
 import { Prisma, type Role } from "../../generated/prisma/client.js";
 import { ConflictError } from "../../lib/errors.js";
@@ -62,16 +63,62 @@ export async function seedAdmin(): Promise<void> {
   console.info(`[auth] admin initial créé : ${email}`);
 }
 
-/** Ouvre une session : jeton aléatoire de 256 bits, seule son empreinte SHA-256 est stockée. */
+// ---------------------------------------------------------------- Jetons JWT (issue #30)
+//
+// Le jeton est un JWT signé (HS256) dont l'identifiant « jti » désigne une session en base.
+// - La signature et l'expiration sont vérifiées à chaque requête (jeton falsifié ou expiré → 401).
+// - La session en base permet la révocation immédiate (déconnexion), impossible avec un JWT seul.
+// - Seule l'empreinte SHA-256 du jti est stockée : une fuite de la base ne donne aucun jeton utilisable.
+//
+// Claims : sub = id utilisateur, role, jti, iat, exp, iss, aud.
+
+const jwtKey = new TextEncoder().encode(config.jwt.secret);
+const JWT_ALG = "HS256";
+
+async function signToken(user: PublicUser, jti: string, expiresAt: Date): Promise<string> {
+  return new SignJWT({ role: user.role })
+    .setProtectedHeader({ alg: JWT_ALG, typ: "JWT" })
+    .setSubject(String(user.id))
+    .setJti(jti)
+    .setIssuedAt()
+    .setIssuer(config.jwt.issuer)
+    .setAudience(config.jwt.audience)
+    .setExpirationTime(Math.floor(expiresAt.getTime() / 1000))
+    .sign(jwtKey);
+}
+
+type TokenClaims = { userId: number; jti: string };
+
+/** Vérifie signature, algorithme, émetteur, audience et expiration. null si le jeton est invalide. */
+async function verifyToken(token: string, { allowExpired = false } = {}): Promise<TokenClaims | null> {
+  try {
+    const { payload } = await jwtVerify(token, jwtKey, {
+      algorithms: [JWT_ALG],
+      issuer: config.jwt.issuer,
+      audience: config.jwt.audience,
+      requiredClaims: ["sub", "jti", "exp", "iat"],
+      // Pour la déconnexion uniquement : un jeton expiré peut encore fermer sa session.
+      ...(allowExpired ? { currentDate: new Date(0) } : {}),
+    });
+    const userId = Number(payload.sub);
+    if (!Number.isInteger(userId) || typeof payload.jti !== "string") return null;
+    return { userId, jti: payload.jti };
+  } catch (err) {
+    if (err instanceof joseErrors.JOSEError) return null;
+    throw err;
+  }
+}
+
+/** Ouvre une session : JWT signé, seule l'empreinte de son identifiant (jti) est stockée en base. */
 export async function openSession(user: PublicUser): Promise<Session> {
-  const token = randomBytes(32).toString("base64url");
+  const jti = randomBytes(32).toString("base64url");
   const expiresAt = new Date(Date.now() + config.sessionTtlHours * 3600_000);
   await prisma.$transaction([
-    prisma.authSession.create({ data: { tokenHash: sha256(token), userId: user.id, expiresAt } }),
+    prisma.authSession.create({ data: { tokenHash: sha256(jti), userId: user.id, expiresAt } }),
     prisma.user.update({ where: { id: user.id }, data: { lastLoginAt: new Date() } }),
     prisma.authSession.deleteMany({ where: { expiresAt: { lt: new Date() } } }),
   ]);
-  return { token, user, expiresAt };
+  return { token: await signToken(user, jti, expiresAt), user, expiresAt };
 }
 
 /** Vérifie les identifiants et ouvre une session. null si refusé. */
@@ -83,14 +130,19 @@ export async function login(email: string, password: string): Promise<Session | 
   return openSession(user);
 }
 
+/** Utilisateur d'un JWT valide dont la session n'est ni expirée ni révoquée. Le rôle vient de la base. */
 export async function findUserByToken(token: string): Promise<PublicUser | null> {
+  const claims = await verifyToken(token);
+  if (!claims) return null;
   const session = await prisma.authSession.findFirst({
-    where: { tokenHash: sha256(token), expiresAt: { gt: new Date() } },
+    where: { tokenHash: sha256(claims.jti), userId: claims.userId, expiresAt: { gt: new Date() } },
     select: { user: { select: publicFields } },
   });
   return session?.user ?? null;
 }
 
+/** Révoque la session du jeton (même expiré). Un jeton falsifié est ignoré. */
 export async function logout(token: string): Promise<void> {
-  await prisma.authSession.deleteMany({ where: { tokenHash: sha256(token) } });
+  const claims = await verifyToken(token, { allowExpired: true });
+  if (claims) await prisma.authSession.deleteMany({ where: { tokenHash: sha256(claims.jti) } });
 }
