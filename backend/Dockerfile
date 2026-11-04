@@ -30,6 +30,8 @@ COPY --from=prod-deps /app/node_modules ./node_modules
 COPY --from=build /app/dist ./dist
 COPY package.json prisma.config.ts ./
 COPY prisma ./prisma
+# Logo intégré aux e-mails
+COPY --from=build /app/src/assets ./src/assets
 
 USER node
 EXPOSE 4000

@@ -29,6 +29,7 @@ Organisation du code, conventions et choix techniques : [docs/ARCHITECTURE.md](d
 | Accueil, Pilates, Football, Personal Training, Planning | `/`, `/pilates`, … | connecté |
 | Inscription à une formation (pré-remplie, liée au compte) | `/contact` | connecté |
 | Formulaire d'inscription en popup | `/contact?popup=1` | connecté |
+| Defenders Security Protection | `/securite` | connecté |
 | Mentions légales, confidentialité, cookies | `/mentions-legales`, `/politique-de-confidentialite`, `/cookies` | connecté |
 | Suivi de ses inscriptions | `/mon-espace` | client |
 | Tableau de bord des demandes | `/admin` | admin |
