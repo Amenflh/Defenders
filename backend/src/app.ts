@@ -5,6 +5,7 @@ import { config } from "./config.js";
 import { errorHandler, notFoundHandler } from "./middlewares/error.js";
 import { authRoutes } from "./modules/auth/auth.routes.js";
 import { healthRoutes } from "./modules/health/health.routes.js";
+import { adminFormationRoutes, publicFormationRoutes } from "./modules/formations/formations.routes.js";
 import { planningRoutes } from "./modules/planning/planning.routes.js";
 import {
   adminRegistrationRoutes,
@@ -27,6 +28,8 @@ export function createApp() {
   // Routes par module (une responsabilité par dossier : routes → contrôleur → service → Prisma)
   app.use("/api/health", healthRoutes);
   app.use("/api/planning", planningRoutes);
+  app.use("/api/formations", publicFormationRoutes);
+  app.use("/api/admin/formations", adminFormationRoutes);
   app.use("/api/auth", authRoutes);
   app.use("/api/contact", publicRegistrationRoutes);
   app.use("/api/admin/contacts", adminRegistrationRoutes);
