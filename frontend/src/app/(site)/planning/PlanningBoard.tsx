@@ -3,19 +3,24 @@
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import type { Session } from "@/lib/api";
-import type { DisciplineSlug } from "@/lib/disciplines";
+import type { FormationOption } from "@/lib/formations";
 
 const DAYS = ["Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi", "Dimanche"];
 
-const META: Record<DisciplineSlug, { label: string; dot: string; border: string; text: string }> = {
-  pilates: { label: "Pilates", dot: "bg-pilates", border: "border-l-pilates", text: "text-pilates" },
-  football: { label: "Football", dot: "bg-football", border: "border-l-football", text: "text-football" },
-  "personal-training": { label: "Personal Training", dot: "bg-personal", border: "border-l-personal", text: "text-personal" },
-};
+type Filter = string; // slug de formation, ou "all"
 
-type Filter = DisciplineSlug | "all";
+/** Style d'un créneau dont la formation n'est plus listée (ex. archivée entre-temps). */
+const UNKNOWN = { label: "Formation", dot: "bg-gold", border: "border-l-gold", text: "text-gold" };
 
-export function PlanningBoard({ sessions, initial }: { sessions: Session[]; initial: Filter }) {
+export function PlanningBoard({ sessions, formations, initial }: { sessions: Session[]; formations: FormationOption[]; initial: Filter }) {
+  const META = useMemo(
+    () =>
+      Object.fromEntries(
+        formations.map((f) => [f.slug, { label: f.name, dot: f.accent.dot, border: f.accent.borderL, text: f.accent.text }]),
+      ) as Record<string, typeof UNKNOWN>,
+    [formations],
+  );
+  const meta = (slug: string) => META[slug] ?? UNKNOWN;
   const [filter, setFilter] = useState<Filter>(initial);
 
   const visible = useMemo(
@@ -38,7 +43,7 @@ export function PlanningBoard({ sessions, initial }: { sessions: Session[]; init
 
   const filters: { value: Filter; label: string }[] = [
     { value: "all", label: "Toutes" },
-    ...Object.entries(META).map(([value, m]) => ({ value: value as Filter, label: m.label })),
+    ...formations.map((f) => ({ value: f.slug, label: f.name })),
   ];
 
   return (
@@ -56,7 +61,7 @@ export function PlanningBoard({ sessions, initial }: { sessions: Session[]; init
                 active ? "border-gold bg-gold text-ink" : "border-line text-mist hover:border-bone/50 hover:text-bone"
               }`}
             >
-              {f.value !== "all" && <span className={`size-2 rounded-full ${META[f.value].dot}`} />}
+              {f.value !== "all" && <span className={`size-2 rounded-full ${meta(f.value).dot}`} />}
               {f.label}
               <span className={`text-xs ${active ? "text-ink/60" : "text-mist/60"}`}>{count}</span>
             </button>
@@ -70,7 +75,7 @@ export function PlanningBoard({ sessions, initial }: { sessions: Session[]; init
             <h2 className="mb-3 border-b border-line pb-2 font-display text-sm tracking-[0.2em] text-mist uppercase">{day.label}</h2>
             <ul className="space-y-3">
               {day.sessions.map((s) => {
-                const m = META[s.discipline];
+                const m = meta(s.discipline);
                 return (
                   <li
                     key={s.id}
@@ -96,7 +101,7 @@ export function PlanningBoard({ sessions, initial }: { sessions: Session[]; init
       {visible.length > 0 && filter !== "all" && (
         <div className="mt-12 flex flex-wrap items-center justify-between gap-4 border border-line bg-ink-2 p-6">
           <p className="text-mist">
-            Intéressé par la formation <span className="text-bone">{META[filter].label}</span> ?
+            Intéressé par la formation <span className="text-bone">{meta(filter).label}</span> ?
           </p>
           <Link href={`/contact?formation=${filter}`} className="btn btn-primary">
             Demander une inscription

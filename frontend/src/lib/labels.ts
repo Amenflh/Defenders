@@ -34,3 +34,6 @@ export const AVAILABILITY_LABELS: Record<string, string> = {
 };
 
 export const dateFmt = new Intl.DateTimeFormat("fr-FR", { dateStyle: "medium", timeStyle: "short", timeZone: "Africa/Tunis" });
+
+/** Jours de la semaine (1 = lundi … 7 = dimanche), comme dans l'API. */
+export const DAY_LABELS: Record<number, string> = { 1: "Lundi", 2: "Mardi", 3: "Mercredi", 4: "Jeudi", 5: "Vendredi", 6: "Samedi", 7: "Dimanche" };

@@ -54,6 +54,17 @@
 }
 
 @layer components {
+  /* Champ de formulaire (espace admin) */
+  .input {
+    width: 100%;
+    border: 1px solid var(--color-line);
+    background: var(--color-ink);
+    padding: 0.75rem 1rem;
+    color: var(--color-bone);
+  }
+  .input:focus { border-color: var(--color-gold); outline: none; }
+  .input[aria-invalid="true"] { border-color: rgb(248 113 113 / 0.7); }
+
   .container-site {
     width: 100%;
     max-width: 80rem;

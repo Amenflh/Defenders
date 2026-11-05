@@ -1,4 +1,5 @@
 import { existsSync } from "node:fs";
+import { resolve } from "node:path";
 
 // En local, charge backend/.env (Node ≥ 20.12). Dans Docker, les variables viennent de docker-compose.
 if (existsSync(".env")) process.loadEnvFile(".env");
@@ -16,6 +17,12 @@ function required(name: string): string {
   return value;
 }
 
+function jwtSecret(): string {
+  const secret = required("JWT_SECRET");
+  if (secret.length < 32) throw new Error("JWT_SECRET doit contenir au moins 32 caractères (voir backend/.env.example)");
+  return secret;
+}
+
 export const config = {
   port: toInt(process.env.PORT, 4000),
   host: process.env.HOST ?? "0.0.0.0",
@@ -26,7 +33,23 @@ export const config = {
     .filter(Boolean),
   /** Chaîne de connexion PostgreSQL : postgres://utilisateur:motdepasse@hôte:5432/base */
   databaseUrl: required("DATABASE_URL"),
-  /** Durée de validité d'une session admin. */
+  /** Adresse publique du site (liens dans les e-mails). */
+  siteUrl: (process.env.SITE_URL ?? "http://localhost:3000").replace(/\/+$/, ""),
+  /** Signature des jetons JWT (HS256) : au moins 32 caractères aléatoires. */
+  jwt: {
+    secret: jwtSecret(),
+    issuer: "defenders-api",
+    audience: "defenders-web",
+  },
+  /** Documentation Swagger sur /api/docs : toujours en développement, en production si API_DOCS=true. */
+  apiDocs: process.env.NODE_ENV !== "production" || process.env.API_DOCS === "true",
+  /** Fichiers téléversés (images et vidéos), servis sous /uploads. */
+  uploads: {
+    dir: resolve(process.env.UPLOAD_DIR ?? "uploads"),
+    maxImageMb: toInt(process.env.MAX_IMAGE_MB, 5),
+    maxVideoMb: toInt(process.env.MAX_VIDEO_MB, 100),
+  },
+  /** Durée de validité d'une session (et du JWT correspondant). */
   sessionTtlHours: toInt(process.env.SESSION_TTL_HOURS, 12),
   /** Compte admin créé au démarrage s'il n'existe encore aucun admin. */
   adminSeed: {

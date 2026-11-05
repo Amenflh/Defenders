@@ -1,11 +1,6 @@
-import type { Metadata } from "next";
-import { DisciplinePage } from "@/components/DisciplinePage";
-import { disciplines } from "@/lib/disciplines";
+import { permanentRedirect } from "next/navigation";
 
-const d = disciplines["personal-training"];
-
-export const metadata: Metadata = { title: `Formation ${d.name}`, description: d.summary };
-
+/** Ancienne adresse : les formations sont désormais sous /formations/<slug>. */
 export default function Page() {
-  return <DisciplinePage d={d} />;
+  permanentRedirect("/formations/personal-training");
 }

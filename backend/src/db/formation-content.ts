@@ -1,32 +1,27 @@
-import { footballPhotos, personalPhotos, pilatesPhotos, type Photo } from "./images";
+import type { SessionLevel } from "../generated/prisma/client.js";
 
-export const DISCIPLINE_SLUGS = ["pilates", "football", "personal-training"] as const;
-export type DisciplineSlug = (typeof DISCIPLINE_SLUGS)[number];
-
-export type Discipline = {
-  slug: DisciplineSlug;
+/**
+ * Contenu initial des trois formations, repris du site d'origine.
+ * Inséré une seule fois (formations sans contenu) : ensuite, l'admin le modifie depuis /admin/formations.
+ */
+export type FormationContent = {
   name: string;
-  /** Classe Tailwind de la couleur d'accent de la discipline. */
-  accent: { text: string; bg: string; border: string };
   headline: string;
   summary: string;
+  level?: SessionLevel;
+  durationLabel?: string;
   intro: string[];
   facts: { label: string; value: string }[];
   objectives: string[];
+  prerequisites?: string[];
   modules: { title: string; text: string }[];
   audience: string[];
   careers: string[];
-  /** Première photo = visuel principal de la page ; les suivantes forment la galerie. */
-  photos: Photo[];
-  /** Visuel utilisé sur les cartes (accueil, « découvrez aussi »). */
-  cover: Photo;
 };
 
-export const disciplines: Record<DisciplineSlug, Discipline> = {
+export const FORMATION_CONTENT: Record<string, FormationContent> = {
   pilates: {
-    slug: "pilates",
     name: "Pilates",
-    accent: { text: "text-pilates", bg: "bg-pilates", border: "border-pilates" },
     headline: "Devenez instructeur Pilates Mat & Reformer",
     summary:
       "Maîtrisez la méthode Pilates, au sol comme sur Reformer, et apprenez à construire des séances sûres, progressives et adaptées à chaque client.",
@@ -56,14 +51,11 @@ export const disciplines: Record<DisciplineSlug, Discipline> = {
     ],
     audience: ["Coachs sportifs souhaitant se spécialiser", "Jeunes diplômés en sciences du sport", "Professionnels du bien-être et de la rééducation"],
     careers: ["Instructeur en studio Pilates", "Coach privé à domicile ou en ligne", "Intervenant en salle de sport et centre de bien-être"],
-    photos: pilatesPhotos,
-    cover: pilatesPhotos[0],
   },
 
   football: {
-    slug: "football",
     name: "Football",
-    accent: { text: "text-football", bg: "bg-football", border: "border-football" },
+    durationLabel: "4 jours intensifs",
     headline: "Formation d'entraîneur de football",
     summary:
       "Une formation intensive pour encadrer, préparer et faire progresser des joueurs, des jeunes catégories jusqu'aux seniors.",
@@ -93,14 +85,11 @@ export const disciplines: Record<DisciplineSlug, Discipline> = {
     ],
     audience: ["Éducateurs et entraîneurs en activité", "Anciens joueurs en reconversion", "Jeunes diplômés en STAPS / sciences du sport"],
     careers: ["Entraîneur ou éducateur en club", "Préparateur physique football", "Opportunités à l'étranger avec notre partenaire RITEJ"],
-    photos: footballPhotos,
-    cover: footballPhotos[1],
   },
 
   "personal-training": {
-    slug: "personal-training",
     name: "Personal Training",
-    accent: { text: "text-personal", bg: "bg-personal", border: "border-personal" },
+    durationLabel: "4 jours consécutifs",
     headline: "Personal Fitness Trainer Certification",
     summary:
       "Devenez coach personnel : évaluation, programmation, musculation, nutrition et accompagnement client, validés par plusieurs certificats.",
@@ -130,9 +119,5 @@ export const disciplines: Record<DisciplineSlug, Discipline> = {
     ],
     audience: ["Passionnés de fitness voulant devenir coach", "Coachs souhaitant une certification reconnue", "Jeunes diplômés en sciences du sport"],
     careers: ["Coach personnel indépendant", "Coach en salle de sport", "Opportunités de contrats à l'étranger avec RITEJ"],
-    photos: personalPhotos,
-    cover: personalPhotos[0],
   },
 };
-
-export const disciplineList = DISCIPLINE_SLUGS.map((slug) => disciplines[slug]);

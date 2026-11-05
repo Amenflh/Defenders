@@ -3,10 +3,10 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
-import type { DisciplineSlug } from "@/lib/disciplines";
+import type { FormationOption } from "@/lib/formations";
 import { ContactForm, type ContactDefaults } from "./ContactForm";
 
-export function ContactPopup({ preselected, defaults }: { preselected?: DisciplineSlug; defaults?: ContactDefaults }) {
+export function ContactPopup({ formations, preselected, defaults }: { formations: FormationOption[]; preselected?: string; defaults?: ContactDefaults }) {
   const router = useRouter();
   const redirectTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [successMessage, setSuccessMessage] = useState("");
@@ -45,7 +45,7 @@ export function ContactPopup({ preselected, defaults }: { preselected?: Discipli
               {successMessage}
             </p>
           )}
-          <ContactForm preselected={preselected} defaults={defaults} variant="reservation" onSuccess={onSuccess} />
+          <ContactForm formations={formations} preselected={preselected} defaults={defaults} variant="reservation" onSuccess={onSuccess} />
         </div>
       </DialogContent>
     </Dialog>
