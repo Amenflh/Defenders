@@ -1,19 +1,19 @@
 import { NextResponse, type NextRequest } from "next/server";
 
 const SESSION_COOKIE = "dfa_session";
-/** Pages accessibles sans être connecté. */
-const PUBLIC_PATHS = ["/login", "/register"];
+/** Pages privées réservées aux comptes. Toutes les autres pages restent publiques. */
+const PRIVATE_PATHS = ["/admin", "/mon-espace"];
 
 /**
- * Vérification « optimiste » : sans cookie de session, toute page renvoie vers /login.
- * La validité réelle de la session est vérifiée côté serveur (layout du site, espace admin).
+ * Vérification « optimiste » : sans cookie de session, les espaces privés renvoient vers /login.
+ * La validité réelle de la session est vérifiée côté serveur (layouts admin et espace client).
  */
 export function proxy(request: NextRequest) {
   const { pathname, search } = request.nextUrl;
-  const isPublic = PUBLIC_PATHS.some((p) => pathname === p || pathname.startsWith(`${p}/`));
+  const isPrivate = PRIVATE_PATHS.some((p) => pathname === p || pathname.startsWith(`${p}/`));
   const hasSession = request.cookies.has(SESSION_COOKIE);
 
-  if (!isPublic && !hasSession) {
+  if (isPrivate && !hasSession) {
     const url = request.nextUrl.clone();
     url.pathname = "/login";
     url.search = pathname === "/" ? "" : `?next=${encodeURIComponent(pathname + search)}`;

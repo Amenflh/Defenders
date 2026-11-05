@@ -84,11 +84,14 @@ export async function submitContact(prev: ContactState, formData: FormData): Pro
 
     if (res.ok) {
       const data = (await res.json().catch(() => null)) as { emailSent?: boolean } | null;
+      const isInquiry = payload.profile === "demande-info";
       return {
         status: "success",
         message: data?.emailSent
-          ? `Merci ${payload.firstName} ! Votre demande a bien été envoyée. Notre équipe vous recontacte très rapidement.`
-          : `Merci ${payload.firstName} ! Votre demande a été enregistrée. Vous pouvez aussi nous joindre par téléphone si vous souhaitez accélérer le contact.`,
+          ? `Merci ${payload.firstName} ! Votre message a bien été transmis à notre équipe, qui vous recontactera très rapidement.`
+          : isInquiry
+            ? `Merci ${payload.firstName} ! Votre message est bien enregistré dans le tableau de bord de notre équipe. Nous vous recontacterons très rapidement.`
+            : `Merci ${payload.firstName} ! Votre demande a été enregistrée. Vous pouvez aussi nous joindre par téléphone si vous souhaitez accélérer le contact.`,
         attempt,
       };
     }

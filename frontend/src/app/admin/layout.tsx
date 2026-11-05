@@ -13,5 +13,5 @@ export default async function AdminLayout({ children }: LayoutProps<"/admin">) {
   if (user === null) redirect("/login?next=/admin");
   if (user !== "unavailable" && user.role !== "admin") redirect("/");
 
-  return <div className="min-h-[80vh] pt-28 pb-20">{children}</div>;
+  return <div className="min-h-dvh bg-ink">{children}</div>;
 }

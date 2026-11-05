@@ -2,9 +2,10 @@ import { footballPhotos, personalPhotos, pilatesPhotos, type Photo } from "./ima
 
 export const DISCIPLINE_SLUGS = ["pilates", "football", "personal-training"] as const;
 export type DisciplineSlug = (typeof DISCIPLINE_SLUGS)[number];
+export type DynamicPhoto = { src: Photo["src"] | string; alt: string };
 
 export type Discipline = {
-  slug: DisciplineSlug;
+  slug: string;
   name: string;
   /** Classe Tailwind de la couleur d'accent de la discipline. */
   accent: { text: string; bg: string; border: string };
@@ -17,9 +18,9 @@ export type Discipline = {
   audience: string[];
   careers: string[];
   /** Première photo = visuel principal de la page ; les suivantes forment la galerie. */
-  photos: Photo[];
+  photos: DynamicPhoto[];
   /** Visuel utilisé sur les cartes (accueil, « découvrez aussi »). */
-  cover: Photo;
+  cover: DynamicPhoto;
 };
 
 export const disciplines: Record<DisciplineSlug, Discipline> = {

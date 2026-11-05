@@ -1,28 +1,43 @@
-"use client";
-
 import Link from "next/link";
-import { usePathname } from "next/navigation";
 import { disciplineList } from "@/lib/disciplines";
 import { mainNav, site } from "@/lib/site";
+import { apiFetch } from "@/lib/session";
 import { Icon } from "./Icon";
 import { Logo } from "./Logo";
-import { PartnersMarquee } from "./PartnersMarquee";
 
-export function Footer() {
-  const pathname = usePathname();
+export async function Footer() {
+  const [settingsRes, formationsRes] = await Promise.all([
+    apiFetch("/api/content/settings/site"),
+    apiFetch("/api/content/formations"),
+  ]);
+  const settings = settingsRes.ok ? ((await settingsRes.json()) as { value: Record<string, unknown> }).value : {};
+  const formations = formationsRes.ok
+    ? ((await formationsRes.json()) as { formations: { slug: string; name: string }[] }).formations ?? []
+    : [];
+  const phone = typeof settings.phone === "string" ? settings.phone : site.phone.label;
+  const phone2 = typeof settings.phone2 === "string" ? settings.phone2 : site.phone2.label;
+  const email = typeof settings.email === "string" ? settings.email : site.email.label;
+  const facebook = typeof settings.facebook === "string" ? settings.facebook : site.facebook.href;
+  const instagram = typeof settings.instagram === "string" ? settings.instagram : site.instagram.href;
+  const address = typeof settings.address === "string" ? settings.address : site.address.lines.join(", ");
+  const approval = typeof settings.approval === "string" ? settings.approval : site.approval;
+  const brandName = typeof settings.brandName === "string" && settings.brandName ? settings.brandName : site.shortName;
+  const brandDescriptor = typeof settings.brandDescriptor === "string" && settings.brandDescriptor ? settings.brandDescriptor : "Fitness Academy";
+  const siteName = `${brandName} ${brandDescriptor}`.trim();
+  const logoUrl = typeof settings.logoUrl === "string" && settings.logoUrl ? settings.logoUrl : undefined;
+  const certificationLabel = typeof settings.certificationLabel === "string" && settings.certificationLabel ? settings.certificationLabel : "Centre certifié";
 
   return (
     <footer className="border-t border-line bg-ink-2">
-      {pathname === "/" && <PartnersMarquee />}
       <div className="container-site grid gap-12 py-16 md:grid-cols-2 lg:grid-cols-[1.4fr_1fr_1fr_1.3fr]">
         <div className="space-y-5">
-          <Logo />
+          <Logo logoUrl={logoUrl} brandName={brandName} brandDescriptor={brandDescriptor} />
           <p className="max-w-xs text-sm leading-relaxed text-mist">
-            {site.tagline}. Membre de {site.group}.
+            {typeof settings.footerTagline === "string" ? settings.footerTagline : site.tagline}. Membre de {typeof settings.footerGroup === "string" ? settings.footerGroup : site.group}.
           </p>
           <p className="inline-flex items-center gap-2 border border-line px-3 py-1.5 text-xs tracking-widest text-mist uppercase">
             <Icon name="shield" width={14} height={14} className="text-gold" />
-            Centre certifié · {site.approval}
+            {certificationLabel} · {approval}
           </p>
         </div>
 
@@ -38,9 +53,9 @@ export function Footer() {
         </FooterColumn>
 
         <FooterColumn title="Formations">
-          {disciplineList.map((d) => (
-            <FooterLink key={d.slug} href={`/${d.slug}`}>
-              {d.name}
+          {(formations.length > 0 ? formations : disciplineList).map((formation) => (
+            <FooterLink key={formation.slug} href={`/${formation.slug}`}>
+              {formation.name}
             </FooterLink>
           ))}
           <FooterLink href="/planning">Planning des sessions</FooterLink>
@@ -58,7 +73,7 @@ export function Footer() {
             <div className="flex items-center justify-between gap-3 p-3">
               <span className="flex min-w-0 items-start gap-2 text-xs leading-relaxed text-mist">
                 <Icon name="pin" width={15} height={15} className="mt-0.5 shrink-0 text-gold" />
-                <span>{site.address.lines.join(", ")}</span>
+                <span>{address}</span>
               </span>
               <a
                 href={site.address.href}
@@ -73,22 +88,22 @@ export function Footer() {
           <li className="flex items-start gap-3">
             <Icon name="phone" width={16} height={16} className="mt-0.5 shrink-0 text-gold" />
             <span>
-              <a href={site.phone.href} className="block hover:text-bone">{site.phone.label}</a>
-              <a href={site.phone2.href} className="block hover:text-bone">{site.phone2.label}</a>
+              <a href={`tel:${phone.replace(/\s/g, "")}`} className="block hover:text-bone">{phone}</a>
+              <a href={`tel:${phone2.replace(/\s/g, "")}`} className="block hover:text-bone">{phone2}</a>
             </span>
           </li>
           <li>
-            <a href={site.email.href} className="flex items-center gap-3 break-all hover:text-bone">
-              <Icon name="mail" width={16} height={16} className="shrink-0 text-gold" /> {site.email.label}
+            <a href={`mailto:${email}`} className="flex items-center gap-3 break-all hover:text-bone">
+              <Icon name="mail" width={16} height={16} className="shrink-0 text-gold" /> {email}
             </a>
           </li>
           <li>
-            <a href={site.facebook.href} target="_blank" rel="noreferrer" className="flex items-center gap-3 hover:text-bone">
+            <a href={facebook} target="_blank" rel="noreferrer" className="flex items-center gap-3 hover:text-bone">
               <Icon name="facebook" width={16} height={16} className="text-gold" /> {site.facebook.label}
             </a>
           </li>
           <li>
-            <a href={site.instagram.href} target="_blank" rel="noreferrer" className="flex items-center gap-3 hover:text-bone">
+            <a href={instagram} target="_blank" rel="noreferrer" className="flex items-center gap-3 hover:text-bone">
               <Icon name="instagram" width={16} height={16} className="text-gold" /> {site.instagram.label}
             </a>
           </li>
@@ -97,7 +112,7 @@ export function Footer() {
 
       <div className="border-t border-line">
         <div className="container-site flex flex-col gap-3 py-6 text-xs text-mist sm:flex-row sm:items-center sm:justify-between">
-          <p>© {new Date().getFullYear()} {site.name}. Tous droits réservés.</p>
+          <p>© {new Date().getFullYear()} {siteName}. Tous droits réservés.</p>
           <nav aria-label="Informations légales" className="flex flex-wrap gap-x-4 gap-y-2">
             <Link href="/mentions-legales" className="hover:text-bone">Mentions légales</Link>
             <Link href="/politique-de-confidentialite" className="hover:text-bone">Politique de confidentialité</Link>

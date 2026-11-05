@@ -16,14 +16,16 @@ export const honeypot: RequestHandler = (req, res, next) => {
 export const create: RequestHandler = async (req, res) => {
   const input = req.valid.body as z.infer<typeof createRegistrationSchema>;
   const registration = await service.createRegistration(input, req.user?.role === "client" ? req.user.id : undefined);
-  console.info(`[inscription] nouvelle demande ${registration.id} (${registration.trainings.join(", ")})`);
+  const requestType = registration.profile === "demande-info" ? "demande d'information" : "inscription";
+  console.info(`[contact] nouvelle ${requestType} ${registration.id}`);
   // La demande est enregistrée : un échec d'envoi de l'e-mail ne doit pas la faire échouer.
+  let emailSent = false;
   try {
-    await sendRegistrationEmail(registration, input.attachment);
+    emailSent = await sendRegistrationEmail(registration, input.attachment);
   } catch (err) {
-    console.error(`[inscription] e-mail non envoyé pour ${registration.id}`, err);
+    console.error(`[contact] e-mail non envoyé pour ${registration.id}`, err);
   }
-  res.status(201).json({ ok: true, id: registration.id });
+  res.status(201).json({ ok: true, id: registration.id, emailSent });
 };
 
 export const listForAdmin: RequestHandler = async (req, res) => {

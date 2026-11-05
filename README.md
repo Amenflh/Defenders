@@ -27,17 +27,17 @@ Documentation projet :
 
 ## Pages et accès
 
-**Le site exige une connexion** : sans session, toute page redirige vers `/login`
-(`frontend/src/proxy.ts`, puis vérification réelle côté serveur).
+Le site marketing est public. Les espaces protégés nécessitent une connexion :
+`/admin` est réservé aux administrateurs et `/mon-espace` aux clients.
 
 | Page | Route | Accès |
 |---|---|---|
 | Connexion (admin et clients, même formulaire) | `/login` | public |
 | Création de compte client | `/register` | public |
-| Accueil, Pilates, Football, Personal Training, Planning | `/`, `/pilates`, … | connecté |
-| Inscription à une formation (pré-remplie, liée au compte) | `/contact` | connecté |
-| Formulaire d'inscription en popup | `/contact?popup=1` | connecté |
-| Mentions légales, confidentialité, cookies | `/mentions-legales`, `/politique-de-confidentialite`, `/cookies` | connecté |
+| Accueil, Pilates, Football, Personal Training, Planning | `/`, `/pilates`, … | public |
+| Inscription à une formation (pré-remplie, liée au compte) | `/contact` | public |
+| Formulaire d'inscription en popup | `/contact?popup=1` | public |
+| Mentions légales, confidentialité, cookies | `/mentions-legales`, `/politique-de-confidentialite`, `/cookies` | public |
 | Suivi de ses inscriptions | `/mon-espace` | client |
 | Tableau de bord des demandes | `/admin` | admin |
 

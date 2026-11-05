@@ -12,7 +12,7 @@ export function backendUrl(path: string): string {
 
 export type Session = {
   id: string;
-  discipline: "pilates" | "football" | "personal-training";
+  discipline: string;
   title: string;
   day: 1 | 2 | 3 | 4 | 5 | 6 | 7;
   start: string;

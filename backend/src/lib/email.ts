@@ -79,16 +79,20 @@ export async function sendRegistrationEmail(contact: RegistrationDto, attachment
     auth: { user: config.smtp.user, pass: config.smtp.pass },
   });
 
+  const isInquiry = contact.profile === "demande-info";
+  const requestLabel = isInquiry ? "demande d'information" : "demande d'inscription";
   const text = [
-    "Nouvelle demande d'inscription Defenders Fitness Academy",
+    `Nouvelle ${requestLabel} Defenders Fitness Academy`,
     "",
     `Nom : ${contact.firstName} ${contact.lastName}`,
     `E-mail : ${contact.email}`,
     `Téléphone : ${contact.phone}`,
     `Ville : ${contact.city || "-"}`,
-    `Profil : ${contact.profile}`,
-    `Formations : ${contact.trainings.join(", ")}`,
-    `Disponibilité : ${contact.availability}`,
+    ...(isInquiry ? [] : [
+      `Profil : ${contact.profile}`,
+      `Formations : ${contact.trainings.join(", ")}`,
+      `Disponibilité : ${contact.availability}`,
+    ]),
     "",
     `Message : ${contact.message || "-"}`,
     "",
@@ -110,10 +114,7 @@ export async function sendRegistrationEmail(contact: RegistrationDto, attachment
     ["Nom complet", `${safeFirstName} ${safeLastName}`],
     ["E-mail", `<a href="mailto:${safeEmail}" style="color:#d7b56d;">${safeEmail}</a>`],
     ["Téléphone", `<a href="tel:${escapeHtml(contact.phone.replace(/[^+\d]/g, ""))}" style="color:#d7b56d;">${safePhone}</a>`],
-    ["Ville", safeCity],
-    ["Profil", safeProfile],
-    ["Formation(s)", safeTrainings],
-    ["Disponibilité", safeAvailability],
+    ...(!isInquiry ? [["Ville", safeCity], ["Profil", safeProfile], ["Formation(s)", safeTrainings], ["Disponibilité", safeAvailability]] : []),
     ["Message", safeMessage],
     ["Demande", safeId],
   ].map(([label, value]) => `
@@ -124,7 +125,7 @@ export async function sendRegistrationEmail(contact: RegistrationDto, attachment
 
   const adminHtml = emailLayout(`
     <div style="margin-bottom:24px;">
-      <div style="font-size:12px;text-transform:uppercase;letter-spacing:2px;color:#d7b56d;font-weight:700;">Nouvelle demande reçue</div>
+      <div style="font-size:12px;text-transform:uppercase;letter-spacing:2px;color:#d7b56d;font-weight:700;">Nouvelle ${requestLabel} reçue</div>
       <h1 style="margin:9px 0 0;font-size:26px;line-height:1.2;color:#ffffff;">${safeFirstName} ${safeLastName}</h1>
     </div>
     <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="border:1px solid #34342f;border-collapse:collapse;">${adminDetails}</table>
@@ -136,10 +137,10 @@ export async function sendRegistrationEmail(contact: RegistrationDto, attachment
     <div style="font-size:12px;text-transform:uppercase;letter-spacing:2px;color:#d7b56d;font-weight:700;">Demande confirmée</div>
     <h1 style="margin:9px 0 18px;font-size:28px;line-height:1.25;color:#ffffff;">Bonjour ${safeFirstName},</h1>
     <p style="margin:0 0 18px;font-size:15px;line-height:1.75;color:#d9d7cd;">
-      Nous avons bien reçu votre demande auprès de <strong style="color:#ffffff;">Defenders Fitness Academy</strong>.
+      Nous avons bien reçu votre ${requestLabel} auprès de <strong style="color:#ffffff;">Defenders Fitness Academy</strong>.
       Notre équipe examine votre profil et vous recontactera prochainement.
     </p>
-    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="margin:24px 0;border:1px solid #34342f;background:#20211e;">
+    ${isInquiry ? "" : `<table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="margin:24px 0;border:1px solid #34342f;background:#20211e;">
       <tr><td style="padding:18px;">
         <div style="font-size:11px;text-transform:uppercase;letter-spacing:1.5px;color:#a7a7a0;">Récapitulatif</div>
         <div style="margin-top:8px;font-size:15px;line-height:1.6;color:#ece9df;">
@@ -148,7 +149,7 @@ export async function sendRegistrationEmail(contact: RegistrationDto, attachment
           <strong>Référence :</strong> ${safeId}
         </div>
       </td></tr>
-    </table>
+    </table>`}
     <p style="margin:0 0 22px;font-size:15px;line-height:1.75;color:#d9d7cd;">Une question en attendant notre réponse ? Notre équipe est disponible par téléphone ou WhatsApp.</p>
     <div>
       <a href="tel:+21692204005" style="display:inline-block;padding:13px 18px;background:#d7b56d;color:#151611;text-decoration:none;font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:1px;">Nous appeler</a>
@@ -166,7 +167,7 @@ export async function sendRegistrationEmail(contact: RegistrationDto, attachment
     from: `"Defenders Fitness Academy" <${config.smtp.user}>`,
     to: config.smtp.contactTo,
     replyTo: contact.email,
-    subject: `Nouvelle demande - ${contact.firstName} ${contact.lastName}`,
+    subject: `Nouvelle ${requestLabel} - ${contact.firstName} ${contact.lastName}`,
     text,
     html: adminHtml,
     attachments: [...logoAttachment, ...(attachment ? [{
@@ -180,13 +181,13 @@ export async function sendRegistrationEmail(contact: RegistrationDto, attachment
     from: `"Defenders Fitness Academy" <${config.smtp.user}>`,
     to: contact.email,
     replyTo: config.smtp.contactTo,
-    subject: "Confirmation de votre demande - Defenders Fitness Academy",
+    subject: `Confirmation de votre ${requestLabel} - Defenders Fitness Academy`,
     text: [
       `Bonjour ${contact.firstName},`,
       "",
       "Nous avons bien reçu votre demande auprès de Defenders Fitness Academy.",
       "",
-      `Formation(s) souhaitée(s) : ${contact.trainings.join(", ") || "-"}`,
+      ...(isInquiry ? [] : [`Formation(s) souhaitée(s) : ${contact.trainings.join(", ") || "-"}`]),
       "Notre équipe étudiera votre demande et vous recontactera prochainement.",
       "",
       "Merci pour votre confiance.",

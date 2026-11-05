@@ -2,12 +2,19 @@ import Image from "next/image";
 import Link from "next/link";
 import type { Discipline } from "@/lib/disciplines";
 import { disciplineList } from "@/lib/disciplines";
+import { mergeFormationContent, type FormationContent } from "@/lib/formation-content";
+import { apiFetch } from "@/lib/session";
 import { Icon } from "./Icon";
 import { Reveal } from "./Reveal";
 
-export function DisciplinePage({ d }: { d: Discipline }) {
+export async function DisciplinePage({ d }: { d: Discipline }) {
   const [hero, ...gallery] = d.photos;
-  const others = disciplineList.filter((o) => o.slug !== d.slug);
+  const relatedRes = await apiFetch("/api/content/formations");
+  const others = relatedRes.ok
+    ? (((await relatedRes.json()) as { formations: FormationContent[] }).formations)
+        .filter((formation) => formation.slug !== d.slug)
+        .map((formation) => mergeFormationContent(undefined, formation))
+    : disciplineList.filter((formation) => formation.slug !== d.slug);
 
   return (
     <>
@@ -52,7 +59,7 @@ export function DisciplinePage({ d }: { d: Discipline }) {
           <Reveal from="right" delay={150} className="relative">
             <div className={`absolute -inset-3 border ${d.accent.border} opacity-40`} aria-hidden="true" />
             <div className="relative aspect-[4/5] overflow-hidden bg-ink-3">
-              <Image src={hero.src} alt={hero.alt} fill preload placeholder="blur" sizes="(min-width: 1024px) 45vw, 100vw" className="object-cover" />
+              <Image src={hero.src} alt={hero.alt} fill preload placeholder={typeof hero.src === "string" ? "empty" : "blur"} unoptimized={typeof hero.src === "string"} sizes="(min-width: 1024px) 45vw, 100vw" className="object-cover" />
             </div>
           </Reveal>
         </div>
@@ -117,7 +124,8 @@ export function DisciplinePage({ d }: { d: Discipline }) {
                       src={p.src}
                       alt={p.alt}
                       fill
-                      placeholder="blur"
+                      placeholder={typeof p.src === "string" ? "empty" : "blur"}
+                      unoptimized={typeof p.src === "string"}
                       sizes={gallery.length > 1 ? "(min-width: 640px) 50vw, 100vw" : "100vw"}
                       className="object-cover transition duration-700 group-hover:scale-105"
                     />
@@ -164,7 +172,7 @@ export function DisciplinePage({ d }: { d: Discipline }) {
               <Reveal key={o.slug} delay={i * 120}>
                 <Link href={`/${o.slug}`} className="group flex items-center gap-6 border border-line bg-ink-2 p-5 transition-colors hover:border-bone/40">
                   <div className="relative size-24 shrink-0 overflow-hidden">
-                    <Image src={o.cover.src} alt="" fill sizes="96px" className="object-cover transition duration-500 group-hover:scale-110" />
+                    <Image src={o.cover.src} alt="" fill placeholder={typeof o.cover.src === "string" ? "empty" : "blur"} unoptimized={typeof o.cover.src === "string"} sizes="96px" className="object-cover transition duration-500 group-hover:scale-110" />
                   </div>
                   <div className="min-w-0">
                     <h3 className="font-display text-2xl tracking-wide uppercase">{o.name}</h3>

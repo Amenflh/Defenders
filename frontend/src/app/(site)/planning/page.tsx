@@ -4,7 +4,6 @@ import { connection } from "next/server";
 import { Icon } from "@/components/Icon";
 import { PageIntro } from "@/components/PageIntro";
 import { getPlanning } from "@/lib/api";
-import { DISCIPLINE_SLUGS, type DisciplineSlug } from "@/lib/disciplines";
 import { site } from "@/lib/site";
 import { PlanningBoard } from "./PlanningBoard";
 
@@ -18,7 +17,7 @@ export default async function PlanningPage({ searchParams }: PageProps<"/plannin
   await connection();
   const [sessions, params] = await Promise.all([getPlanning(), searchParams]);
   const requested = typeof params.discipline === "string" ? params.discipline : undefined;
-  const initial = DISCIPLINE_SLUGS.includes(requested as DisciplineSlug) ? (requested as DisciplineSlug) : "all";
+  const initial = requested && sessions?.some((session) => session.discipline === requested) ? requested : "all";
 
   return (
     <>

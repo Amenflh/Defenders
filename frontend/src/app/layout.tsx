@@ -7,10 +7,7 @@ const inter = Inter({ variable: "--font-inter", subsets: ["latin"] });
 const oswald = Oswald({ variable: "--font-oswald", subsets: ["latin"], weight: ["400", "500", "600"] });
 
 export const metadata: Metadata = {
-  title: {
-    default: `${site.name} — Formation Pilates, Football & Personal Training`,
-    template: `%s | ${site.name}`,
-  },
+  title: site.name,
   description: `${site.name} : ${site.tagline}. Formations certifiantes en Pilates, football et personal training.`,
   icons: { icon: "/pics/logo.jpg" },
 };
