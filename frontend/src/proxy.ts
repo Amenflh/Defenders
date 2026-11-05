@@ -24,6 +24,8 @@ export function proxy(request: NextRequest) {
 
 export const config = {
   // Exclut les fichiers statiques, l'optimisation d'images et les médias du dossier public
-  // (sinon la vidéo de l'écran de connexion serait elle-même redirigée vers /login).
-  matcher: ["/((?!_next/static|_next/image|pics/|video/|favicon.ico|robots.txt|sitemap.xml|.*\\.(?:png|jpe?g|svg|webp|avif|ico|mp4|webm)$).*)"],
+  // (sinon la vidéo de l'écran de connexion serait elle-même redirigée vers /login),
+  // ainsi que l'envoi de médias (le proxy mettrait en mémoire les fichiers de plus de 10 Mo ;
+  // la route vérifie elle-même la session).
+  matcher: ["/((?!_next/static|_next/image|pics/|video/|uploads/|admin/medias/upload|favicon.ico|robots.txt|sitemap.xml|.*\\.(?:png|jpe?g|svg|webp|avif|ico|mp4|webm)$).*)"],
 };

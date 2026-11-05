@@ -2,7 +2,7 @@
 
 import { useActionState, useEffect, useRef } from "react";
 import { Icon } from "@/components/Icon";
-import type { DisciplineSlug } from "@/lib/disciplines";
+import type { FormationOption } from "@/lib/formations";
 import { submitContact, type ContactFields, type ContactState } from "./actions";
 
 const PROFILES = [
@@ -10,12 +10,6 @@ const PROFILES = [
   { value: "jeune-diplome", label: "Jeune diplômé", hint: "Diplômé récemment en sciences du sport" },
   { value: "etudiant", label: "Étudiant", hint: "En cours de formation (STAPS, etc.)" },
   { value: "reconversion", label: "Reconversion", hint: "Je souhaite devenir coach" },
-];
-
-const TRAININGS: { value: DisciplineSlug; label: string; dot: string }[] = [
-  { value: "pilates", label: "Pilates", dot: "bg-pilates" },
-  { value: "football", label: "Football", dot: "bg-football" },
-  { value: "personal-training", label: "Personal Training", dot: "bg-personal" },
 ];
 
 const AVAILABILITIES = [
@@ -30,12 +24,15 @@ const initialState: ContactState = { status: "idle", attempt: 0 };
 export type ContactDefaults = Partial<Record<"firstName" | "lastName" | "email" | "phone", string>>;
 
 export function ContactForm({
+  formations,
   preselected,
   defaults = {},
   variant = "classic",
   onSuccess,
 }: {
-  preselected?: DisciplineSlug;
+  /** Formations publiées proposées au choix. */
+  formations: FormationOption[];
+  preselected?: string;
   /** Coordonnées du client connecté, pour pré-remplir le formulaire. */
   defaults?: ContactDefaults;
   variant?: "classic" | "reservation";
@@ -111,15 +108,19 @@ export function ContactForm({
       </Fieldset>
 
       <Fieldset legend="3. Formation souhaitée" hint="Plusieurs choix possibles" error={err("trainings")}>
-        <div className="grid gap-3 sm:grid-cols-3">
-          {TRAININGS.map((t) => (
-            <ChoiceCard key={t.value} type="checkbox" name="trainings" value={t.value} defaultChecked={trainings.includes(t.value)}>
-              <span className="flex items-center gap-2 font-medium">
-                <span className={`size-2.5 rounded-full ${t.dot}`} /> {t.label}
-              </span>
-            </ChoiceCard>
-          ))}
-        </div>
+        {formations.length > 0 ? (
+          <div className="grid gap-3 sm:grid-cols-3">
+            {formations.map((t) => (
+              <ChoiceCard key={t.slug} type="checkbox" name="trainings" value={t.slug} defaultChecked={trainings.includes(t.slug)}>
+                <span className="flex items-center gap-2 font-medium">
+                  <span className={`size-2.5 rounded-full ${t.accent.dot}`} /> {t.name}
+                </span>
+              </ChoiceCard>
+            ))}
+          </div>
+        ) : (
+          <p className="text-sm text-mist">La liste des formations est momentanément indisponible. Indiquez la formation souhaitée dans votre message.</p>
+        )}
       </Fieldset>
 
       <Fieldset legend="4. Disponibilité" error={err("availability")}>

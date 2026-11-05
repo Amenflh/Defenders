@@ -2,13 +2,12 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { disciplineList } from "@/lib/disciplines";
 import { mainNav, site } from "@/lib/site";
 import { Icon } from "./Icon";
 import { Logo } from "./Logo";
 import { PartnersMarquee } from "./PartnersMarquee";
 
-export function Footer() {
+export function Footer({ formations }: { formations: { slug: string; name: string }[] }) {
   const pathname = usePathname();
 
   return (
@@ -38,11 +37,12 @@ export function Footer() {
         </FooterColumn>
 
         <FooterColumn title="Formations">
-          {disciplineList.map((d) => (
-            <FooterLink key={d.slug} href={`/${d.slug}`}>
-              {d.name}
+          {formations.map((f) => (
+            <FooterLink key={f.slug} href={`/formations/${f.slug}`}>
+              {f.name}
             </FooterLink>
           ))}
+          <FooterLink href="/formations">Toutes les formations</FooterLink>
           <FooterLink href="/planning">Planning des sessions</FooterLink>
         </FooterColumn>
 

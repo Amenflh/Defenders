@@ -71,7 +71,7 @@ export type NavItem = { href: string; label: string };
 
 export const mainNav: NavItem[] = [
   { href: "/", label: "Accueil" },
-  { href: "/#formations", label: "Nos formations" },
+  { href: "/formations", label: "Nos formations" },
   { href: "/#galerie", label: "Galerie" },
   { href: "/securite", label: "Sécurité Protection" },
   { href: "/planning", label: "Planning" },

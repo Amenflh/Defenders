@@ -4,7 +4,8 @@ import { Icon } from "@/components/Icon";
 import { Reveal } from "@/components/Reveal";
 import { RotatingWord } from "@/components/RotatingWord";
 import { ScrollStory, type StoryItem } from "@/components/ScrollStory";
-import { disciplineList } from "@/lib/disciplines";
+import { FormationCard } from "@/components/FormationCard";
+import { getFormations } from "@/lib/formations";
 import { bannerPhotos } from "@/lib/images";
 import { site } from "@/lib/site";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
@@ -102,7 +103,7 @@ const faqs = [
 ];
 
 export default async function HomePage({ searchParams }: PageProps<"/">) {
-  const params = await searchParams;
+  const [params, formations] = await Promise.all([searchParams, getFormations()]);
   const inscriptionSuccess = params.inscription === "success";
 
   return (
@@ -287,38 +288,32 @@ export default async function HomePage({ searchParams }: PageProps<"/">) {
           <Reveal className="mb-14 flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
             <div>
               <p className="eyebrow mb-3 !text-ink/60">Nos formations</p>
-              <h2 className="heading-lg">Trois expertises, une exigence</h2>
+              <h2 className="heading-lg">Nos expertises, une exigence</h2>
             </div>
-            <Link href="/planning" className="btn btn-dark self-start">
-              <Icon name="calendar" /> Voir le planning
-            </Link>
+            <div className="flex flex-wrap gap-3 self-start">
+              <Link href="/formations" className="btn btn-dark">
+                Toutes les formations <Icon name="arrow" />
+              </Link>
+              <Link href="/planning" className="btn btn-dark">
+                <Icon name="calendar" /> Voir le planning
+              </Link>
+            </div>
           </Reveal>
 
-          <div className="grid gap-6 md:grid-cols-3">
-            {disciplineList.map((d, i) => (
-              <Reveal key={d.slug} delay={i * 120}>
-                <Link href={`/${d.slug}`} className="group relative block aspect-[4/5] overflow-hidden bg-ink transition duration-500 hover:-translate-y-2 hover:shadow-[0_24px_60px_rgba(201,162,39,0.16)]">
-                  <Image
-                    src={d.cover.src}
-                    alt={d.cover.alt}
-                    fill
-                    placeholder="blur"
-                    sizes="(min-width: 768px) 33vw, 100vw"
-                    className="object-cover opacity-80 transition duration-700 group-hover:scale-105 group-hover:opacity-60"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-ink via-ink/40 to-transparent" />
-                  <div className="absolute inset-x-0 bottom-0 p-7 text-bone">
-                    <span className={`mb-4 block h-1 w-12 ${d.accent.bg} transition-all duration-500 group-hover:w-24`} />
-                    <h3 className="font-display text-3xl tracking-wide uppercase">{d.name}</h3>
-                    <p className="mt-3 text-sm leading-relaxed text-bone/80 transition-all duration-500 sm:translate-y-4 sm:opacity-0 sm:group-hover:translate-y-0 sm:group-hover:opacity-100">{d.summary}</p>
-                    <span className="mt-5 inline-flex items-center gap-2 font-display text-sm tracking-[0.15em] uppercase">
-                      Découvrir la formation <Icon name="arrow" className="transition-transform group-hover:translate-x-1" />
-                    </span>
-                  </div>
-                </Link>
-              </Reveal>
-            ))}
-          </div>
+          {formations && formations.length > 0 ? (
+            <div className="grid gap-6 md:grid-cols-3">
+              {formations.map((f, i) => (
+                <Reveal key={f.slug} delay={(i % 3) * 120}>
+                  <FormationCard f={f} />
+                </Reveal>
+              ))}
+            </div>
+          ) : (
+            <p className="border border-ink/15 p-8 text-center text-ink/70">
+              Les formations ne peuvent pas être affichées pour le moment.{" "}
+              <Link href="/contact" className="underline">Contactez-nous</Link> pour connaître les prochaines sessions.
+            </p>
+          )}
         </div>
       </section>
 

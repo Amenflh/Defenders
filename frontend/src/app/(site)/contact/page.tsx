@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import { Icon } from "@/components/Icon";
 import { PageIntro } from "@/components/PageIntro";
-import { DISCIPLINE_SLUGS, type DisciplineSlug } from "@/lib/disciplines";
+import { getFormations, toOptions } from "@/lib/formations";
 import { brand } from "@/lib/images";
 import { getCurrentUser } from "@/lib/session";
 import { site } from "@/lib/site";
@@ -16,7 +16,8 @@ export const metadata: Metadata = {
 
 export default async function ContactPage({ searchParams }: PageProps<"/contact">) {
   const { formation, popup } = await searchParams;
-  const preselected = DISCIPLINE_SLUGS.includes(formation as DisciplineSlug) ? (formation as DisciplineSlug) : undefined;
+  const formations = toOptions((await getFormations()) ?? []);
+  const preselected = formations.some((f) => f.slug === formation) ? (formation as string) : undefined;
   const popupMode = popup === "1";
 
   // Client connecté : coordonnées pré-remplies depuis son compte.
@@ -45,11 +46,11 @@ export default async function ContactPage({ searchParams }: PageProps<"/contact"
         recontactons pour vous orienter et vous communiquer les prochaines dates.
       </PageIntro>
 
-      {popupMode && <ContactPopup preselected={preselected} defaults={defaults} />}
+      {popupMode && <ContactPopup formations={formations} preselected={preselected} defaults={defaults} />}
 
       <section className="py-16 lg:py-24">
         <div className="container-site grid gap-14 lg:grid-cols-[1fr_22rem] lg:gap-20">
-          <ContactForm preselected={preselected} defaults={defaults} />
+          <ContactForm formations={formations} preselected={preselected} defaults={defaults} />
 
           <aside className="space-y-6 lg:sticky lg:top-28 lg:self-start">
             <div className="border border-line bg-ink-2 p-7">
