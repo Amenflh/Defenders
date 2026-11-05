@@ -112,16 +112,3 @@ export async function deleteMediaAction(id: number): Promise<{ ok: boolean }> {
   revalidatePath("/admin");
   return { ok: true };
 }
-
-export async function uploadMediaAction(formData: FormData): Promise<{ ok: boolean; file?: { url: string; type: string } }> {
-  const res = await apiFetch("/api/admin/uploads", {
-    method: "POST",
-    body: formData,
-  }).catch(() => null);
-  if (res?.status === 401) redirect("/login?next=/admin");
-  if (!res?.ok) return { ok: false };
-  const data = await res.json() as { file: { url: string; type: string } };
-  revalidatePath("/admin");
-  revalidatePath("/");
-  return { ok: true, file: data.file };
-}
