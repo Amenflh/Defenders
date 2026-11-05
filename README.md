@@ -26,30 +26,46 @@ Organisation du code, conventions et choix techniques : [docs/ARCHITECTURE.md](d
 |---|---|---|
 | Connexion (admin et clients, même formulaire) | `/login` | public |
 | Création de compte client | `/register` | public |
-| Accueil, Pilates, Football, Personal Training, Planning | `/`, `/pilates`, … | connecté |
+| Accueil, planning | `/`, `/planning` | connecté |
+| Liste des formations, détail d'une formation | `/formations`, `/formations/<slug>` (`/pilates`… redirigent) | connecté |
 | Inscription à une formation (pré-remplie, liée au compte) | `/contact` | connecté |
 | Formulaire d'inscription en popup | `/contact?popup=1` | connecté |
 | Defenders Security Protection | `/securite` | connecté |
 | Mentions légales, confidentialité, cookies | `/mentions-legales`, `/politique-de-confidentialite`, `/cookies` | connecté |
 | Suivi de ses inscriptions | `/mon-espace` | client |
 | Tableau de bord des demandes | `/admin` | admin |
+| Gestion des formations (contenu, statut) | `/admin/formations` | admin |
+| Envoi et gestion des images et vidéos | `/admin/medias` | admin |
 
-`/robots.txt` et `/sitemap.xml` restent publics.
+`/robots.txt`, `/sitemap.xml` et les médias (`/pics`, `/video`, `/uploads`) restent publics.
 
 ## API (backend)
+
+Documentation interactive (Swagger) : **http://localhost:4000/api/docs** — bouton *Authorize* pour tester avec un jeton.
+Spécification brute : `/api/docs/openapi.json`. En production, activer avec `API_DOCS=true`.
 
 | Méthode | Route | Rôle |
 |---|---|---|
 | GET | `/api/health` | État du service et de la base PostgreSQL |
 | GET | `/api/planning?discipline=pilates` | Planning hebdomadaire |
 | POST | `/api/contact` | Enregistre une demande, pièce jointe facultative (PDF/JPG/PNG, 5 Mo), puis l'envoie par e-mail SMTP (10 envois / 15 min / IP) |
-| POST | `/api/auth/register` | Création d'un compte client → jeton de session |
-| POST | `/api/auth/login` | Connexion (admin ou client) → jeton de session (5 échecs / 15 min / IP) |
+| POST | `/api/auth/register` | Création d'un compte client → JWT |
+| POST | `/api/auth/login` | Connexion (admin ou client) → JWT (5 échecs / 15 min / IP) |
 | GET | `/api/auth/me` | Utilisateur connecté (avec son rôle) |
 | POST | `/api/auth/logout` | Révoque la session |
 | GET | `/api/me/inscriptions` | Inscriptions du client connecté |
 | GET | `/api/admin/contacts?status=nouveau` | Liste des demandes (admin) |
 | PATCH | `/api/admin/contacts/:id` | Change le statut : `nouveau`, `contacte`, `inscrit`, `archive` (admin) |
+| GET | `/api/formations` · `/api/formations/:slug` | Formations publiées · détail (contenu, formateurs, créneaux, médias) |
+| GET · POST | `/api/admin/formations` | Toutes les formations · création (admin) |
+| GET · PATCH · DELETE | `/api/admin/formations/:id` | Détail · modification partielle · suppression (409 si des inscriptions existent : archiver) (admin) |
+| GET | `/api/media?type=&category=&formation=` | Galerie publique |
+| POST | `/api/admin/media/images` · `/videos` | Téléversement (multipart, champ `file`) : JPG/PNG/WebP 5 Mo · MP4/WebM 100 Mo (admin) |
+| GET · PATCH · DELETE | `/api/admin/media` · `/api/admin/media/:id` | Liste · modification · suppression du média et de son fichier (admin) |
+
+**Authentification** : `Authorization: Bearer <JWT>`. Le JWT (HS256, signé avec `JWT_SECRET`) contient
+`sub`, `role`, `jti`, `iat`, `exp`, `iss`, `aud` ; il expire après `SESSION_TTL_HOURS` et est révocable :
+son `jti` désigne une session en base (déconnexion = suppression de la session).
 
 Erreurs : format unique `{ "error": "message", "errors": { "champ": ["…"] } }` (`errors` seulement pour la validation).
 Codes : 400 requête invalide · 401 non connecté · 403 rôle insuffisant · 404 introuvable · 409 conflit · 422 validation · 429 trop de requêtes.
@@ -69,7 +85,7 @@ backend/
     ├── config.ts              # variables d'environnement
     ├── lib/                   # prisma.ts (client unique), errors.ts (erreurs HTTP), email.ts (SMTP)
     ├── middlewares/           # auth (rôles), validate (Zod), error (gestion centralisée), rateLimits
-    ├── modules/<domaine>/     # auth · registrations · planning · health
+    ├── modules/<domaine>/     # auth · formations · registrations · planning · media · docs · health
     │   ├── *.routes.ts        #   URL + middlewares (validation, rôles)
     │   ├── *.controller.ts    #   HTTP : lit req.valid, renvoie la réponse
     │   ├── *.service.ts       #   logique métier + accès Prisma
@@ -128,11 +144,30 @@ Les secrets ne sont **jamais** commités. Deux fichiers à créer à partir des 
 Le mot de passe PostgreSQL doit être le même dans les deux fichiers.
 Le premier admin est créé au démarrage à partir de `ADMIN_EMAIL` / `ADMIN_PASSWORD` si aucun admin n'existe.
 
+| Variable | Rôle |
+|---|---|
+| `JWT_SECRET` | **Obligatoire.** Secret de signature des JWT, 32 caractères minimum, différent par environnement |
+| `SESSION_TTL_HOURS` | Durée de validité d'une connexion (12 h par défaut) |
+| `SITE_URL` | Adresse publique du site (liens dans les e-mails) |
+| `UPLOAD_DIR`, `MAX_IMAGE_MB`, `MAX_VIDEO_MB` | Dossier des fichiers téléversés (volume `uploads` dans Docker) et tailles maximales |
+| `API_DOCS` | `true` pour exposer Swagger en production |
+
+Générer un secret : `node -e "console.log(require('crypto').randomBytes(48).toString('base64url'))"`
+
 ### E-mails (SMTP)
 
 Chaque demande d'inscription est enregistrée en base, puis envoyée par e-mail à `CONTACT_TO`.
 Sans configuration SMTP, la demande est quand même enregistrée (un avertissement est affiché dans les logs).
 Avec Gmail, utiliser un **mot de passe d'application** Google, jamais le mot de passe principal.
+
+Deux e-mails sont envoyés : une notification à l'équipe (coordonnées, formations, message, pièce jointe,
+boutons « appeler » / « répondre ») et un accusé de réception au candidat (récapitulatif, prochaines étapes).
+
+```bash
+cd backend
+npm run email:preview                       # aperçu HTML dans backend/tmp/email-preview/
+npm run email:preview -- vous@exemple.tn    # envoie aussi les deux e-mails à cette adresse (test SMTP)
+```
 
 ```env
 SMTP_HOST=smtp.gmail.com
@@ -157,7 +192,7 @@ cd backend && npm install && npm run dev
 cd frontend && npm install && npm run dev
 ```
 
-Site : http://localhost:3000 — Admin : http://localhost:3000/admin
+Site : http://localhost:3000 — Admin : http://localhost:3000/admin — Documentation de l'API : http://localhost:4000/api/docs
 
 Vérifier la connexion backend ↔ PostgreSQL :
 
@@ -193,7 +228,8 @@ curl http://localhost:4000/api/health
 ## Personnalisation
 
 - Coordonnées, réseaux sociaux et partenaires : `frontend/src/lib/site.ts`
-- Disciplines et contenus de formation : `frontend/src/lib/disciplines.ts`
+- Contenu des formations : espace admin › Formations (stocké en base) ; couleurs et photos par défaut : `frontend/src/lib/formation-visuals.ts`
+- Images et vidéos : espace admin › Médias
 - Planning : créneaux **d'exemple** insérés dans `training_sessions` (`backend/src/db/seed.ts`), à remplacer par le vrai
 - Médias : `frontend/public/pics/` et `frontend/public/pics/banner_images/`
 - En production (HTTPS) : définir `COOKIE_SECURE=true` pour le frontend
