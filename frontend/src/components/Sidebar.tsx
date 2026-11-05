@@ -6,12 +6,12 @@ import { logoutAction } from "@/app/(auth)/actions";
 import { mainNav, site } from "@/lib/site";
 import type { HeaderUser } from "./Header";
 import { Icon } from "./Icon";
-import { Logo } from "./Logo";
+import { Logo, type BrandIdentity } from "./Logo";
 
-type Props = { open: boolean; onClose: () => void; pathname: string; user: HeaderUser | null };
+type Props = { open: boolean; onClose: () => void; pathname: string; user: HeaderUser | null; identity?: BrandIdentity };
 
 /** Panneau latéral : compte, navigation complète, coordonnées et appel à l'action. */
-export function Sidebar({ open, onClose, pathname, user }: Props) {
+export function Sidebar({ open, onClose, pathname, user, identity = {} }: Props) {
   const closeRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
@@ -41,7 +41,7 @@ export function Sidebar({ open, onClose, pathname, user }: Props) {
         className={`absolute top-0 right-0 flex h-full w-full max-w-md flex-col border-l border-line bg-ink-2 transition-transform duration-500 ease-[cubic-bezier(0.2,0.7,0.2,1)] ${open ? "translate-x-0" : "translate-x-full"}`}
       >
         <div className="flex items-center justify-between border-b border-line px-6 py-5">
-          <Logo />
+          <Logo {...identity} />
           <button
             ref={closeRef}
             onClick={onClose}

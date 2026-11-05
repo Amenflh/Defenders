@@ -14,6 +14,9 @@ import {
   myRegistrationRoutes,
   publicRegistrationRoutes,
 } from "./modules/registrations/registrations.routes.js";
+import { cmsAdminRoutes, cmsPublicRoutes } from "./modules/cms/cms.routes.js";
+import { uploadRoutes } from "./modules/uploads/upload.routes.js";
+import path from "node:path";
 
 export function createApp() {
   const app = express();
@@ -23,6 +26,7 @@ export function createApp() {
   app.set("trust proxy", 1);
   app.use(helmet());
   app.use(cors({ origin: config.corsOrigins }));
+  app.use("/uploads", express.static(path.resolve("src/assets/uploads")));
   // Seul le formulaire d'inscription accepte un corps volumineux (pièce jointe de 5 Mo en base64).
   app.use("/api/contact", express.json({ limit: "7mb" }));
   app.use(express.json({ limit: "20kb" }));
@@ -40,6 +44,9 @@ export function createApp() {
   app.use("/api/contact", publicRegistrationRoutes);
   app.use("/api/admin/contacts", adminRegistrationRoutes);
   app.use("/api/me/inscriptions", myRegistrationRoutes);
+  app.use("/api/content", cmsPublicRoutes);
+  app.use("/api/admin/uploads", uploadRoutes);
+  app.use("/api/admin", cmsAdminRoutes);
 
   app.use(notFoundHandler);
   app.use(errorHandler);

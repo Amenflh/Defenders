@@ -1,13 +1,17 @@
 import type { Metadata } from "next";
 import { PageIntro } from "@/components/PageIntro";
 import { site } from "@/lib/site";
+import { apiFetch } from "@/lib/session";
 
 export const metadata: Metadata = {
   title: "Politique de confidentialité",
   description: "Informations sur la collecte et l'utilisation des données transmises à Defenders Fitness Academy.",
 };
 
-export default function PrivacyPage() {
+export default async function PrivacyPage() {
+  const res = await apiFetch("/api/content/settings/site");
+  const settings = res.ok ? ((await res.json()) as { value: Record<string, unknown> }).value : {};
+  const text = typeof settings.privacy === "string" && settings.privacy ? settings.privacy : "";
   return (
     <>
       <PageIntro eyebrow="Informations légales" title="Politique de confidentialité">
@@ -15,6 +19,8 @@ export default function PrivacyPage() {
       </PageIntro>
       <section className="py-16 lg:py-20">
         <article className="container-site max-w-4xl space-y-8 text-sm leading-7 text-mist">
+          {text ? <p className="whitespace-pre-line">{text}</p> : (
+            <>
           <Section title="Responsable du traitement">
             <p>{site.name} peut collecter les informations envoyées volontairement depuis le formulaire de contact ou d&apos;inscription.</p>
           </Section>
@@ -36,6 +42,8 @@ export default function PrivacyPage() {
           <Section title="Vos droits">
             <p>Vous pouvez demander l&apos;accès, la rectification ou la suppression des données vous concernant en écrivant à <a href={site.email.href} className="text-gold hover:text-bone">{site.email.label}</a>.</p>
           </Section>
+            </>
+          )}
         </article>
       </section>
     </>

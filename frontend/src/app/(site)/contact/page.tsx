@@ -2,9 +2,8 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import { Icon } from "@/components/Icon";
 import { PageIntro } from "@/components/PageIntro";
-import { getFormations, toOptions } from "@/lib/formations";
 import { brand } from "@/lib/images";
-import { getCurrentUser } from "@/lib/session";
+import { apiFetch, getCurrentUser } from "@/lib/session";
 import { site } from "@/lib/site";
 import { ContactForm, type ContactDefaults } from "./ContactForm";
 import { ContactPopup } from "./ContactPopup";
@@ -15,9 +14,21 @@ export const metadata: Metadata = {
 };
 
 export default async function ContactPage({ searchParams }: PageProps<"/contact">) {
-  const { formation, popup } = await searchParams;
-  const formations = toOptions((await getFormations()) ?? []);
-  const preselected = formations.some((f) => f.slug === formation) ? (formation as string) : undefined;
+  const params = await searchParams;
+  const formation = typeof params.formation === "string" ? params.formation : undefined;
+  const popup = typeof params.popup === "string" ? params.popup : undefined;
+  const formationsRes = await apiFetch("/api/content/formations");
+  const formations = formationsRes.ok
+    ? ((await formationsRes.json()) as { formations: { slug: string; name: string; accent?: string }[] }).formations
+    : [];
+  const availableTrainings = formations.length
+    ? formations.map((item) => ({
+        value: item.slug,
+        label: item.name,
+        dot: ({ pilates: "bg-pilates", football: "bg-football", personal: "bg-personal" } as Record<string, string>)[item.accent ?? ""] ?? "bg-gold",
+      }))
+    : undefined;
+  const preselected = formations.some((item) => item.slug === formation) ? formation : undefined;
   const popupMode = popup === "1";
 
   // Client connecté : coordonnées pré-remplies depuis son compte.
@@ -46,11 +57,11 @@ export default async function ContactPage({ searchParams }: PageProps<"/contact"
         recontactons pour vous orienter et vous communiquer les prochaines dates.
       </PageIntro>
 
-      {popupMode && <ContactPopup formations={formations} preselected={preselected} defaults={defaults} />}
+      {popupMode && <ContactPopup preselected={preselected} defaults={defaults} availableTrainings={availableTrainings} />}
 
       <section className="py-16 lg:py-24">
         <div className="container-site grid gap-14 lg:grid-cols-[1fr_22rem] lg:gap-20">
-          <ContactForm formations={formations} preselected={preselected} defaults={defaults} />
+          <ContactForm preselected={preselected} defaults={defaults} availableTrainings={availableTrainings} />
 
           <aside className="space-y-6 lg:sticky lg:top-28 lg:self-start">
             <div className="border border-line bg-ink-2 p-7">

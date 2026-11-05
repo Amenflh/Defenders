@@ -11,6 +11,7 @@ export function FormationPage({ f, others }: { f: FormationDetail; others: Forma
   const { accent, photos } = visualFor(f.slug);
   const [defaultHero, ...defaultGallery] = photos;
   const uploadedImages = f.media.filter((m) => m.type === "image" && m.url !== f.coverUrl);
+  const galleryUrls = f.galleryUrls.filter((url) => url !== f.coverUrl);
   const videos = f.media.filter((m) => m.type === "video");
   const facts = keyFacts(f);
   const price = formatPrice(f.priceTnd);
@@ -222,7 +223,7 @@ export function FormationPage({ f, others }: { f: FormationDetail; others: Forma
       )}
 
       {/* -------- Galerie : photos du site + images et vidéos téléversées -------- */}
-      {(defaultGallery.length > 0 || uploadedImages.length > 0 || videos.length > 0) && (
+      {(defaultGallery.length > 0 || galleryUrls.length > 0 || uploadedImages.length > 0 || videos.length > 0) && (
         <section className="pb-24">
           <div className="container-site space-y-6">
             {videos.length > 0 && (
@@ -242,6 +243,11 @@ export function FormationPage({ f, others }: { f: FormationDetail; others: Forma
                     <Image src={p.src} alt={p.alt} fill placeholder="blur" sizes="(min-width: 640px) 50vw, 100vw" className="object-cover transition duration-700 group-hover:scale-105" />
                   </figure>
                 </Reveal>
+              ))}
+              {galleryUrls.map((url) => (
+                <figure key={url} className="group relative aspect-[4/3] overflow-hidden bg-ink-3 sm:aspect-[4/5]">
+                  <Image src={url} alt={`Formation ${f.name}`} fill unoptimized sizes="(min-width: 640px) 50vw, 100vw" className="object-cover transition duration-700 group-hover:scale-105" />
+                </figure>
               ))}
               {uploadedImages.map((m) => (
                 <figure key={m.id} className="group relative aspect-[4/3] overflow-hidden bg-ink-3 sm:aspect-[4/5]">

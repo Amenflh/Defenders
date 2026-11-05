@@ -1,18 +1,24 @@
 import type { Metadata } from "next";
 import { PageIntro } from "@/components/PageIntro";
 import { site } from "@/lib/site";
+import { apiFetch } from "@/lib/session";
 
 export const metadata: Metadata = {
   title: "Mentions légales",
   description: "Informations légales relatives au site Defenders Fitness Academy.",
 };
 
-export default function LegalPage() {
+export default async function LegalPage() {
+  const res = await apiFetch("/api/content/settings/site");
+  const settings = res.ok ? ((await res.json()) as { value: Record<string, unknown> }).value : {};
+  const text = typeof settings.mentions === "string" && settings.mentions ? settings.mentions : "";
   return (
     <>
       <PageIntro eyebrow="Informations légales" title="Mentions légales" />
       <section className="py-16 lg:py-20">
         <article className="container-site max-w-4xl space-y-8 text-sm leading-7 text-mist">
+          {text ? <p className="whitespace-pre-line">{text}</p> : (
+            <>
           <LegalSection title="Éditeur du site">
             <p>{site.name}<br />{site.address.lines.join(" — ")}</p>
           </LegalSection>
@@ -29,6 +35,8 @@ export default function LegalPage() {
           <LegalSection title="Responsabilité">
             <p>Les informations du site sont fournies à titre informatif. L&apos;académie peut les modifier ou les actualiser sans préavis. Les horaires et tarifs exacts sont confirmés auprès de l&apos;équipe.</p>
           </LegalSection>
+            </>
+          )}
         </article>
       </section>
     </>

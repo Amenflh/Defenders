@@ -1,18 +1,24 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { PageIntro } from "@/components/PageIntro";
+import { apiFetch } from "@/lib/session";
 
 export const metadata: Metadata = {
   title: "Cookies",
   description: "Informations sur l'utilisation éventuelle des cookies sur le site Defenders Fitness Academy.",
 };
 
-export default function CookiesPage() {
+export default async function CookiesPage() {
+  const res = await apiFetch("/api/content/settings/site");
+  const settings = res.ok ? ((await res.json()) as { value: Record<string, unknown> }).value : {};
+  const text = typeof settings.cookies === "string" && settings.cookies ? settings.cookies : "";
   return (
     <>
       <PageIntro eyebrow="Informations légales" title="Cookies" />
       <section className="py-16 lg:py-20">
         <article className="container-site max-w-4xl space-y-8 text-sm leading-7 text-mist">
+          {text ? <p className="whitespace-pre-line">{text}</p> : (
+            <>
           <section>
             <h2 className="mb-3 font-display text-xl uppercase text-bone">Cookies strictement nécessaires</h2>
             <p>À ce jour, le site ne présente pas de bandeau publicitaire ni de traçage marketing. Le fonctionnement technique peut utiliser des mécanismes essentiels au chargement des pages.</p>
@@ -28,6 +34,8 @@ export default function CookiesPage() {
               Consulter la politique de confidentialité
             </Link>
           </section>
+            </>
+          )}
         </article>
       </section>
     </>

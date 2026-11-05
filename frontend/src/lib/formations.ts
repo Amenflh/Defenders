@@ -23,6 +23,8 @@ export type Formation = {
   modules: { title: string; text: string }[];
   facts: { label: string; value: string }[];
   coverUrl: string | null;
+  galleryUrls: string[];
+  accent: string;
   updatedAt: string;
 };
 

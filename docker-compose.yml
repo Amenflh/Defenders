@@ -49,6 +49,7 @@ services:
     volumes:
       # Images et vidéos téléversées depuis l'espace admin
       - uploads:/app/uploads
+      - backend_uploads:/app/src/assets/uploads
     depends_on:
       db:
         condition: service_healthy
@@ -67,6 +68,8 @@ services:
   frontend:
     build:
       context: ./frontend
+      args:
+        BACKEND_URL: http://backend:4000
     container_name: defenders-frontend
     restart: unless-stopped
     environment:
@@ -89,5 +92,6 @@ networks:
 volumes:
   # Données PostgreSQL (demandes de contact, admins, sessions).
   pgdata:
+  backend_uploads:
   # Images et vidéos téléversées (espace admin > Médias).
   uploads:

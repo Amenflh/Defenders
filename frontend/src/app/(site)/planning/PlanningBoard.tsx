@@ -7,20 +7,31 @@ import type { FormationOption } from "@/lib/formations";
 
 const DAYS = ["Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi", "Dimanche"];
 
-type Filter = string; // slug de formation, ou "all"
+const DEFAULT_META: Record<string, { label: string; dot: string; border: string; text: string }> = {
+  pilates: { label: "Pilates", dot: "bg-pilates", border: "border-l-pilates", text: "text-pilates" },
+  football: { label: "Football", dot: "bg-football", border: "border-l-football", text: "text-football" },
+  "personal-training": { label: "Personal Training", dot: "bg-personal", border: "border-l-personal", text: "text-personal" },
+};
 
-/** Style d'un créneau dont la formation n'est plus listée (ex. archivée entre-temps). */
+type Filter = string;
+
 const UNKNOWN = { label: "Formation", dot: "bg-gold", border: "border-l-gold", text: "text-gold" };
 
 export function PlanningBoard({ sessions, formations, initial }: { sessions: Session[]; formations: FormationOption[]; initial: Filter }) {
   const META = useMemo(
-    () =>
-      Object.fromEntries(
+    () => ({
+      ...DEFAULT_META,
+      ...Object.fromEntries(
         formations.map((f) => [f.slug, { label: f.name, dot: f.accent.dot, border: f.accent.borderL, text: f.accent.text }]),
       ) as Record<string, typeof UNKNOWN>,
+    }),
     [formations],
   );
-  const meta = (slug: string) => META[slug] ?? UNKNOWN;
+  const meta = (slug: string) =>
+    META[slug] ?? {
+      ...UNKNOWN,
+      label: slug.split("-").map((part) => part.charAt(0).toUpperCase() + part.slice(1)).join(" "),
+    };
   const [filter, setFilter] = useState<Filter>(initial);
 
   const visible = useMemo(
@@ -43,7 +54,10 @@ export function PlanningBoard({ sessions, formations, initial }: { sessions: Ses
 
   const filters: { value: Filter; label: string }[] = [
     { value: "all", label: "Toutes" },
-    ...formations.map((f) => ({ value: f.slug, label: f.name })),
+    ...Array.from(new Set([...formations.map((formation) => formation.slug), ...sessions.map((session) => session.discipline)])).map((value) => ({
+      value,
+      label: META[value]?.label ?? value.split("-").map((part) => part.charAt(0).toUpperCase() + part.slice(1)).join(" "),
+    })),
   ];
 
   return (

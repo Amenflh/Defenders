@@ -4,23 +4,24 @@ import { Icon } from "@/components/Icon";
 import { Reveal } from "@/components/Reveal";
 import { RotatingWord } from "@/components/RotatingWord";
 import { ScrollStory, type StoryItem } from "@/components/ScrollStory";
-import { FormationCard } from "@/components/FormationCard";
-import { getFormations } from "@/lib/formations";
 import { bannerPhotos } from "@/lib/images";
+import { disciplineList } from "@/lib/disciplines";
 import { site } from "@/lib/site";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { AnimatedAccent } from "@/components/AnimatedAccent";
-import { HeroSlideshow } from "@/components/HeroSlideshow";
 import { BannerMarquee } from "@/components/BannerMarquee";
+import { apiFetch } from "@/lib/session";
+import { PartnersMarquee, type PublicPartner } from "@/components/PartnersMarquee";
+import { HomeContactButton } from "@/components/HomeContactButton";
 
-const domain: StoryItem[] = [
+const domain = (brandLabel: string, approval: string): StoryItem[] => [
   {
     id: "formation-continue",
     label: "Formation continue",
     title: "Se former tout au long de sa carrière",
     body: (
       <p>
-        Defenders Fitness Academy est un centre de formation continue : nous accompagnons les professionnels du sport à
+        {brandLabel} est un centre de formation continue : nous accompagnons les professionnels du sport à
         chaque étape, de la première certification à la spécialisation, avec des formats intensifs pensés pour s&apos;intégrer
         à une vie active.
       </p>
@@ -57,7 +58,7 @@ const domain: StoryItem[] = [
     title: "Une certification qui ouvre des portes",
     body: (
       <p>
-        Centre de formation certifié ({site.approval}), nous combinons apprentissages théoriques, pratique et évaluation
+        Centre de formation certifié ({approval}), nous combinons apprentissages théoriques, pratique et évaluation
         pour préparer chaque stagiaire à transmettre ses compétences sur le terrain.
       </p>
     ),
@@ -70,6 +71,14 @@ const steps = [
   { title: "Formation", text: "Un parcours intensif qui associe notions théoriques, pratique et mises en situation." },
   { title: "Évaluation", text: "Chaque parcours se termine par une évaluation théorique et pratique." },
 ];
+
+const hiddenPromotionImages = new Set([
+  "/pics/football_images/acc_images.jpg",
+  "/pics/Pilates_images/acc_images.jpg",
+  "/pics/personal_trainers/acc_images.jpg",
+]);
+
+const HOME_SECTION_IDS = ["hero", "stats", "promotions", "about", "videos", "security", "formations", "method", "testimonials", "faq", "cta", "partners"] as const;
 
 const faqs = [
   {
@@ -103,8 +112,82 @@ const faqs = [
 ];
 
 export default async function HomePage({ searchParams }: PageProps<"/">) {
-  const [params, formations] = await Promise.all([searchParams, getFormations()]);
+  const params = await searchParams;
   const inscriptionSuccess = params.inscription === "success";
+  const settingsRes = await apiFetch("/api/content/settings/site");
+  const settings = settingsRes.ok ? ((await settingsRes.json()) as { value: Record<string, unknown> }).value : {};
+  const [faqRes, testimonialRes, promotionsRes, mediaRes, formationsRes, partnersRes] = await Promise.all([
+    apiFetch("/api/content/items/faq"),
+    apiFetch("/api/content/items/testimonials"),
+    apiFetch("/api/content/items/promotions"),
+    apiFetch("/api/content/media"),
+    apiFetch("/api/content/formations"),
+    apiFetch("/api/content/items/partners"),
+  ]);
+  const faqsCms = faqRes.ok ? ((await faqRes.json()) as { items: { title: string; body: string }[] }).items : [];
+  const testimonialsCms = testimonialRes.ok ? ((await testimonialRes.json()) as { items: { title: string; subtitle: string; body: string }[] }).items : [];
+  const promotionsCms = promotionsRes.ok ? ((await promotionsRes.json()) as { items: { id: number; title: string; subtitle: string; body: string; imageUrl: string; linkUrl: string }[] }).items : [];
+  const visiblePromotions = promotionsCms.filter((promotion) => !hiddenPromotionImages.has(promotion.imageUrl));
+  const videosCms = mediaRes.ok ? ((await mediaRes.json()) as { media: { id: number; type: string; url: string; title: string; category: string }[] }).media.filter((item) => item.type === "video") : [];
+  const formationsCms = formationsRes.ok ? ((await formationsRes.json()) as { formations: { id: number; slug: string; name: string; headline: string; summary: string; coverUrl?: string; accent?: string }[] }).formations : [];
+  const partnersCms = partnersRes.ok ? ((await partnersRes.json()) as { items: PublicPartner[] }).items : [];
+  const rotatingFormationNames = formationsCms.map((formation) => formation.name);
+  const approval = typeof settings.approval === "string" && settings.approval ? settings.approval : site.approval;
+  const certificationLabel = typeof settings.certificationLabel === "string" && settings.certificationLabel ? settings.certificationLabel : "Centre de formation certifié";
+  const brandName = typeof settings.brandName === "string" && settings.brandName ? settings.brandName : site.shortName;
+  const brandDescriptor = typeof settings.brandDescriptor === "string" && settings.brandDescriptor ? settings.brandDescriptor : "Fitness Academy";
+  const heroDescription = typeof settings.heroDescription === "string" && settings.heroDescription ? settings.heroDescription : "Des formations certifiantes pour les coachs et les professionnels du sport.";
+  const heroLead = typeof settings.heroLead === "string" && settings.heroLead ? settings.heroLead : "Formez-vous en";
+  const stats = [
+    [typeof settings.statsDisciplines === "string" ? settings.statsDisciplines : "3", "Disciplines"],
+    [typeof settings.statsVideos === "string" ? settings.statsVideos : "2", "Vidéos"],
+    [typeof settings.statsPromotions === "string" ? settings.statsPromotions : "7+", "Promotions"],
+    [typeof settings.statsFacebook === "string" ? settings.statsFacebook : "5904+", "Abonnés Facebook"],
+  ];
+  const visibleFaqs = faqsCms.length > 0
+    ? faqsCms.map((faq) => ({ question: faq.title, answer: faq.body }))
+    : faqs;
+  const savedHomeSections = Array.isArray(settings.homepageSections) ? settings.homepageSections : [];
+  const homepageSections = HOME_SECTION_IDS.map((id, index) => {
+    const saved = savedHomeSections.find((section) => typeof section === "object" && section !== null && "id" in section && section.id === id);
+    return {
+      id,
+      enabled: saved && "enabled" in saved && typeof saved.enabled === "boolean" ? saved.enabled : true,
+      order: saved && "order" in saved && typeof saved.order === "number" ? saved.order : index,
+    };
+  }).sort((a, b) => a.order - b.order);
+  const sectionOrder = (id: typeof HOME_SECTION_IDS[number]) => homepageSections.find((section) => section.id === id)?.order ?? HOME_SECTION_IDS.indexOf(id);
+  const sectionEnabled = (id: typeof HOME_SECTION_IDS[number]) => homepageSections.find((section) => section.id === id)?.enabled ?? true;
+  const inquiryCopy = {
+    contactPopupEnabled: settings.contactPopupEnabled !== "false",
+    contactPopupButtonLabel: typeof settings.contactPopupButtonLabel === "string" && settings.contactPopupButtonLabel ? settings.contactPopupButtonLabel : "Nous contacter",
+    contactPopupTitle: typeof settings.contactPopupTitle === "string" && settings.contactPopupTitle ? settings.contactPopupTitle : "Nous contacter",
+    contactFirstNameLabel: typeof settings.contactFirstNameLabel === "string" && settings.contactFirstNameLabel ? settings.contactFirstNameLabel : "Prénom",
+    contactLastNameLabel: typeof settings.contactLastNameLabel === "string" && settings.contactLastNameLabel ? settings.contactLastNameLabel : "Nom",
+    contactEmailLabel: typeof settings.contactEmailLabel === "string" && settings.contactEmailLabel ? settings.contactEmailLabel : "E-mail",
+    contactPhoneLabel: typeof settings.contactPhoneLabel === "string" && settings.contactPhoneLabel ? settings.contactPhoneLabel : "Téléphone",
+    contactMessageLabel: typeof settings.contactMessageLabel === "string" && settings.contactMessageLabel ? settings.contactMessageLabel : "Votre message",
+    contactMessagePlaceholder: typeof settings.contactMessagePlaceholder === "string" && settings.contactMessagePlaceholder ? settings.contactMessagePlaceholder : "Comment pouvons-nous vous aider ?",
+    contactConsentText: typeof settings.contactConsentText === "string" && settings.contactConsentText ? settings.contactConsentText : "J'accepte que Defenders Fitness Academy utilise ces informations pour me recontacter au sujet de ma demande.",
+    contactSubmitLabel: typeof settings.contactSubmitLabel === "string" && settings.contactSubmitLabel ? settings.contactSubmitLabel : "Envoyer mon message",
+  };
+  const contactButton = (className = "btn btn-ghost") => inquiryCopy.contactPopupEnabled
+    ? <HomeContactButton
+        className={className}
+        label={inquiryCopy.contactPopupButtonLabel}
+        popupTitle={inquiryCopy.contactPopupTitle}
+        copy={{
+          firstNameLabel: inquiryCopy.contactFirstNameLabel,
+          lastNameLabel: inquiryCopy.contactLastNameLabel,
+          emailLabel: inquiryCopy.contactEmailLabel,
+          phoneLabel: inquiryCopy.contactPhoneLabel,
+          messageLabel: inquiryCopy.contactMessageLabel,
+          messagePlaceholder: inquiryCopy.contactMessagePlaceholder,
+          consentText: inquiryCopy.contactConsentText,
+          submitLabel: inquiryCopy.contactSubmitLabel,
+        }}
+      />
+    : null;
 
   return (
     <>
@@ -113,44 +196,53 @@ export default async function HomePage({ searchParams }: PageProps<"/">) {
           Votre demande d&apos;inscription a bien été envoyée. Notre équipe vous recontactera prochainement.
         </div>
       )}
+      <div className="flex flex-col">
       {/* ---------------- HÉRO ---------------- */}
-      <section className="relative isolate flex min-h-[100svh] items-center overflow-hidden pt-24 pb-16">
-        <HeroSlideshow photos={bannerPhotos.slice(0, 6).map((photo) => photo.src)} />
+      <section style={{ order: sectionOrder("hero") }} hidden={!sectionEnabled("hero")} className="relative isolate flex min-h-[100svh] items-center overflow-hidden pt-24 pb-16">
+        <video
+          key={videosCms[0]?.url ?? "/videos/1-Video by defenders_fitness_academy.mp4"}
+          src={videosCms[0]?.url ?? "/videos/1-Video by defenders_fitness_academy.mp4"}
+          autoPlay
+          loop
+          muted
+          playsInline
+          preload="metadata"
+          aria-hidden="true"
+          className="absolute inset-0 -z-20 h-full w-full object-cover"
+        />
+        <div className="absolute inset-0 -z-10 bg-ink/65" />
         <div className="absolute inset-0 -z-10 bg-[radial-gradient(ellipse_at_top_right,color-mix(in_oklab,var(--color-gold)_12%,transparent)_0%,transparent_58%)]" />
-        <div className="absolute inset-0 -z-10 bg-gradient-to-b from-ink/40 via-ink/60 to-ink" />
+        <div className="absolute inset-0 -z-10 bg-gradient-to-b from-ink/45 via-ink/60 to-ink" />
 
         <div className="container-site flex items-center">
           <div className="w-full max-w-5xl">
             <Reveal>
               <p className="mb-6 inline-flex items-center gap-2 border border-gold/40 bg-gold/10 px-3 py-1.5 text-xs tracking-[0.2em] text-gold-soft uppercase">
-                <Icon name="shield" width={14} height={14} /> Centre de formation certifié · {site.approval}
+                <Icon name="shield" width={14} height={14} /> {certificationLabel} · {approval}
               </p>
             </Reveal>
             <Reveal delay={100}>
               <h1 className="heading-xl">
-                Defenders
+                {brandName}
                 <br />
-                <span className="text-transparent [-webkit-text-stroke:1.5px_var(--color-bone)]">Fitness</span> Academy
+                <span className="text-transparent [-webkit-text-stroke:1.5px_var(--color-bone)]">{brandDescriptor}</span>
               </h1>
             </Reveal>
             <Reveal delay={200}>
-              <p className="mt-6 max-w-xl text-lg leading-relaxed text-mist sm:text-xl">
-                Des formations certifiantes pour les <strong className="font-medium text-bone">coachs</strong> et les{" "}
-                <strong className="font-medium text-bone">professionnels du sport</strong>.
+              <p className="mt-6 max-w-xl whitespace-pre-line text-lg leading-relaxed text-mist sm:text-xl">
+                {heroDescription}
               </p>
             </Reveal>
             <Reveal delay={300}>
               <p className="mt-8 font-display text-2xl tracking-wide uppercase sm:text-3xl">
-                Formez-vous en <span className="text-gold"><RotatingWord words={["Pilates", "Football", "Personal Training"]} /></span>
+                {heroLead} <span className="text-gold"><RotatingWord words={rotatingFormationNames.length ? rotatingFormationNames : ["Pilates", "Football", "Personal Training"]} /></span>
               </p>
             </Reveal>
             <Reveal delay={400} className="mt-10 flex flex-wrap gap-4">
               <Link href="#formations" className="btn btn-primary">
                 Nos formations <Icon name="arrow" />
               </Link>
-              <Link href="/contact" className="btn btn-ghost">
-                Demander mon inscription
-              </Link>
+              {contactButton()}
             </Reveal>
           </div>
 
@@ -166,14 +258,9 @@ export default async function HomePage({ searchParams }: PageProps<"/">) {
       </section>
 
       {/* ---------------- CHIFFRES ---------------- */}
-      <section id="statistiques" className="border-y border-line bg-ink-2 py-14">
+      <section id="statistiques" style={{ order: sectionOrder("stats") }} hidden={!sectionEnabled("stats")} className="border-y border-line bg-ink-2 py-14">
         <div className="container-site grid grid-cols-2 gap-px overflow-hidden border border-line bg-line lg:grid-cols-4">
-          {[
-            ["3", "Disciplines"],
-            ["2", "Vidéos"],
-            ["7+", "Promotions"],
-            ["5904+", "Abonnés Facebook"],
-          ].map(([value, label]) => (
+          {stats.map(([value, label]) => (
             <div key={label} className="bg-ink-2 px-4 py-8 text-center sm:px-6 sm:py-10">
               <AnimatedAccent className="block font-display text-4xl text-gold sm:text-5xl">{value}</AnimatedAccent>
               <p className="mt-2 font-display text-xs uppercase tracking-[0.12em] text-mist sm:text-sm">{label}</p>
@@ -183,18 +270,39 @@ export default async function HomePage({ searchParams }: PageProps<"/">) {
       </section>
 
       {/* ---------------- PROMOTIONS ---------------- */}
-      <section id="galerie" className="border-b border-line bg-ink-2 py-12 lg:py-16" aria-label="Promotions">
+      <section id="galerie" style={{ order: sectionOrder("promotions") }} hidden={!sectionEnabled("promotions")} className="border-b border-line bg-ink-2 py-12 lg:py-16" aria-label="Promotions">
         <div className="container-site mb-8">
           <Reveal>
             <p className="eyebrow mb-3">Promotions & certificats</p>
             <h2 className="heading-lg">Moments marquants de nos formations</h2>
           </Reveal>
         </div>
-        <BannerMarquee photos={bannerPhotos} duration={70} />
+        {visiblePromotions.length > 0 ? (
+          <div className={`container-site mx-auto grid gap-px border border-line bg-line ${
+            visiblePromotions.length === 1 ? "max-w-3xl grid-cols-1" : visiblePromotions.length === 2 ? "max-w-5xl sm:grid-cols-2" : "sm:grid-cols-2 lg:grid-cols-3"
+          }`}>
+            {visiblePromotions.map((promotion) => {
+              const href = promotion.linkUrl.trim();
+              const validHref = /^(https?:\/\/|\/(?!\/))/i.test(href);
+              const external = /^https?:\/\//i.test(href);
+              const card = (
+                <>
+                  {promotion.imageUrl ? <Image src={promotion.imageUrl} alt={promotion.title} fill unoptimized sizes="(min-width:768px) 33vw, 100vw" className="object-cover opacity-70 transition duration-500 group-hover:scale-105 group-hover:opacity-55" /> : <div className="absolute inset-0 bg-gradient-to-br from-gold/25 via-ink-2 to-ink" />}
+                  <div className="absolute inset-0 bg-gradient-to-t from-ink via-ink/20 to-transparent" />
+                  <div className="absolute inset-x-0 bottom-0 p-6 text-bone"><p className="text-xs text-gold">{promotion.subtitle}</p><h3 className="mt-2 font-display text-2xl uppercase">{promotion.title}</h3>{promotion.body && <p className="mt-3 text-sm text-bone/80">{promotion.body}</p>}</div>
+                </>
+              );
+              const className = "group relative block min-h-72 overflow-hidden bg-ink";
+              if (!validHref) return <article key={promotion.id} className={className}>{card}</article>;
+              if (external) return <a key={promotion.id} href={href} target="_blank" rel="noopener noreferrer" className={className}>{card}</a>;
+              return <Link key={promotion.id} href={href} className={className}>{card}</Link>;
+            })}
+          </div>
+        ) : <BannerMarquee photos={bannerPhotos} duration={70} />}
       </section>
 
       {/* ---------------- DOMAINE D'ACTIVITÉ (scroll) ---------------- */}
-      <section id="a-propos" className="py-24 lg:py-32">
+      <section id="a-propos" style={{ order: sectionOrder("about") }} hidden={!sectionEnabled("about")} className="py-24 lg:py-32">
         <div className="container-site">
           <Reveal className="mb-16 max-w-3xl lg:mb-8">
             <p className="eyebrow mb-3">À propos de l&apos;académie</p>
@@ -202,28 +310,28 @@ export default async function HomePage({ searchParams }: PageProps<"/">) {
               Former les coachs <span className="text-gold">de demain</span>
             </h2>
             <p className="mt-6 text-lg text-mist">
-              <strong className="font-medium text-bone">Defenders Fitness Academy</strong> est un centre de formation continue
+              <strong className="font-medium text-bone">{brandName} {brandDescriptor}</strong> est un centre de formation continue
               spécialisé en coaching privé et sciences du sport. Découvrez ce qui fait notre différence.
             </p>
           </Reveal>
-          <ScrollStory items={domain} />
+          <ScrollStory items={domain(`${brandName} ${brandDescriptor}`.trim(), approval)} />
         </div>
       </section>
 
       {/* ---------------- VIDÉOS ---------------- */}
-      <section className="border-b border-line bg-ink py-20 lg:py-24" aria-label="Vidéos de l'académie">
+      <section style={{ order: sectionOrder("videos") }} hidden={!sectionEnabled("videos")} className="border-b border-line bg-ink py-20 lg:py-24" aria-label="Vidéos de l'académie">
         <div className="container-site">
           <Reveal className="mb-10 max-w-2xl">
             <p className="eyebrow mb-3">Vidéos</p>
             <h2 className="heading-lg">Au cœur de nos formations</h2>
           </Reveal>
-          <div className="grid gap-6 md:grid-cols-2">
-            {[
+          <div className="mx-auto grid max-w-4xl gap-6 md:grid-cols-2">
+            {(videosCms.length > 0 ? videosCms.map((video) => ({ title: video.title || "Vidéo Defenders", src: video.url })) : [
               { title: "Une équipe, une formation", src: "/videos/1-Video by defenders_fitness_academy.mp4" },
               { title: "Pilates Matwork & Reformer", src: "/videos/2-Video by defenders_fitness_academy.mp4" },
-            ].map((video, index) => (
+            ]).map((video, index) => (
               <Reveal key={video.src} delay={index * 120}>
-                <figure className="overflow-hidden border border-line bg-ink-2">
+                <figure className="mx-auto w-full max-w-[440px] overflow-hidden border border-line bg-ink-2">
                   <video
                     src={video.src}
                     autoPlay
@@ -232,7 +340,7 @@ export default async function HomePage({ searchParams }: PageProps<"/">) {
                     playsInline
                     preload="metadata"
                     controls
-                    className="aspect-video w-full bg-black object-cover"
+                    className="mx-auto block max-h-[360px] w-full bg-black object-contain"
                   />
                   <figcaption className="px-5 py-4 font-display text-sm uppercase text-gold-soft">
                     {video.title}
@@ -245,7 +353,7 @@ export default async function HomePage({ searchParams }: PageProps<"/">) {
       </section>
 
       {/* ---------------- SECURITY PROTECTION ---------------- */}
-      <section className="border-b border-line bg-ink-2 py-20 lg:py-24" aria-label="Defenders Security Protection">
+      <section style={{ order: sectionOrder("security") }} hidden={!sectionEnabled("security")} className="border-b border-line bg-ink-2 py-20 lg:py-24" aria-label="Defenders Security Protection">
         <div className="container-site grid gap-10 lg:grid-cols-[1fr_0.8fr] lg:items-center">
           <Reveal>
             <p className="eyebrow mb-3">Autre expertise Defenders</p>
@@ -283,12 +391,12 @@ export default async function HomePage({ searchParams }: PageProps<"/">) {
       </section>
 
       {/* ---------------- FORMATIONS ---------------- */}
-      <section id="formations" className="bg-bone py-24 text-ink lg:py-32">
+      <section id="formations" style={{ order: sectionOrder("formations") }} hidden={!sectionEnabled("formations")} className="bg-bone py-24 text-ink lg:py-32">
         <div className="container-site">
           <Reveal className="mb-14 flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
             <div>
               <p className="eyebrow mb-3 !text-ink/60">Nos formations</p>
-              <h2 className="heading-lg">Nos expertises, une exigence</h2>
+              <h2 className="heading-lg">{formationsCms.length ? `${formationsCms.length} formations, une exigence` : "Nos formations, une exigence"}</h2>
             </div>
             <div className="flex flex-wrap gap-3 self-start">
               <Link href="/formations" className="btn btn-dark">
@@ -300,25 +408,52 @@ export default async function HomePage({ searchParams }: PageProps<"/">) {
             </div>
           </Reveal>
 
-          {formations && formations.length > 0 ? (
-            <div className="grid gap-6 md:grid-cols-3">
-              {formations.map((f, i) => (
-                <Reveal key={f.slug} delay={(i % 3) * 120}>
-                  <FormationCard f={f} />
-                </Reveal>
-              ))}
-            </div>
-          ) : (
-            <p className="border border-ink/15 p-8 text-center text-ink/70">
-              Les formations ne peuvent pas être affichées pour le moment.{" "}
-              <Link href="/contact" className="underline">Contactez-nous</Link> pour connaître les prochaines sessions.
-            </p>
-          )}
+          <div className="grid gap-6 md:grid-cols-3">
+            {(formationsCms.length > 0 ? formationsCms.map((formation) => {
+              const fallback = disciplineList.find((item) => item.slug === formation.slug);
+              return {
+                slug: formation.slug,
+                name: formation.name,
+                summary: formation.summary || fallback?.summary || formation.headline,
+                cover: formation.coverUrl
+                  ? { src: formation.coverUrl, alt: `Formation ${formation.name}` }
+                  : fallback?.cover,
+                accent: fallback?.accent ?? { bg: "bg-gold" },
+              };
+            }) : disciplineList.map((d) => ({ ...d }))).map((d, i) => (
+              <Reveal key={d.slug} delay={i * 120}>
+                <Link href={`/formations/${d.slug}`} className="group relative block aspect-[4/5] overflow-hidden bg-ink transition duration-500 hover:-translate-y-2 hover:shadow-[0_24px_60px_rgba(201,162,39,0.16)]">
+                  {d.cover ? (
+                    <Image
+                      src={d.cover.src}
+                      alt={d.cover.alt}
+                      fill
+                      placeholder={typeof d.cover.src === "string" ? "empty" : "blur"}
+                      unoptimized={typeof d.cover.src === "string"}
+                      sizes="(min-width: 768px) 33vw, 100vw"
+                      className="object-cover opacity-80 transition duration-700 group-hover:scale-105 group-hover:opacity-60"
+                    />
+                  ) : (
+                    <div className="absolute inset-0 bg-gradient-to-br from-gold/20 via-ink to-ink" />
+                  )}
+                  <div className="absolute inset-0 bg-gradient-to-t from-ink via-ink/40 to-transparent" />
+                  <div className="absolute inset-x-0 bottom-0 p-7 text-bone">
+                    <span className={`mb-4 block h-1 w-12 ${d.accent.bg} transition-all duration-500 group-hover:w-24`} />
+                    <h3 className="font-display text-3xl tracking-wide uppercase">{d.name}</h3>
+                    <p className="mt-3 text-sm leading-relaxed text-bone/80 transition-all duration-500 sm:translate-y-4 sm:opacity-0 sm:group-hover:translate-y-0 sm:group-hover:opacity-100">{d.summary}</p>
+                    <span className="mt-5 inline-flex items-center gap-2 font-display text-sm tracking-[0.15em] uppercase">
+                      Découvrir la formation <Icon name="arrow" className="transition-transform group-hover:translate-x-1" />
+                    </span>
+                  </div>
+                </Link>
+              </Reveal>
+            ))}
+          </div>
         </div>
       </section>
 
       {/* ---------------- PUBLIC ET PARCOURS ---------------- */}
-      <section className="border-y border-line bg-ink-2 py-20 lg:py-24">
+      <section style={{ order: sectionOrder("method") }} hidden={!sectionEnabled("method")} className="border-y border-line bg-ink-2 py-20 lg:py-24">
         <div className="container-site">
           <div className="grid gap-12 lg:grid-cols-[1fr_1.2fr]">
             <Reveal>
@@ -351,7 +486,7 @@ export default async function HomePage({ searchParams }: PageProps<"/">) {
       </section>
 
       {/* ---------------- TÉMOIGNAGES ---------------- */}
-      <section id="temoignages" className="py-24 lg:py-28">
+      <section id="temoignages" style={{ order: sectionOrder("testimonials") }} hidden={!sectionEnabled("testimonials")} className="py-24 lg:py-28">
         <div className="container-site grid gap-10 lg:grid-cols-[1.2fr_0.8fr] lg:items-end">
           <Reveal>
             <p className="eyebrow mb-3">Témoignages</p>
@@ -369,14 +504,27 @@ export default async function HomePage({ searchParams }: PageProps<"/">) {
           </Reveal>
         </div>
         <div className="container-site mt-10">
-          <p className="border border-line bg-ink-2 px-6 py-8 text-center text-sm text-mist">
-            Témoignages vérifiés à venir.
-          </p>
+          {testimonialsCms.length > 0 ? (
+            <div className="grid gap-px border border-line bg-line md:grid-cols-3">
+              {testimonialsCms.map((item, index) => (
+                <article key={`${item.title}-${index}`} className="bg-ink-2 p-6">
+                  <Icon name="star" className="text-gold" />
+                  <blockquote className="mt-4 text-sm leading-relaxed text-bone">{item.body}</blockquote>
+                  <p className="mt-5 font-display text-sm uppercase text-gold">{item.title}</p>
+                  {item.subtitle && <p className="mt-1 text-xs text-mist">{item.subtitle}</p>}
+                </article>
+              ))}
+            </div>
+          ) : (
+            <p className="border border-line bg-ink-2 px-6 py-8 text-center text-sm text-mist">
+              Témoignages vérifiés à venir.
+            </p>
+          )}
         </div>
       </section>
 
       {/* ---------------- FAQ ---------------- */}
-      <section id="faq" className="border-y border-line bg-ink-2 py-24 lg:py-28">
+      <section id="faq" style={{ order: sectionOrder("faq") }} hidden={!sectionEnabled("faq")} className="border-y border-line bg-ink-2 py-24 lg:py-28">
         <div className="container-site grid gap-12 lg:grid-cols-[0.8fr_1.2fr]">
           <Reveal>
             <p className="eyebrow mb-3">FAQ</p>
@@ -384,13 +532,11 @@ export default async function HomePage({ searchParams }: PageProps<"/">) {
             <p className="mt-5 max-w-md text-mist">
               Vous avez besoin d&apos;un renseignement sur votre profil ou une session ? Notre équipe vous répond.
             </p>
-            <Link href="/contact" className="btn btn-primary mt-7">
-              Nous contacter <Icon name="arrow" />
-            </Link>
+            {contactButton("btn btn-primary mt-7")}
           </Reveal>
           <div>
             <Accordion type="single" collapsible className="border-t border-line">
-              {faqs.map((faq) => (
+              {visibleFaqs.map((faq) => (
                 <AccordionItem key={faq.question} value={faq.question}>
                   <AccordionTrigger>{faq.question}</AccordionTrigger>
                   <AccordionContent>{faq.answer}</AccordionContent>
@@ -402,7 +548,7 @@ export default async function HomePage({ searchParams }: PageProps<"/">) {
       </section>
 
       {/* ---------------- APPEL À L'ACTION ---------------- */}
-      <section className="relative isolate overflow-hidden py-28">
+      <section style={{ order: sectionOrder("cta") }} hidden={!sectionEnabled("cta")} className="relative isolate overflow-hidden py-28">
         <Image src={bannerPhotos[0].src} alt="" fill sizes="100vw" className="-z-10 object-cover opacity-20 grayscale" />
         <div className="absolute inset-0 -z-10 bg-gradient-to-r from-ink via-ink/85 to-ink/60" />
         <div className="container-site flex flex-col items-start gap-8 lg:flex-row lg:items-center lg:justify-between">
@@ -424,6 +570,10 @@ export default async function HomePage({ searchParams }: PageProps<"/">) {
           </Reveal>
         </div>
       </section>
+      <div style={{ order: sectionOrder("partners") }} hidden={!sectionEnabled("partners")}>
+        <PartnersMarquee partners={partnersCms} />
+      </div>
+      </div>
     </>
   );
 }

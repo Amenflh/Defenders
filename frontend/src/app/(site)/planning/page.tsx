@@ -19,7 +19,9 @@ export default async function PlanningPage({ searchParams }: PageProps<"/plannin
   const [sessions, list, params] = await Promise.all([getPlanning(), getFormations(), searchParams]);
   const formations = toOptions(list ?? []);
   const requested = typeof params.discipline === "string" ? params.discipline : undefined;
-  const initial = formations.some((f) => f.slug === requested) ? requested! : "all";
+  const initial = requested && (formations.some((formation) => formation.slug === requested) || sessions?.some((session) => session.discipline === requested))
+    ? requested
+    : "all";
 
   return (
     <>

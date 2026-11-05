@@ -18,6 +18,7 @@ export const PROFILE_LABELS: Record<string, string> = {
   "jeune-diplome": "Jeune diplômé",
   etudiant: "Étudiant",
   reconversion: "Reconversion",
+  "demande-info": "Demande générale",
 };
 
 export const TRAINING_LABELS: Record<string, string> = {
@@ -31,6 +32,7 @@ export const AVAILABILITY_LABELS: Record<string, string> = {
   semaine: "En semaine",
   "week-end": "Week-end",
   soir: "Soirée",
+  "non-precisee": "Non précisée",
 };
 
 export const dateFmt = new Intl.DateTimeFormat("fr-FR", { dateStyle: "medium", timeStyle: "short", timeZone: "Africa/Tunis" });

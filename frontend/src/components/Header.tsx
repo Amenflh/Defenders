@@ -5,12 +5,12 @@ import { usePathname } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { mainNav } from "@/lib/site";
 import { Icon } from "./Icon";
-import { Logo } from "./Logo";
+import { Logo, type BrandIdentity } from "./Logo";
 import { Sidebar } from "./Sidebar";
 
 export type HeaderUser = { name: string; email: string; role: "admin" | "client" };
 
-export function Header({ user }: { user: HeaderUser | null }) {
+export function Header({ user, identity = {} }: { user: HeaderUser | null; identity?: BrandIdentity }) {
   const pathname = usePathname();
   const [scrolled, setScrolled] = useState(false);
   const [progress, setProgress] = useState(0);
@@ -39,8 +39,8 @@ export function Header({ user }: { user: HeaderUser | null }) {
         }`}
       >
         <div className="container-site flex h-14 items-center justify-between gap-2 sm:h-16 sm:gap-4">
-          <span className="sm:hidden"><Logo compact /></span>
-          <span className="hidden sm:inline-flex"><Logo /></span>
+          <span className="sm:hidden"><Logo compact {...identity} /></span>
+          <span className="hidden sm:inline-flex"><Logo {...identity} /></span>
 
           <nav aria-label="Navigation principale" className="hidden lg:block">
             <ul className="flex items-center gap-1">
@@ -106,7 +106,7 @@ export function Header({ user }: { user: HeaderUser | null }) {
         <div className="h-px origin-left bg-gold" style={{ transform: `scaleX(${progress})` }} aria-hidden="true" />
       </header>
 
-      <Sidebar open={menuOpen} onClose={closeMenu} pathname={pathname} user={user} />
+      <Sidebar open={menuOpen} onClose={closeMenu} pathname={pathname} user={user} identity={identity} />
     </>
   );
 }

@@ -5,6 +5,14 @@ Site professionnel du centre de formation continue Defenders Fitness Academy
 
 Organisation du code, conventions et choix techniques : [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 
+Documentation projet :
+
+- [Cahier des charges](docs/CAHIER_DES_CHARGES.md)
+- [Spécifications logicielles SRS](docs/SPECIFICATIONS_LOGICIELLES.md)
+- [Plan de mise en production](docs/PLAN_MISE_EN_PRODUCTION.md)
+- [Plan de tests](docs/TEST_PLAN.md)
+- [Checklist Go / No-Go](docs/PRODUCTION_CHECKLIST.md)
+
 ## Stack
 
 | Composant | Technologies |
@@ -19,19 +27,19 @@ Organisation du code, conventions et choix techniques : [docs/ARCHITECTURE.md](d
 
 ## Pages et accès
 
-**Le site exige une connexion** : sans session, toute page redirige vers `/login`
-(`frontend/src/proxy.ts`, puis vérification réelle côté serveur).
+Le site marketing est public. Les espaces protégés nécessitent une connexion :
+`/admin` est réservé aux administrateurs et `/mon-espace` aux clients.
 
 | Page | Route | Accès |
 |---|---|---|
 | Connexion (admin et clients, même formulaire) | `/login` | public |
 | Création de compte client | `/register` | public |
-| Accueil, planning | `/`, `/planning` | connecté |
-| Liste des formations, détail d'une formation | `/formations`, `/formations/<slug>` (`/pilates`… redirigent) | connecté |
-| Inscription à une formation (pré-remplie, liée au compte) | `/contact` | connecté |
-| Formulaire d'inscription en popup | `/contact?popup=1` | connecté |
-| Defenders Security Protection | `/securite` | connecté |
-| Mentions légales, confidentialité, cookies | `/mentions-legales`, `/politique-de-confidentialite`, `/cookies` | connecté |
+| Accueil, liste et détail des formations, planning | `/`, `/formations`, `/formations/<slug>`, `/planning` | public |
+| Anciennes pages de formation | `/pilates`, `/football`, `/personal-training` | public |
+| Inscription à une formation (pré-remplie, liée au compte) | `/contact` | public |
+| Formulaire d'inscription en popup | `/contact?popup=1` | public |
+| Defenders Security Protection | `/securite` | public |
+| Mentions légales, confidentialité, cookies | `/mentions-legales`, `/politique-de-confidentialite`, `/cookies` | public |
 | Suivi de ses inscriptions | `/mon-espace` | client |
 | Tableau de bord des demandes | `/admin` | admin |
 | Gestion des formations (contenu, statut) | `/admin/formations` | admin |

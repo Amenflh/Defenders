@@ -26,17 +26,20 @@ const formationSelect = {
   modules: true,
   facts: true,
   coverUrl: true,
+  galleryUrls: true,
+  accent: true,
   updatedAt: true,
 } satisfies Prisma.FormationSelect;
 
 type Row = Prisma.FormationGetPayload<{ select: typeof formationSelect }>;
 
 /** Forme renvoyée par l'API : prix en nombre, niveau avec son libellé. */
-export type FormationDto = Omit<Row, "priceTnd" | "modules" | "facts"> & {
+export type FormationDto = Omit<Row, "priceTnd" | "modules" | "facts" | "galleryUrls"> & {
   priceTnd: number | null;
   levelLabel: string | null;
   modules: Module[];
   facts: Fact[];
+  galleryUrls: string[];
 };
 
 function toDto(row: Row): FormationDto {
@@ -46,6 +49,7 @@ function toDto(row: Row): FormationDto {
     levelLabel: row.level ? LEVEL_LABELS[row.level] : null,
     modules: (row.modules as Module[] | null) ?? [],
     facts: (row.facts as Fact[] | null) ?? [],
+    galleryUrls: (row.galleryUrls as string[] | null) ?? [],
   };
 }
 

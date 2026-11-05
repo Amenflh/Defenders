@@ -20,13 +20,12 @@ export const createRegistrationSchema = z.object({
   email: emailSchema,
   phone: phoneSchema,
   city: z.string().trim().max(80).optional().default(""),
-  profile: z.enum(PROFILES, { error: "Veuillez choisir votre profil" }),
+  profile: z.enum([...PROFILES, "demande-info"], { error: "Veuillez choisir votre profil" }),
   /** Slugs des formations souhaitées (leur existence est vérifiée par le service). */
   trainings: z
     .array(z.string().regex(/^[a-z0-9-]{1,60}$/), { error: "Choisissez au moins une formation" })
-    .min(1, "Choisissez au moins une formation")
     .transform((list) => [...new Set(list)]),
-  availability: z.enum(AVAILABILITIES, { error: "Veuillez choisir une disponibilité" }),
+  availability: z.enum([...AVAILABILITIES, "non-precisee"], { error: "Veuillez choisir une disponibilité" }),
   message: z.string().trim().max(2000, "Message trop long (2000 caractères max)").optional().default(""),
   consent: z.literal(true, { error: "Vous devez accepter d'être recontacté" }),
   /** Pièce jointe facultative (CV, diplôme…), transmise par e-mail uniquement, jamais stockée. */
@@ -38,6 +37,25 @@ export const createRegistrationSchema = z.object({
       base64: z.string().max(7_000_000, "La pièce jointe ne doit pas dépasser 5 Mo"),
     })
     .optional(),
+}).superRefine((input, context) => {
+  if (input.profile === "demande-info") {
+    if (input.trainings.length > 0) {
+      context.addIssue({ code: "custom", path: ["trainings"], message: "Une demande d'information ne doit pas inclure de formation" });
+    }
+    if (input.availability !== "non-precisee") {
+      context.addIssue({ code: "custom", path: ["availability"], message: "Cette demande ne nécessite pas de disponibilité" });
+    }
+    if (!input.message) {
+      context.addIssue({ code: "custom", path: ["message"], message: "Veuillez saisir votre message" });
+    }
+  } else {
+    if (input.trainings.length === 0) {
+      context.addIssue({ code: "custom", path: ["trainings"], message: "Choisissez au moins une formation" });
+    }
+    if (input.availability === "non-precisee") {
+      context.addIssue({ code: "custom", path: ["availability"], message: "Veuillez choisir une disponibilité" });
+    }
+  }
 });
 
 export const listQuerySchema = z.object({

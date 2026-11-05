@@ -42,7 +42,9 @@ const formationFields = {
   careers: lines(20),
   modules: z.array(z.object({ title: line(80), text: z.string().trim().max(400) })).max(30, "30 modules maximum"),
   facts: z.array(z.object({ label: line(40), value: line(60) })).max(6, "6 chiffres clés maximum"),
-  coverUrl: mediaUrl.nullable(),
+  coverUrl: mediaUrl.or(z.literal("")).nullable(),
+  galleryUrls: z.array(mediaUrl).max(30, "30 images maximum"),
+  accent: z.enum(["gold", "pilates", "football", "personal"]),
 };
 
 const base = z.object(formationFields);

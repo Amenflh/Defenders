@@ -21,12 +21,13 @@ export async function getSessionToken(): Promise<string | undefined> {
 /** Appel à l'API avec le jeton de session de l'utilisateur (s'il est connecté). */
 export async function apiFetch(path: string, init: RequestInit = {}): Promise<Response> {
   const token = await getSessionToken();
+  const isFormData = typeof FormData !== "undefined" && init.body instanceof FormData;
   return fetch(backendUrl(path), {
     ...init,
     cache: "no-store",
     signal: AbortSignal.timeout(8000),
     headers: {
-      "Content-Type": "application/json",
+      ...(isFormData ? {} : { "Content-Type": "application/json" }),
       "X-Forwarded-For": await clientIp(),
       ...(token ? { Authorization: `Bearer ${token}` } : {}),
       ...init.headers,

@@ -16,11 +16,12 @@ export const honeypot: RequestHandler = (req, res, next) => {
 export const create: RequestHandler = async (req, res) => {
   const input = req.valid.body as z.infer<typeof createRegistrationSchema>;
   const registration = await service.createRegistration(input, req.user?.role === "client" ? req.user.id : undefined);
-  console.info(`[inscription] nouvelle demande ${registration.id} (${registration.trainings.join(", ")})`);
+  const requestType = registration.profile === "demande-info" ? "demande d'information" : "inscription";
+  console.info(`[contact] nouvelle ${requestType} ${registration.id}`);
   // E-mails envoyés en arrière-plan : la réponse n'attend pas le serveur SMTP,
   // et un échec d'envoi ne fait pas perdre la demande (déjà enregistrée).
   void sendRegistrationEmails(registration, input.attachment).catch((err) =>
-    console.error(`[inscription] e-mails non envoyés pour ${registration.id}`, err),
+    console.error(`[contact] e-mails non envoyés pour ${registration.id}`, err),
   );
   res.status(201).json({ ok: true, id: registration.id });
 };

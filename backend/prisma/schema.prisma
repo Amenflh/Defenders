@@ -88,6 +88,8 @@ model Formation {
   facts         Json            @default("[]")
   /// Visuel principal (image téléversée ou fichier de /public). Sinon : visuel par défaut du site.
   coverUrl      String?         @map("cover_url")
+  galleryUrls   Json            @default("[]") @map("gallery_urls")
+  accent        String          @default("gold")
   createdAt     DateTime        @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt     DateTime        @updatedAt @map("updated_at") @db.Timestamptz(6)
 
@@ -238,4 +240,31 @@ model Media {
   @@index([category])
   @@index([formationId])
   @@map("media")
+}
+
+// ───────────────────────────── CMS / contenu du site ─────────────────────────────
+
+model SiteSetting {
+  key       String   @id
+  value     String   @default("{}") @db.Text
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  @@map("site_settings")
+}
+
+model CmsItem {
+  id        Int      @id @default(autoincrement())
+  section   String
+  title     String   @default("")
+  subtitle  String   @default("")
+  body      String   @default("") @db.Text
+  imageUrl  String   @default("") @map("image_url")
+  linkUrl   String   @default("") @map("link_url")
+  position  Int      @default(0)
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  @@index([section, position])
+  @@map("cms_items")
 }
