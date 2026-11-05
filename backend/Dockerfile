@@ -33,6 +33,9 @@ COPY prisma ./prisma
 # Logo intégré aux e-mails
 COPY --from=build /app/src/assets ./src/assets
 
+# Dossier des fichiers téléversés (volume Docker), accessible à l'utilisateur node
+RUN mkdir -p /app/uploads && chown node:node /app/uploads
+
 USER node
 EXPOSE 4000
 HEALTHCHECK --interval=15s --timeout=3s --start-period=30s --retries=3 \

@@ -1,4 +1,5 @@
 import { existsSync } from "node:fs";
+import { resolve } from "node:path";
 
 // En local, charge backend/.env (Node ≥ 20.12). Dans Docker, les variables viennent de docker-compose.
 if (existsSync(".env")) process.loadEnvFile(".env");
@@ -39,6 +40,12 @@ export const config = {
     secret: jwtSecret(),
     issuer: "defenders-api",
     audience: "defenders-web",
+  },
+  /** Fichiers téléversés (images et vidéos), servis sous /uploads. */
+  uploads: {
+    dir: resolve(process.env.UPLOAD_DIR ?? "uploads"),
+    maxImageMb: toInt(process.env.MAX_IMAGE_MB, 5),
+    maxVideoMb: toInt(process.env.MAX_VIDEO_MB, 100),
   },
   /** Durée de validité d'une session (et du JWT correspondant). */
   sessionTtlHours: toInt(process.env.SESSION_TTL_HOURS, 12),
