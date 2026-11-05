@@ -243,6 +243,44 @@ export default async function HomePage({ searchParams }: PageProps<"/">) {
         </div>
       </section>
 
+      {/* ---------------- SECURITY PROTECTION ---------------- */}
+      <section className="border-b border-line bg-ink-2 py-20 lg:py-24" aria-label="Defenders Security Protection">
+        <div className="container-site grid gap-10 lg:grid-cols-[1fr_0.8fr] lg:items-center">
+          <Reveal>
+            <p className="eyebrow mb-3">Autre expertise Defenders</p>
+            <h2 className="heading-lg">Defenders Security Protection</h2>
+            <p className="mt-5 max-w-2xl leading-relaxed text-mist">
+              Découvrez nos services de gardiennage, de protection rapprochée, de sécurité et de formation professionnelle.
+              Notre équipe met son expertise au service des particuliers et des organisations.
+            </p>
+            <div className="mt-7 flex flex-wrap gap-4">
+              <Link href="/securite" className="btn btn-primary">
+                Découvrir nos services <Icon name="arrow" />
+              </Link>
+              <a href={site.whatsapp.href} target="_blank" rel="noreferrer" className="btn btn-ghost">
+                <Icon name="phone" /> WhatsApp
+              </a>
+            </div>
+          </Reveal>
+          <Reveal delay={120}>
+            <div className="grid grid-cols-2 gap-px border border-line bg-line">
+              {[
+                ["Gardiennage", "Sécurisation des sites"],
+                ["Protection", "Accompagnement sécurisé"],
+                ["Formation", "Modules professionnels"],
+                ["Secourisme", "Premières interventions"],
+              ].map(([title, text]) => (
+                <div key={title} className="bg-ink-2 p-5 sm:p-7">
+                  <Icon name="shield" className="text-gold" />
+                  <h3 className="mt-4 font-display text-lg uppercase text-bone">{title}</h3>
+                  <p className="mt-2 text-xs leading-relaxed text-mist sm:text-sm">{text}</p>
+                </div>
+              ))}
+            </div>
+          </Reveal>
+        </div>
+      </section>
+
       {/* ---------------- FORMATIONS ---------------- */}
       <section id="formations" className="bg-bone py-24 text-ink lg:py-32">
         <div className="container-site">
