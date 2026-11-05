@@ -41,6 +41,8 @@ export const config = {
     issuer: "defenders-api",
     audience: "defenders-web",
   },
+  /** Documentation Swagger sur /api/docs : toujours en développement, en production si API_DOCS=true. */
+  apiDocs: process.env.NODE_ENV !== "production" || process.env.API_DOCS === "true",
   /** Fichiers téléversés (images et vidéos), servis sous /uploads. */
   uploads: {
     dir: resolve(process.env.UPLOAD_DIR ?? "uploads"),
