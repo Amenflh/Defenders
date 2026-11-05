@@ -47,14 +47,13 @@ const formationFields = {
 
 const base = z.object(formationFields);
 
-/** Création : seuls le slug et le nom sont obligatoires, une nouvelle formation est un brouillon. */
+/** Création : seuls le slug et le nom sont obligatoires. Par défaut : brouillon, placé après les autres. */
 export const createFormationSchema = base.partial().required({ slug: true, name: true }).transform((v) => ({
   headline: "",
   summary: "",
   durationLabel: null,
   priceTnd: null,
   status: "draft" as const,
-  position: 0,
   level: null,
   intro: [],
   objectives: [],

@@ -120,7 +120,9 @@ export async function listAll(status?: FormationStatus) {
     orderBy: [{ position: "asc" }, { name: "asc" }],
     select: { ...formationSelect, _count: { select: { registrations: true, trainingSessions: true } } },
   });
-  return rows.map(({ _count, ...row }) => ({ ...toDto(row), registrationCount: _count.registrations, sessionCount: _count.trainingSessions }));
+  return rows
+    .map(({ _count, ...row }) => ({ ...toDto(row), registrationCount: _count.registrations, sessionCount: _count.trainingSessions }))
+    .sort((a, b) => Number(a.status === "archived") - Number(b.status === "archived")); // archivées en dernier
 }
 
 export async function getById(id: number): Promise<FormationDto> {
@@ -130,8 +132,10 @@ export async function getById(id: number): Promise<FormationDto> {
 }
 
 export async function create(input: CreateFormationInput): Promise<FormationDto> {
+  // Sans ordre précisé, la nouvelle formation s'affiche après les autres.
+  const position = input.position ?? ((await prisma.formation.aggregate({ _max: { position: true } }))._max.position ?? 0) + 1;
   try {
-    return toDto(await prisma.formation.create({ data: toData(input) as Prisma.FormationCreateInput, select: formationSelect }));
+    return toDto(await prisma.formation.create({ data: toData({ ...input, position }) as Prisma.FormationCreateInput, select: formationSelect }));
   } catch (err) {
     if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === "P2002") throw slugTaken();
     throw err;
