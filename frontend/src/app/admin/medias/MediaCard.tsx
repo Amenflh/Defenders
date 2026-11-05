@@ -15,7 +15,8 @@ export type AdminMedia = {
   formation: { id: number; name: string } | null;
 };
 
-const size = (b: number) => (b < 1024 * 1024 ? `${Math.max(1, Math.round(b / 1024))} Ko` : `${(b / 1024 / 1024).toFixed(1)} Mo`);
+/** Taille lisible ; 0 = inconnue (média ajouté par URL, sans fichier téléversé). */
+const size = (b: number) => (b <= 0 ? "taille inconnue" : b < 1024 * 1024 ? `${Math.max(1, Math.round(b / 1024))} Ko` : `${(b / 1024 / 1024).toFixed(1)} Mo`);
 
 /** Un média : aperçu, modification (titre, catégorie, formation) et suppression. */
 export function MediaCard({ m, formations }: { m: AdminMedia; formations: { id: number; name: string }[] }) {
