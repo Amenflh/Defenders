@@ -1,5 +1,6 @@
 node_modules/
 /dist/
-# Demandes de contact stockées localement (données personnelles) — pas src/data !
+# Client Prisma généré (npm run db:generate)
+/src/generated/
 /data/
 .env

@@ -1,0 +1,221 @@
+// Schéma de la base Defenders Fitness Academy (issue #20).
+// Conventions : modèles en PascalCase / champs en camelCase côté code,
+// tables et colonnes en snake_case côté PostgreSQL (@@map / @map).
+
+generator client {
+  provider               = "prisma-client"
+  output                 = "../src/generated/prisma"
+  moduleFormat           = "esm"
+  importFileExtension    = "js"
+  generatedFileExtension = "ts"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ───────────────────────────── Comptes ─────────────────────────────
+
+enum Role {
+  admin
+  client
+}
+
+model User {
+  id           Int       @id @default(autoincrement())
+  email        String    @unique
+  name         String
+  phone        String    @default("")
+  passwordHash String    @map("password_hash")
+  role         Role      @default(client)
+  createdAt    DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  lastLoginAt  DateTime? @map("last_login_at") @db.Timestamptz(6)
+
+  authSessions  AuthSession[]
+  registrations Registration[]
+
+  @@map("users")
+}
+
+/// Session de connexion : seule l'empreinte SHA-256 du jeton est stockée.
+model AuthSession {
+  tokenHash String   @id @map("token_hash")
+  userId    Int      @map("user_id")
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  expiresAt DateTime @map("expires_at") @db.Timestamptz(6)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([expiresAt])
+  @@map("auth_sessions")
+}
+
+// ───────────────────────────── Formations ─────────────────────────────
+
+enum FormationStatus {
+  draft
+  published
+  archived
+}
+
+model Formation {
+  id            Int             @id @default(autoincrement())
+  /// Identifiant d'URL : pilates, football, personal-training…
+  slug          String          @unique
+  name          String
+  headline      String          @default("")
+  summary       String          @default("")
+  /// Ex. « 4 jours intensifs » (texte libre, optionnel).
+  durationLabel String?         @map("duration_label")
+  /// Prix en dinars tunisiens (optionnel).
+  priceTnd      Decimal?        @map("price_tnd") @db.Decimal(10, 2)
+  status        FormationStatus @default(published)
+  /// Ordre d'affichage.
+  position      Int             @default(0)
+  createdAt     DateTime        @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt     DateTime        @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  trainingSessions TrainingSession[]
+  trainers         FormationTrainer[]
+  media            Media[]
+  registrations    RegistrationFormation[]
+
+  @@index([status, position])
+  @@map("formations")
+}
+
+model Trainer {
+  id        Int      @id @default(autoincrement())
+  name      String
+  title     String   @default("")
+  bio       String   @default("")
+  photoUrl  String?  @map("photo_url")
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  formations       FormationTrainer[]
+  trainingSessions TrainingSession[]
+
+  @@map("trainers")
+}
+
+/// Formateurs intervenant sur une formation (relation plusieurs-à-plusieurs).
+model FormationTrainer {
+  formationId Int @map("formation_id")
+  trainerId   Int @map("trainer_id")
+
+  formation Formation @relation(fields: [formationId], references: [id], onDelete: Cascade)
+  trainer   Trainer   @relation(fields: [trainerId], references: [id], onDelete: Cascade)
+
+  @@id([formationId, trainerId])
+  @@index([trainerId])
+  @@map("formation_trainers")
+}
+
+enum SessionFormat {
+  theorie
+  pratique
+  atelier
+  evaluation
+}
+
+enum SessionLevel {
+  tous_niveaux
+  debutant
+  intermediaire
+  avance
+}
+
+/// Créneau récurrent du planning. Une période (periodStart → periodEnd) permet
+/// de gérer plusieurs promotions / périodes de formation dans l'année.
+model TrainingSession {
+  id          Int           @id @default(autoincrement())
+  formationId Int           @map("formation_id")
+  trainerId   Int?          @map("trainer_id")
+  title       String
+  /// 1 = lundi … 7 = dimanche
+  dayOfWeek   Int           @map("day_of_week") @db.SmallInt
+  /// Heure locale « HH:MM »
+  startTime   String        @map("start_time") @db.VarChar(5)
+  endTime     String        @map("end_time") @db.VarChar(5)
+  format      SessionFormat
+  level       SessionLevel  @default(tous_niveaux)
+  periodStart DateTime?     @map("period_start") @db.Date
+  periodEnd   DateTime?     @map("period_end") @db.Date
+  createdAt   DateTime      @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  formation Formation @relation(fields: [formationId], references: [id], onDelete: Cascade)
+  trainer   Trainer?  @relation(fields: [trainerId], references: [id], onDelete: SetNull)
+
+  @@index([formationId, dayOfWeek])
+  @@index([trainerId])
+  @@map("training_sessions")
+}
+
+// ───────────────────────────── Inscriptions ─────────────────────────────
+
+enum RegistrationStatus {
+  nouveau
+  contacte
+  inscrit
+  archive
+}
+
+/// Demande d'inscription envoyée depuis le formulaire (liée au compte client si connecté).
+model Registration {
+  id           String             @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  createdAt    DateTime           @default(now()) @map("created_at") @db.Timestamptz(6)
+  firstName    String             @map("first_name")
+  lastName     String             @map("last_name")
+  email        String
+  phone        String
+  city         String             @default("")
+  profile      String
+  availability String
+  message      String             @default("")
+  status       RegistrationStatus @default(nouveau)
+  userId       Int?               @map("user_id")
+
+  user       User?                   @relation(fields: [userId], references: [id], onDelete: SetNull)
+  formations RegistrationFormation[]
+
+  @@index([createdAt(sort: Desc)])
+  @@index([status])
+  @@index([userId])
+  @@map("registrations")
+}
+
+/// Formations demandées dans une inscription (relation plusieurs-à-plusieurs).
+model RegistrationFormation {
+  registrationId String @map("registration_id") @db.Uuid
+  formationId    Int    @map("formation_id")
+
+  registration Registration @relation(fields: [registrationId], references: [id], onDelete: Cascade)
+  formation    Formation    @relation(fields: [formationId], references: [id], onDelete: Restrict)
+
+  @@id([registrationId, formationId])
+  @@index([formationId])
+  @@map("registration_formations")
+}
+
+// ───────────────────────────── Médias ─────────────────────────────
+
+enum MediaType {
+  image
+  video
+}
+
+model Media {
+  id          Int       @id @default(autoincrement())
+  type        MediaType
+  url         String
+  title       String    @default("")
+  category    String    @default("")
+  formationId Int?      @map("formation_id")
+  createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  formation Formation? @relation(fields: [formationId], references: [id], onDelete: SetNull)
+
+  @@index([category])
+  @@index([formationId])
+  @@map("media")
+}

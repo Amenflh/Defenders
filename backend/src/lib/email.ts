@@ -1,8 +1,8 @@
-import nodemailer from "nodemailer";
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
+import nodemailer from "nodemailer";
 import { config } from "../config.js";
-import type { Contact } from "./contacts.js";
+import type { RegistrationDto } from "../modules/registrations/registrations.service.js";
 
 type AttachmentPayload = {
   filename: string;
@@ -51,9 +51,7 @@ const emailLayout = (content: string, title: string) => `<!doctype html>
                 </table>
               </td>
             </tr>
-            <tr>
-              <td style="padding:32px;">${content}</td>
-            </tr>
+            <tr><td style="padding:32px;">${content}</td></tr>
             <tr>
               <td style="padding:22px 32px;background:#121310;border-top:1px solid #34342f;color:#a7a7a0;font-size:12px;line-height:1.8;">
                 <strong style="color:#ece9df;">Defenders Fitness Academy</strong><br>
@@ -68,7 +66,7 @@ const emailLayout = (content: string, title: string) => `<!doctype html>
   </body>
 </html>`;
 
-export async function sendContactEmail(contact: Contact, attachment?: AttachmentPayload): Promise<boolean> {
+export async function sendRegistrationEmail(contact: RegistrationDto, attachment?: AttachmentPayload): Promise<boolean> {
   if (!config.smtp.user || !config.smtp.pass || !config.smtp.contactTo) {
     console.warn("[contact] SMTP non configuré : demande enregistrée, aucun e-mail envoyé");
     return false;
@@ -129,9 +127,7 @@ export async function sendContactEmail(contact: Contact, attachment?: Attachment
       <div style="font-size:12px;text-transform:uppercase;letter-spacing:2px;color:#d7b56d;font-weight:700;">Nouvelle demande reçue</div>
       <h1 style="margin:9px 0 0;font-size:26px;line-height:1.2;color:#ffffff;">${safeFirstName} ${safeLastName}</h1>
     </div>
-    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="border:1px solid #34342f;border-collapse:collapse;">
-      ${adminDetails}
-    </table>
+    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="border:1px solid #34342f;border-collapse:collapse;">${adminDetails}</table>
     <div style="margin-top:24px;">
       <a href="mailto:${safeEmail}?subject=${encodeURIComponent(`Re: votre demande ${contact.id}`)}" style="display:inline-block;padding:13px 18px;background:#d7b56d;color:#151611;text-decoration:none;font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:1px;">Répondre au candidat</a>
     </div>`, "Nouvelle demande - Defenders Fitness Academy");
@@ -144,21 +140,17 @@ export async function sendContactEmail(contact: Contact, attachment?: Attachment
       Notre équipe examine votre profil et vous recontactera prochainement.
     </p>
     <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="margin:24px 0;border:1px solid #34342f;background:#20211e;">
-      <tr>
-        <td style="padding:18px;">
-          <div style="font-size:11px;text-transform:uppercase;letter-spacing:1.5px;color:#a7a7a0;">Récapitulatif</div>
-          <div style="margin-top:8px;font-size:15px;line-height:1.6;color:#ece9df;">
-            <strong>Formation :</strong> ${safeTrainings}<br>
-            <strong>Disponibilité :</strong> ${safeAvailability}<br>
-            <strong>Référence :</strong> ${safeId}
-          </div>
-        </td>
-      </tr>
+      <tr><td style="padding:18px;">
+        <div style="font-size:11px;text-transform:uppercase;letter-spacing:1.5px;color:#a7a7a0;">Récapitulatif</div>
+        <div style="margin-top:8px;font-size:15px;line-height:1.6;color:#ece9df;">
+          <strong>Formation :</strong> ${safeTrainings}<br>
+          <strong>Disponibilité :</strong> ${safeAvailability}<br>
+          <strong>Référence :</strong> ${safeId}
+        </div>
+      </td></tr>
     </table>
-    <p style="margin:0 0 22px;font-size:15px;line-height:1.75;color:#d9d7cd;">
-      Une question en attendant notre réponse ? Notre équipe est disponible par téléphone ou WhatsApp.
-    </p>
-    <div style="margin-bottom:4px;">
+    <p style="margin:0 0 22px;font-size:15px;line-height:1.75;color:#d9d7cd;">Une question en attendant notre réponse ? Notre équipe est disponible par téléphone ou WhatsApp.</p>
+    <div>
       <a href="tel:+21692204005" style="display:inline-block;padding:13px 18px;background:#d7b56d;color:#151611;text-decoration:none;font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:1px;">Nous appeler</a>
       <a href="https://wa.me/21629039493" style="display:inline-block;margin-left:8px;padding:12px 17px;border:1px solid #d7b56d;color:#d7b56d;text-decoration:none;font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:1px;">WhatsApp</a>
     </div>`, "Confirmation de votre demande - Defenders Fitness Academy");
