@@ -5,6 +5,14 @@ Site professionnel du centre de formation continue Defenders Fitness Academy
 
 Organisation du code, conventions et choix techniques : [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 
+Documentation projet :
+
+- [Cahier des charges](docs/CAHIER_DES_CHARGES.md)
+- [Spécifications logicielles SRS](docs/SPECIFICATIONS_LOGICIELLES.md)
+- [Plan de mise en production](docs/PLAN_MISE_EN_PRODUCTION.md)
+- [Plan de tests](docs/TEST_PLAN.md)
+- [Checklist Go / No-Go](docs/PRODUCTION_CHECKLIST.md)
+
 ## Stack
 
 | Composant | Technologies |
