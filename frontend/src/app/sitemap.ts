@@ -1,12 +1,13 @@
 import type { MetadataRoute } from "next";
+import { getFormations } from "@/lib/formations";
 
-export default function sitemap(): MetadataRoute.Sitemap {
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3001";
+  const formations = (await getFormations()) ?? [];
   const routes = [
     "",
-    "/pilates",
-    "/football",
-    "/personal-training",
+    "/formations",
+    ...formations.map((f) => `/formations/${f.slug}`),
     "/planning",
     "/securite",
     "/contact",

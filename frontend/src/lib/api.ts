@@ -12,6 +12,7 @@ export function backendUrl(path: string): string {
 
 export type Session = {
   id: string;
+  /** Slug de la formation. */
   discipline: string;
   title: string;
   day: 1 | 2 | 3 | 4 | 5 | 6 | 7;

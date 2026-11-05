@@ -2,14 +2,14 @@ import type { SessionFormat, SessionLevel } from "../../generated/prisma/client.
 import { BadRequestError } from "../../lib/errors.js";
 import { prisma } from "../../lib/prisma.js";
 
-const FORMAT_LABELS: Record<SessionFormat, string> = {
+export const FORMAT_LABELS: Record<SessionFormat, string> = {
   theorie: "Théorie",
   pratique: "Pratique",
   atelier: "Atelier",
   evaluation: "Évaluation",
 };
 
-const LEVEL_LABELS: Record<SessionLevel, string> = {
+export const LEVEL_LABELS: Record<SessionLevel, string> = {
   tous_niveaux: "Tous niveaux",
   debutant: "Débutant",
   intermediaire: "Intermédiaire",

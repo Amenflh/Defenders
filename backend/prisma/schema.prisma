@@ -65,15 +65,6 @@ model Formation {
   name          String
   headline      String          @default("")
   summary       String          @default("")
-  intro         Json            @default("[]")
-  facts         Json            @default("[]")
-  objectives    Json            @default("[]")
-  modules       Json            @default("[]")
-  audience      Json            @default("[]")
-  careers       Json            @default("[]")
-  coverUrl      String          @default("") @map("cover_url")
-  galleryUrls   Json            @default("[]") @map("gallery_urls")
-  accent        String          @default("gold")
   /// Ex. « 4 jours intensifs » (texte libre, optionnel).
   durationLabel String?         @map("duration_label")
   /// Prix en dinars tunisiens (optionnel).
@@ -81,6 +72,24 @@ model Formation {
   status        FormationStatus @default(published)
   /// Ordre d'affichage.
   position      Int             @default(0)
+  /// Niveau requis (difficulté).
+  level         SessionLevel?
+  /// Paragraphes d'introduction de la page formation.
+  intro         String[]        @default([])
+  objectives    String[]        @default([])
+  prerequisites String[]        @default([])
+  /// Public visé.
+  audience      String[]        @default([])
+  /// Débouchés professionnels.
+  careers       String[]        @default([])
+  /// Programme : [{ "title": "…", "text": "…" }]
+  modules       Json            @default("[]")
+  /// Chiffres clés : [{ "label": "…", "value": "…" }]
+  facts         Json            @default("[]")
+  /// Visuel principal (image téléversée ou fichier de /public). Sinon : visuel par défaut du site.
+  coverUrl      String?         @map("cover_url")
+  galleryUrls   Json            @default("[]") @map("gallery_urls")
+  accent        String          @default("gold")
   createdAt     DateTime        @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt     DateTime        @updatedAt @map("updated_at") @db.Timestamptz(6)
 
@@ -218,6 +227,10 @@ model Media {
   type        MediaType
   url         String
   title       String    @default("")
+  /// Nom du fichier sur le disque (UPLOAD_DIR) ; null pour un média externe.
+  storageKey  String?   @unique @map("storage_key")
+  mimeType    String    @default("") @map("mime_type")
+  sizeBytes   Int       @default(0) @map("size_bytes")
   category    String    @default("")
   formationId Int?      @map("formation_id")
   createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)

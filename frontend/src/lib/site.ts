@@ -53,7 +53,7 @@ export const site = {
         description: "Mentionnée comme co-partenaire dans l'annonce d'accord publiée avec Bayrak El Arab.",
         href: "https://www.facebook.com/profile.php?id=100077382387038",
         linkLabel: "Page officielle",
-        logo: "/pics/partners/Security.jpg",
+        logo: "/pics/partners/TSA-logo.jpg",
       },
       {
         name: "Sunset Studio Pilates",
@@ -71,7 +71,7 @@ export type NavItem = { href: string; label: string };
 
 export const mainNav: NavItem[] = [
   { href: "/", label: "Accueil" },
-  { href: "/#formations", label: "Nos formations" },
+  { href: "/formations", label: "Nos formations" },
   { href: "/#galerie", label: "Galerie" },
   { href: "/securite", label: "Sécurité Protection" },
   { href: "/planning", label: "Planning" },

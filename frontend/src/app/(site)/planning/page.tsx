@@ -4,20 +4,24 @@ import { connection } from "next/server";
 import { Icon } from "@/components/Icon";
 import { PageIntro } from "@/components/PageIntro";
 import { getPlanning } from "@/lib/api";
+import { getFormations, toOptions } from "@/lib/formations";
 import { site } from "@/lib/site";
 import { PlanningBoard } from "./PlanningBoard";
 
 export const metadata: Metadata = {
   title: "Planning des formations",
-  description: "Planning hebdomadaire des cours de Pilates, football et personal training.",
+  description: "Planning hebdomadaire des formations de Defenders Fitness Academy.",
 };
 
 export default async function PlanningPage({ searchParams }: PageProps<"/planning">) {
   // Rendu à chaque requête : le planning vient de l'API et BACKEND_URL est lu à l'exécution.
   await connection();
-  const [sessions, params] = await Promise.all([getPlanning(), searchParams]);
+  const [sessions, list, params] = await Promise.all([getPlanning(), getFormations(), searchParams]);
+  const formations = toOptions(list ?? []);
   const requested = typeof params.discipline === "string" ? params.discipline : undefined;
-  const initial = requested && sessions?.some((session) => session.discipline === requested) ? requested : "all";
+  const initial = requested && (formations.some((formation) => formation.slug === requested) || sessions?.some((session) => session.discipline === requested))
+    ? requested
+    : "all";
 
   return (
     <>
@@ -29,7 +33,7 @@ export default async function PlanningPage({ searchParams }: PageProps<"/plannin
       <section className="py-16 lg:py-20">
         <div className="container-site">
           {sessions ? (
-            <PlanningBoard sessions={sessions} initial={initial} />
+            <PlanningBoard sessions={sessions} formations={formations} initial={initial} />
           ) : (
             <div className="border border-line bg-ink-2 p-10 text-center">
               <Icon name="calendar" width={36} height={36} className="mx-auto text-gold" />

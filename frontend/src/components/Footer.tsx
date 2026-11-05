@@ -54,10 +54,11 @@ export async function Footer() {
 
         <FooterColumn title="Formations">
           {(formations.length > 0 ? formations : disciplineList).map((formation) => (
-            <FooterLink key={formation.slug} href={`/${formation.slug}`}>
+            <FooterLink key={formation.slug} href={`/formations/${formation.slug}`}>
               {formation.name}
             </FooterLink>
           ))}
+          <FooterLink href="/formations">Toutes les formations</FooterLink>
           <FooterLink href="/planning">Planning des sessions</FooterLink>
         </FooterColumn>
 

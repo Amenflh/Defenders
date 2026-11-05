@@ -4,8 +4,8 @@ import { Icon } from "@/components/Icon";
 import { Reveal } from "@/components/Reveal";
 import { RotatingWord } from "@/components/RotatingWord";
 import { ScrollStory, type StoryItem } from "@/components/ScrollStory";
-import { disciplineList } from "@/lib/disciplines";
 import { bannerPhotos } from "@/lib/images";
+import { disciplineList } from "@/lib/disciplines";
 import { site } from "@/lib/site";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { AnimatedAccent } from "@/components/AnimatedAccent";
@@ -398,9 +398,14 @@ export default async function HomePage({ searchParams }: PageProps<"/">) {
               <p className="eyebrow mb-3 !text-ink/60">Nos formations</p>
               <h2 className="heading-lg">{formationsCms.length ? `${formationsCms.length} formations, une exigence` : "Nos formations, une exigence"}</h2>
             </div>
-            <Link href="/planning" className="btn btn-dark self-start">
-              <Icon name="calendar" /> Voir le planning
-            </Link>
+            <div className="flex flex-wrap gap-3 self-start">
+              <Link href="/formations" className="btn btn-dark">
+                Toutes les formations <Icon name="arrow" />
+              </Link>
+              <Link href="/planning" className="btn btn-dark">
+                <Icon name="calendar" /> Voir le planning
+              </Link>
+            </div>
           </Reveal>
 
           <div className="grid gap-6 md:grid-cols-3">
@@ -417,7 +422,7 @@ export default async function HomePage({ searchParams }: PageProps<"/">) {
               };
             }) : disciplineList.map((d) => ({ ...d }))).map((d, i) => (
               <Reveal key={d.slug} delay={i * 120}>
-                <Link href={`/${d.slug}`} className="group relative block aspect-[4/5] overflow-hidden bg-ink transition duration-500 hover:-translate-y-2 hover:shadow-[0_24px_60px_rgba(201,162,39,0.16)]">
+                <Link href={`/formations/${d.slug}`} className="group relative block aspect-[4/5] overflow-hidden bg-ink transition duration-500 hover:-translate-y-2 hover:shadow-[0_24px_60px_rgba(201,162,39,0.16)]">
                   {d.cover ? (
                     <Image
                       src={d.cover.src}

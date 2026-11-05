@@ -1,6 +1,7 @@
 import type { Prisma } from "../generated/prisma/client.js";
 import { prisma } from "../lib/prisma.js";
 import { seedAdmin } from "../modules/auth/auth.service.js";
+import { FORMATION_CONTENT } from "./formation-content.js";
 
 type SampleSession = Omit<Prisma.TrainingSessionCreateManyInput, "formationId"> & { formation: string };
 
@@ -29,6 +30,7 @@ const SAMPLE_PLANNING: SampleSession[] = [
 /** Données de référence, idempotent : peut être lancé à chaque démarrage. */
 export async function ensureSeedData(): Promise<void> {
   await seedAdmin();
+  await seedFormationContent();
 
   const defaultSettings = {
     phone: "+216 92 204 005",
@@ -162,4 +164,17 @@ export async function ensureSeedData(): Promise<void> {
   }));
   const { count } = await prisma.trainingSession.createMany({ data });
   console.info(`[seed] planning d'exemple inséré (${count} créneaux)`);
+}
+
+/** Contenu initial des formations d'origine, seulement si elles n'en ont pas encore (jamais d'écrasement). */
+async function seedFormationContent(): Promise<void> {
+  const empty = await prisma.formation.findMany({
+    where: { slug: { in: Object.keys(FORMATION_CONTENT) }, intro: { isEmpty: true }, objectives: { isEmpty: true } },
+    select: { id: true, slug: true, durationLabel: true },
+  });
+  for (const f of empty) {
+    const { durationLabel, ...content } = FORMATION_CONTENT[f.slug];
+    await prisma.formation.update({ where: { id: f.id }, data: { ...content, durationLabel: f.durationLabel ?? durationLabel ?? null } });
+  }
+  if (empty.length) console.info(`[seed] contenu des formations initialisé (${empty.map((f) => f.slug).join(", ")})`);
 }

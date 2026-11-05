@@ -26,11 +26,17 @@ export function validate(schemas: Schemas, onError?: () => HttpError): RequestHa
       if (!schema) continue;
       const result = schema.safeParse(req[part] ?? {});
       if (result.success) valid[part] = result.data;
-      else Object.assign(errors, z.flattenError(result.error).fieldErrors);
+      else {
+        const { formErrors, fieldErrors } = z.flattenError(result.error);
+        Object.assign(errors, fieldErrors);
+        // Erreurs qui ne concernent pas un champ précis (ex. « Aucune modification envoyée »).
+        if (formErrors.length) errors._form = formErrors;
+      }
     }
 
     if (Object.keys(errors).length > 0) return next(onError ? onError() : new ValidationError(errors));
-    req.valid = valid;
+    // Plusieurs validate() peuvent se suivre (ex. params puis body) : on cumule.
+    req.valid = { ...req.valid, ...valid };
     next();
   };
 }

@@ -49,11 +49,13 @@ app/
 ├── (site)/                  # tout le site connecté : en-tête, menu, pied de page
 │   ├── layout.tsx           #   vérifie la session, sinon → /login
 │   ├── page.tsx             #   accueil
-│   ├── pilates/, football/, personal-training/   # pages formations (DisciplinePage)
+│   ├── formations/          #   liste + [slug] : pages formations lues depuis l'API (FormationPage)
+│   ├── pilates/, football/, personal-training/   # anciennes adresses → redirection
 │   ├── planning/, contact/  #   planning (API) et inscription (Server Action + popup)
 │   ├── mon-espace/          #   client : ses inscriptions
-│   ├── admin/               #   admin : layout qui vérifie le rôle, tableau des demandes
+│   ├── admin/               #   admin : demandes, formations (CRUD), médias (envoi de fichiers)
 │   └── mentions-legales/, politique-de-confidentialite/, cookies/
+├── uploads/[...path]/       # relais des fichiers téléversés (/uploads/…) depuis le backend
 ├── robots.ts, sitemap.ts    # publics (exclus du proxy)
 └── not-found.tsx
 components/                  # composants réutilisables (Header, Footer, BannerMarquee…)
@@ -62,7 +64,8 @@ lib/
 ├── session.ts               # cookie de session, apiFetch, utilisateur connecté
 ├── api.ts                   # lectures publiques de l'API (planning)
 ├── site.ts                  # coordonnées, réseaux sociaux, partenaires, navigation
-├── disciplines.ts           # contenu des trois formations
+├── formations.ts            # lecture des formations (API), types
+├── formation-visuals.ts     # couleurs et photos par défaut de chaque formation
 ├── images.ts, labels.ts, utils.ts
 proxy.ts                     # sans cookie de session → /login (sauf /login, /register, médias)
 ```
@@ -86,7 +89,7 @@ server.ts              # démarrage : attente de la base, seed, écoute, arrêt 
 config.ts              # lecture et validation des variables d'environnement
 lib/                   # prisma.ts (client unique), errors.ts (erreurs HTTP), email.ts (SMTP)
 middlewares/           # auth (session + rôles), validate (Zod), error (gestion centrale), rateLimits
-modules/<domaine>/     # auth · registrations · planning · health
+modules/<domaine>/     # auth · formations · registrations · planning · media · docs · health
 ├── <domaine>.routes.ts       # URL + middlewares (validation, rôle, rate limit)
 ├── <domaine>.controller.ts   # lit req.valid, appelle le service, renvoie la réponse HTTP
 ├── <domaine>.service.ts      # logique métier + accès Prisma
@@ -105,8 +108,8 @@ Chaîne d'une requête : **route → middlewares → contrôleur → service →
 - Les **erreurs** remontent jusqu'à `middlewares/error.ts`, qui produit toujours
   `{ "error": "…", "errors": { "champ": ["…"] } }`. Express 5 transmet seul les erreurs des fonctions `async`.
 
-Ajouter un domaine (ex. `formations`) : créer `modules/formations/` avec les quatre fichiers,
-puis une ligne `app.use("/api/formations", formationRoutes)` dans `app.ts`.
+Ajouter un domaine (ex. `trainers`) : créer `modules/trainers/` avec les quatre fichiers, une ligne
+`app.use("/api/trainers", trainerRoutes)` dans `app.ts`, et ses routes dans `modules/docs/openapi.ts`.
 
 ## Accès à la base
 
@@ -142,10 +145,12 @@ est en anglais, sauf les URL publiques.
 Le jeton n'est jamais exposé au JavaScript du navigateur (protection contre le vol par XSS), et l'API
 n'a pas besoin d'être ouverte au navigateur (CORS minimal).
 
-**2. Sessions en base plutôt que JWT.**
-Jeton aléatoire de 256 bits, stocké uniquement en empreinte SHA-256, avec expiration. Une session peut
-être révoquée immédiatement (déconnexion, compte compromis), ce qu'un JWT ne permet pas sans liste
-noire. Coût : une requête en base par appel authentifié, négligeable à cette échelle.
+**2. JWT signés, adossés à des sessions en base.**
+Le jeton est un JWT HS256 (`JWT_SECRET`) avec expiration, émetteur et audience vérifiés à chaque requête.
+Son identifiant (`jti`) désigne une session en base, stockée uniquement en empreinte SHA-256 : une
+connexion peut ainsi être révoquée immédiatement (déconnexion, compte compromis), ce qu'un JWT seul ne
+permet pas sans liste noire. Le rôle est relu en base, jamais pris dans le jeton.
+Coût : une requête en base par appel authentifié, négligeable à cette échelle.
 
 **3. Prisma comme ORM.**
 Schéma typé, migrations versionnées et client TypeScript généré. Les migrations sont relues à la main :

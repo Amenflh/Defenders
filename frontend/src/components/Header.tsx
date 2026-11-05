@@ -65,7 +65,7 @@ export function Header({ user, identity = {} }: { user: HeaderUser | null; ident
           </nav>
 
           <nav aria-label="Liens rapides" className="hidden items-center gap-2 sm:flex lg:hidden">
-            <Link href="/#formations" className="whitespace-nowrap font-display text-xs uppercase text-bone hover:text-gold">
+            <Link href="/formations" className="whitespace-nowrap font-display text-xs uppercase text-bone hover:text-gold">
               Formations
             </Link>
             <Link href="/#galerie" className="whitespace-nowrap font-display text-xs uppercase text-mist hover:text-gold">
