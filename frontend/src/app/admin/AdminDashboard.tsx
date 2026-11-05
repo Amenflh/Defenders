@@ -1,5 +1,6 @@
 "use client";
 
+import { uploadFile } from "./uploadFile";
 import { useState, useTransition } from "react";
 import Image from "next/image";
 import { logoutAction } from "@/app/(auth)/actions";
@@ -14,7 +15,6 @@ import {
   saveFormationAction,
   saveMediaAction,
   saveSettingsAction,
-  uploadMediaAction,
 } from "./actions";
 
 type Metric = { contacts: number; clients: number; formations: number; media: number; cmsItems: number; status: Record<string, number> };
@@ -484,18 +484,16 @@ function ImageUploadControl({ label, url, onUploaded }: { label: string; url: st
       <span className="mb-1 block text-xs text-mist">{label}</span>
       <label className="flex min-h-24 cursor-pointer items-center justify-center border border-dashed border-line bg-ink px-4 py-5 text-center text-xs text-mist transition-colors hover:border-gold hover:text-bone">
         <span>{pending ? "Importation..." : "Choisir une image · JPEG, PNG, WebP · 25 Mo max"}</span>
-        <input type="file" accept="image/jpeg,image/png,image/webp,image/gif" className="sr-only" disabled={pending} onChange={(event) => {
+        <input type="file" accept="image/jpeg,image/png,image/webp" className="sr-only" disabled={pending} onChange={(event) => {
           const file = event.target.files?.[0];
           if (!file) return;
-          const formData = new FormData();
-          formData.set("file", file);
           startTransition(async () => {
-            const result = await uploadMediaAction(formData);
+            const result = await uploadFile(file);
             if (result.file?.type === "image") {
               onUploaded(result.file.url);
               setMessage({ text: "Image importée. Enregistrez pour publier.", error: false });
             } else {
-              setMessage({ text: "Échec de l’importation. Vérifiez le format et la taille.", error: true });
+              setMessage({ text: result.error ?? "Échec de l’importation. Vérifiez le format et la taille.", error: true });
             }
           });
           event.currentTarget.value = "";
@@ -606,18 +604,16 @@ function MediaManager({ media }: { media: Media[] }) {
         <h3 className="font-display text-xl uppercase">{editingId ? "Modifier un média" : "Ajouter un média"}</h3>
         <label className="block border border-dashed border-line bg-ink p-4 text-sm text-mist">
           Importer un fichier (max. 25 Mo)
-          <input type="file" accept="image/jpeg,image/png,image/webp,image/gif,video/mp4,video/webm" className="mt-3 block w-full text-xs text-mist" disabled={pending} onChange={(event) => {
+          <input type="file" accept="image/jpeg,image/png,image/webp,video/mp4,video/webm" className="mt-3 block w-full text-xs text-mist" disabled={pending} onChange={(event) => {
             const file = event.target.files?.[0];
             if (!file) return;
-            const formData = new FormData();
-            formData.set("file", file);
             startTransition(async () => {
-              const result = await uploadMediaAction(formData);
+              const result = await uploadFile(file);
               if (result.file) {
                 setDraft((old) => ({ ...old, url: result.file!.url, type: result.file!.type }));
                 setUploadMessage({ text: "Fichier importé. Enregistrez pour publier.", error: false });
               } else {
-                setUploadMessage({ text: "Échec de l'importation. Vérifiez le format et la taille.", error: true });
+                setUploadMessage({ text: result.error ?? "Échec de l'importation. Vérifiez le format et la taille.", error: true });
               }
             });
             event.currentTarget.value = "";

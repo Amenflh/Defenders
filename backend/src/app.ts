@@ -15,8 +15,7 @@ import {
   publicRegistrationRoutes,
 } from "./modules/registrations/registrations.routes.js";
 import { cmsAdminRoutes, cmsPublicRoutes } from "./modules/cms/cms.routes.js";
-import { uploadRoutes } from "./modules/uploads/upload.routes.js";
-import path from "node:path";
+import { cmsUploadsStatic, uploadRoutes } from "./modules/uploads/upload.routes.js";
 
 export function createApp() {
   const app = express();
@@ -26,7 +25,8 @@ export function createApp() {
   app.set("trust proxy", 1);
   app.use(helmet());
   app.use(cors({ origin: config.corsOrigins }));
-  app.use("/uploads", express.static(path.resolve("src/assets/uploads")));
+  // Fichiers du tableau de bord (CMS) : seulement images et vidéos vérifiées.
+  app.use("/uploads", cmsUploadsStatic);
   // Seul le formulaire d'inscription accepte un corps volumineux (pièce jointe de 5 Mo en base64).
   app.use("/api/contact", express.json({ limit: "7mb" }));
   app.use(express.json({ limit: "20kb" }));
