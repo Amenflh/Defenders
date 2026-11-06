@@ -8,7 +8,7 @@ type Props = { params: Promise<{ slug: string }> };
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
-  const res = await apiFetch(`/api/content/formations/${encodeURIComponent(slug)}`);
+  const res = await apiFetch(`/api/formations/${encodeURIComponent(slug)}`);
   if (!res.ok) return { title: "Formation introuvable" };
   const data = await res.json() as { formation: FormationContent };
   return { title: `Formation ${data.formation.name}`, description: data.formation.summary };
@@ -16,7 +16,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function DynamicFormationPage({ params }: Props) {
   const { slug } = await params;
-  const res = await apiFetch(`/api/content/formations/${encodeURIComponent(slug)}`);
+  const res = await apiFetch(`/api/formations/${encodeURIComponent(slug)}`);
   if (!res.ok) notFound();
   const data = await res.json() as { formation: FormationContent };
   return <DisciplinePage d={mergeFormationContent(undefined, data.formation)} />;

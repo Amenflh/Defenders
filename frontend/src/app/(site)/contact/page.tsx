@@ -17,7 +17,7 @@ export default async function ContactPage({ searchParams }: PageProps<"/contact"
   const params = await searchParams;
   const formation = typeof params.formation === "string" ? params.formation : undefined;
   const popup = typeof params.popup === "string" ? params.popup : undefined;
-  const formationsRes = await apiFetch("/api/content/formations");
+  const formationsRes = await apiFetch("/api/formations");
   const formations = formationsRes.ok
     ? ((await formationsRes.json()) as { formations: { slug: string; name: string; accent?: string }[] }).formations
     : [];

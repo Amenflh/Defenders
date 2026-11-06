@@ -322,6 +322,13 @@ export function buildOpenApiDocument() {
 
       "/api/admin/media": {
         get: { tags: ["Admin · Médias"], summary: "Tous les médias", ...admin, responses: { 200: ok("Médias", { type: "object" }), 401: E[401], 403: E[403] } },
+        post: {
+          tags: ["Admin · Médias"],
+          summary: "Ajouter un média déjà hébergé (chemin /… ou URL https), sans téléversement",
+          ...admin,
+          requestBody: { required: true, content: json({ type: "object", required: ["type", "url"], properties: { type: { type: "string", enum: ["image", "video"] }, url: { type: "string" }, title: { type: "string" }, category: { type: "string" }, formationId: { type: "integer", nullable: true } } }, { type: "image", url: "/pics/info.jpg", title: "Affiche", category: "promotions" }) },
+          responses: { 201: ok("Média enregistré", { type: "object", properties: { media: ref("Media") } }), 401: E[401], 403: E[403], 422: E[422] },
+        },
       },
       "/api/admin/media/images": {
         post: {

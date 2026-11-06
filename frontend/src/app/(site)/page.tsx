@@ -11,6 +11,7 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 import { AnimatedAccent } from "@/components/AnimatedAccent";
 import { BannerMarquee } from "@/components/BannerMarquee";
 import { apiFetch } from "@/lib/session";
+import { getSiteSettings } from "@/lib/settings";
 import { PartnersMarquee, type PublicPartner } from "@/components/PartnersMarquee";
 import { HomeContactButton } from "@/components/HomeContactButton";
 
@@ -114,14 +115,13 @@ const faqs = [
 export default async function HomePage({ searchParams }: PageProps<"/">) {
   const params = await searchParams;
   const inscriptionSuccess = params.inscription === "success";
-  const settingsRes = await apiFetch("/api/content/settings/site");
-  const settings = settingsRes.ok ? ((await settingsRes.json()) as { value: Record<string, unknown> }).value : {};
+  const settings = await getSiteSettings();
   const [faqRes, testimonialRes, promotionsRes, mediaRes, formationsRes, partnersRes] = await Promise.all([
     apiFetch("/api/content/items/faq"),
     apiFetch("/api/content/items/testimonials"),
     apiFetch("/api/content/items/promotions"),
-    apiFetch("/api/content/media"),
-    apiFetch("/api/content/formations"),
+    apiFetch("/api/media?type=video"),
+    apiFetch("/api/formations"),
     apiFetch("/api/content/items/partners"),
   ]);
   const faqsCms = faqRes.ok ? ((await faqRes.json()) as { items: { title: string; body: string }[] }).items : [];
