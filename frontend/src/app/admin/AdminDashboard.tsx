@@ -7,6 +7,8 @@ import { logoutAction } from "@/app/(auth)/actions";
 import { Logo } from "@/components/Logo";
 import { AVAILABILITY_LABELS, PROFILE_LABELS, STATUS_LABELS, TRAINING_LABELS, dateFmt } from "@/lib/labels";
 import { StatusSelect } from "./StatusSelect";
+import { AnalyticsOverview } from "./AnalyticsOverview";
+import type { AdminStats } from "./actions";
 import {
   deleteCmsItemAction,
   deleteFormationAction,
@@ -17,7 +19,6 @@ import {
   saveSettingsAction,
 } from "./actions";
 
-type Metric = { contacts: number; clients: number; formations: number; media: number; cmsItems: number; status: Record<string, number> };
 type Formation = {
   id: number; slug: string; name: string; headline: string; summary: string; durationLabel: string | null; priceTnd: string | null; status: string; position: number;
   intro?: string[]; facts?: { label: string; value: string }[]; objectives?: string[]; modules?: { title: string; text: string }[]; audience?: string[]; careers?: string[];
@@ -58,7 +59,7 @@ function normalizeHomepageSections(value: unknown): HomepageSection[] {
   }).sort((a, b) => a.order - b.order).map((section, index) => ({ ...section, order: index }));
 }
 
-export function AdminDashboard({ metrics, formations, media, cms, contacts = [], initialSettings = {}, userName = "Administrateur", userEmail = "" }: { metrics: Metric | null; formations: Formation[]; media: Media[]; cms: CmsItem[]; contacts?: Contact[]; initialSettings?: Record<string, unknown>; userName?: string; userEmail?: string }) {
+export function AdminDashboard({ stats, formations, media, cms, contacts = [], initialSettings = {}, userName = "Administrateur", userEmail = "" }: { stats: AdminStats | null; formations: Formation[]; media: Media[]; cms: CmsItem[]; contacts?: Contact[]; initialSettings?: Record<string, unknown>; userName?: string; userEmail?: string }) {
   const [tab, setTab] = useState("aperçu");
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const inquiryCount = contacts.filter((contact) => contact.profile === "demande-info").length;
@@ -137,7 +138,7 @@ export function AdminDashboard({ metrics, formations, media, cms, contacts = [],
           </nav>
         </aside>
         <main className="min-w-0 bg-ink px-4 py-8 sm:px-8 lg:px-10">
-          {tab === "aperçu" && <Overview metrics={metrics} />}
+          {tab === "aperçu" && <AnalyticsOverview initialStats={stats} onOpenTab={setTab} />}
           {tab === "demandes d'information" && <ContactsManager contacts={contacts} type="inquiry" />}
           {tab === "inscriptions" && <ContactsManager contacts={contacts} type="registration" />}
           {tab === "contenus" && <ContentManager cms={cms.filter((item) => ["faq", "testimonials", "promotions"].includes(item.section))} />}
@@ -146,42 +147,6 @@ export function AdminDashboard({ metrics, formations, media, cms, contacts = [],
           {tab === "partenaires" && <ContentManager cms={cms.filter((item) => item.section === "partners")} section="partners" />}
           {tab === "paramètres & footer" && <SettingsManager initialSettings={initialSettings} />}
         </main>
-      </div>
-    </div>
-  );
-}
-
-function Overview({ metrics }: { metrics: Metric | null }) {
-  if (!metrics) return <p className="text-mist">Impossible de charger les statistiques.</p>;
-  const cards = [
-    ["Demandes", metrics.contacts, "gold", "Toutes les demandes reçues"],
-    ["Clients", metrics.clients, "bone", "Comptes clients enregistrés"],
-    ["Formations", metrics.formations, "bone", "Programmes configurés"],
-    ["Médias", metrics.media, "bone", "Images et vidéos publiées"],
-  ] as const;
-  return (
-    <div>
-      <div className="grid gap-px overflow-hidden border border-line bg-line sm:grid-cols-2 lg:grid-cols-4">
-        {cards.map(([label, value, color, description]) => <div key={label} className="bg-ink-2 p-6"><p className={`font-display text-4xl text-${color}`}>{value}</p><p className="mt-2 text-xs uppercase tracking-widest text-bone">{label}</p><p className="mt-2 text-xs text-mist">{description}</p></div>)}
-      </div>
-      <div className="mt-6 grid gap-6 lg:grid-cols-[1.35fr_0.65fr]">
-        <section className="border border-line bg-ink-2 p-6">
-          <div className="flex items-center justify-between"><div><p className="eyebrow text-gold">Demandes</p><h2 className="mt-2 font-display text-2xl uppercase">Suivi des demandes</h2></div><p className="font-display text-3xl text-gold">{metrics.contacts}</p></div>
-          <div className="mt-8 space-y-5">
-            {Object.entries(STATUS_LABELS).map(([status, label]) => {
-              const count = metrics.status[status] ?? 0;
-              const width = metrics.contacts ? Math.max(4, Math.round((count / metrics.contacts) * 100)) : 0;
-              return <div key={status}><div className="mb-2 flex justify-between text-sm"><span className="text-mist">{label}</span><span className="text-bone">{count}</span></div><div className="h-2 overflow-hidden bg-line"><div className="h-full bg-gold transition-all" style={{ width: `${width}%` }} /></div></div>;
-            })}
-          </div>
-        </section>
-        <section className="border border-line bg-ink-2 p-6">
-          <p className="eyebrow text-gold">État du site</p>
-          <div className="mt-6 space-y-4">
-            {[["Contenu CMS", metrics.cmsItems], ["Formations", metrics.formations], ["Médias", metrics.media]].map(([label, value]) => <div key={String(label)} className="flex items-center justify-between border-b border-line pb-4"><span className="text-sm text-mist">{label}</span><span className="font-display text-xl text-bone">{value}</span></div>)}
-            <a href="/" target="_blank" rel="noreferrer" className="btn btn-primary mt-2 w-full justify-center">Ouvrir le site</a>
-          </div>
-        </section>
       </div>
     </div>
   );

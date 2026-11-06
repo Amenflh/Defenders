@@ -4,6 +4,7 @@ import { requireAdmin } from "../../middlewares/auth.js";
 import { validate } from "../../middlewares/validate.js";
 import { prisma } from "../../lib/prisma.js";
 import { BadRequestError, NotFoundError } from "../../lib/errors.js";
+import { getAdminStats } from "./cms.stats.js";
 
 /**
  * Contenus éditables du site (réglages, FAQ, témoignages, partenaires, promotions).
@@ -80,6 +81,12 @@ cmsAdminRoutes.get("/metrics", async (_req, res) => {
   const status = { nouveau: 0, contacte: 0, inscrit: 0, archive: 0 } as Record<string, number>;
   for (const g of byStatus) status[g.status] = g._count._all;
   res.json({ contacts, clients, formations, media, cmsItems, status });
+});
+
+/** Tableau de bord analytique : évolution, conversion, formations demandées, relances. */
+cmsAdminRoutes.get("/stats", validate({ query: z.object({ days: z.coerce.number().int().min(7).max(365).default(30) }) }, badRequest), async (req, res) => {
+  const { days } = req.valid.query as { days: number };
+  res.json(await getAdminStats(days));
 });
 
 cmsAdminRoutes.get("/settings/:key", validate({ params: z.object({ key: settingKey }) }, badRequest), async (req, res) => {

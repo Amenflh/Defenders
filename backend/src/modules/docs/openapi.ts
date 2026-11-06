@@ -330,6 +330,15 @@ export function buildOpenApiDocument() {
           responses: { 201: ok("Média enregistré", { type: "object", properties: { media: ref("Media") } }), 401: E[401], 403: E[403], 422: E[422] },
         },
       },
+      "/api/admin/stats": {
+        get: {
+          tags: ["Admin · Tableau de bord"],
+          summary: "Statistiques : évolution, conversion, formations demandées, relances",
+          ...admin,
+          parameters: [{ name: "days", in: "query", schema: { type: "integer", minimum: 7, maximum: 365, default: 30 } }],
+          responses: { 200: ok("Statistiques de la période, comparées à la période précédente", { type: "object" }), 400: E[400], 401: E[401], 403: E[403] },
+        },
+      },
       "/api/admin/media/images": {
         post: {
           tags: ["Admin · Médias"],
