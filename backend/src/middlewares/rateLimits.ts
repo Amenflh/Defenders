@@ -11,3 +11,16 @@ export const loginLimiter = rateLimit({ ...common, windowMs: 15 * 60_000, limit:
 
 /** Création de compte : 10 / heure / IP. */
 export const signupLimiter = rateLimit({ ...common, windowMs: 60 * 60_000, limit: 10, message: message("Trop de comptes créés. Réessayez plus tard.") });
+
+/**
+ * Connexion : 10 échecs / 15 min par compte (e-mail), quelle que soit l'IP.
+ * Complète la limite par IP : changer d'IP (ou falsifier X-Forwarded-For) ne permet plus de deviner un mot de passe.
+ */
+export const loginAccountLimiter = rateLimit({
+  ...common,
+  windowMs: 15 * 60_000,
+  limit: 10,
+  skipSuccessfulRequests: true,
+  keyGenerator: (req) => `login:${String((req.body as { email?: unknown } | undefined)?.email ?? "").trim().toLowerCase()}`,
+  message: message("Trop de tentatives sur ce compte. Réessayez dans 15 minutes."),
+});

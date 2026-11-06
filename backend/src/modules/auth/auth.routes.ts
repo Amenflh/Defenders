@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { BadRequestError } from "../../lib/errors.js";
 import { requireAuth } from "../../middlewares/auth.js";
-import { loginLimiter, signupLimiter } from "../../middlewares/rateLimits.js";
+import { loginAccountLimiter, loginLimiter, signupLimiter } from "../../middlewares/rateLimits.js";
 import { validate } from "../../middlewares/validate.js";
 import * as controller from "./auth.controller.js";
 import { loginSchema, registerSchema } from "./auth.schemas.js";
@@ -13,6 +13,7 @@ export const authRoutes = Router();
 authRoutes.post(
   "/login",
   loginLimiter,
+  loginAccountLimiter,
   validate({ body: loginSchema }, () => new BadRequestError("E-mail et mot de passe requis")),
   controller.login,
 );
