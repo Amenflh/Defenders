@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { FloatingActions } from "@/components/FloatingActions";
 import { Footer } from "@/components/Footer";
 import { Header } from "@/components/Header";
 import { getCurrentUser } from "@/lib/session";
@@ -37,6 +38,7 @@ export default async function SiteLayout({ children }: { children: React.ReactNo
         {children}
       </main>
       <Footer />
+      <FloatingActions />
     </>
   );
 }
