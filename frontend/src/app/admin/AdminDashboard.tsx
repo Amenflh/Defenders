@@ -8,6 +8,7 @@ import { Logo } from "@/components/Logo";
 import { AVAILABILITY_LABELS, PROFILE_LABELS, STATUS_LABELS, TRAINING_LABELS, dateFmt } from "@/lib/labels";
 import { StatusSelect } from "./StatusSelect";
 import { AnalyticsOverview } from "./AnalyticsOverview";
+import { followUpMessage, whatsappHref } from "@/lib/contact-links";
 import type { AdminStats } from "./actions";
 import {
   deleteCmsItemAction,
@@ -219,7 +220,13 @@ function ContactsManager({ contacts, type }: { contacts: Contact[]; type: "inqui
           </>}
         </div>
       </div>
-      <p className="mb-4 text-xs text-mist">{filtered.length} demande{filtered.length === 1 ? "" : "s"} affichée{filtered.length === 1 ? "" : "s"} sur {total}</p>
+      <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+        <p className="text-xs text-mist">{filtered.length} demande{filtered.length === 1 ? "" : "s"} affichée{filtered.length === 1 ? "" : "s"} sur {total}</p>
+        <button type="button" disabled={filtered.length === 0} onClick={() => downloadContactsCsv(filtered, type)} className="inline-flex items-center gap-2 border border-gold/60 px-4 py-2 text-xs uppercase tracking-wider text-gold transition-colors hover:bg-gold hover:text-ink disabled:opacity-40">
+          <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="size-4"><path strokeLinecap="round" strokeLinejoin="round" d="M12 4v11m0 0-4-4m4 4 4-4M5 19h14" /></svg>
+          Exporter en CSV ({filtered.length})
+        </button>
+      </div>
       <div className="mb-6 grid grid-cols-2 gap-px overflow-hidden border border-line bg-line lg:grid-cols-5">
         {filters.map((item) => (
           <button key={item.value} onClick={() => setFilter(item.value)} className={`p-4 text-left transition-colors ${filter === item.value ? "bg-gold text-ink" : "bg-ink-2 text-bone hover:bg-ink-3"}`}>
@@ -252,12 +259,53 @@ function ContactsManager({ contacts, type }: { contacts: Contact[]; type: "inqui
                 {contact.city && <div><dt className="text-[0.65rem] uppercase tracking-widest text-mist">Ville</dt><dd className="mt-1 text-bone">{contact.city}</dd></div>}
               </dl>
               {contact.message && <p className="mt-4 border-l-2 border-gold/50 bg-ink px-4 py-3 text-sm whitespace-pre-line text-mist">{contact.message}</p>}
+              <ContactQuickActions contact={contact} />
             </article>
           ))}
         </div>
       )}
     </div>
   );
+}
+
+/** Actions rapides sur une demande : WhatsApp avec message pré-rempli, appel, e-mail. */
+function ContactQuickActions({ contact }: { contact: Contact }) {
+  const formationNames = contact.trainings.map((training) => TRAINING_LABELS[training] ?? training);
+  const wa = whatsappHref(contact.phone, followUpMessage(contact.firstName, formationNames));
+  const subject = encodeURIComponent(contact.profile === "demande-info" ? "Votre demande d'information" : "Votre inscription");
+  return (
+    <div className="mt-4 flex flex-wrap gap-2 border-t border-line pt-4">
+      {wa && <a href={wa} target="_blank" rel="noreferrer" className="border border-football/50 px-3 py-1.5 text-xs uppercase tracking-wider text-football hover:bg-football/10">WhatsApp</a>}
+      <a href={`tel:${contact.phone.replace(/\s/g, "")}`} className="border border-line px-3 py-1.5 text-xs uppercase tracking-wider text-mist hover:border-gold hover:text-gold">Appeler</a>
+      <a href={`mailto:${contact.email}?subject=${subject}`} className="border border-line px-3 py-1.5 text-xs uppercase tracking-wider text-mist hover:border-gold hover:text-gold">E-mail</a>
+    </div>
+  );
+}
+
+/** Une cellule CSV : guillemets doublés, et neutralisation des formules (=, +, -, @) à l'ouverture dans Excel. */
+function csvCell(value: string): string {
+  const safe = /^[=+\-@\t\r]/.test(value) ? `'${value}` : value;
+  return `"${safe.replace(/"/g, '""')}"`;
+}
+
+/** Télécharge les demandes affichées (filtres appliqués) au format CSV, lisible par Excel (UTF-8 + « ; »). */
+function downloadContactsCsv(contacts: Contact[], type: "inquiry" | "registration") {
+  const header = ["Date", "Prénom", "Nom", "E-mail", "Téléphone", "Ville", "Profil", "Formations", "Disponibilité", "Statut", "Message"];
+  const rows = contacts.map((c) => [
+    dateFmt.format(new Date(c.createdAt)), c.firstName, c.lastName, c.email, c.phone, c.city,
+    PROFILE_LABELS[c.profile] ?? c.profile,
+    c.trainings.map((t) => TRAINING_LABELS[t] ?? t).join(", "),
+    AVAILABILITY_LABELS[c.availability] ?? c.availability,
+    STATUS_LABELS[c.status] ?? c.status,
+    c.message,
+  ]);
+  const csv = "\uFEFF" + [header, ...rows].map((row) => row.map((cell) => csvCell(String(cell ?? ""))).join(";")).join("\r\n");
+  const url = URL.createObjectURL(new Blob([csv], { type: "text/csv;charset=utf-8" }));
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = `defenders-${type === "inquiry" ? "demandes-info" : "inscriptions"}-${new Date().toISOString().slice(0, 10)}.csv`;
+  link.click();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
 function SettingsManager({ initialSettings = {} }: { initialSettings?: Record<string, unknown> }) {
