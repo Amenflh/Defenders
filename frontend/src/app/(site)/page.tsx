@@ -242,6 +242,9 @@ export default async function HomePage({ searchParams }: PageProps<"/">) {
               <Link href="#formations" className="btn btn-primary">
                 Nos formations <Icon name="arrow" />
               </Link>
+              <Link href="/trouver-ma-formation" className="btn btn-ghost">
+                <Icon name="star" /> Trouver ma formation
+              </Link>
               {contactButton()}
             </Reveal>
           </div>
@@ -404,6 +407,9 @@ export default async function HomePage({ searchParams }: PageProps<"/">) {
               </Link>
               <Link href="/planning" className="btn btn-dark">
                 <Icon name="calendar" /> Voir le planning
+              </Link>
+              <Link href="/trouver-ma-formation" className="btn btn-dark">
+                <Icon name="star" /> Quiz d&apos;orientation
               </Link>
             </div>
           </Reveal>
