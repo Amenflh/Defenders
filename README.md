@@ -227,11 +227,33 @@ Avec Docker, le frontend est servi sur http://localhost:3001.
 ## Vérifications
 
 ```bash
-cd frontend && npm run lint && npm run build
-cd ../backend && npm run typecheck && npm run build
+cd frontend && npm run lint && npm test && npm run build
+cd ../backend && npm run typecheck && npm test && npm run build
 docker compose ps
 curl http://localhost:4000/api/health
 ```
+
+## Tests
+
+Les mêmes commandes tournent dans la CI (`.github/workflows/ci.yml`) sur chaque PR.
+
+**Backend** : tests d'intégration (`backend/test/*.test.ts`) avec le lanceur de Node. Ils démarrent l'API
+et appellent ses routes sur une **vraie base PostgreSQL dédiée**, `defenders_test`, vidée au début de chaque fichier.
+Ils couvrent la connexion et les rôles, les limites de tentatives, le formulaire d'inscription, la gestion des demandes,
+les statistiques du tableau de bord et la validation du CMS.
+
+```bash
+# Une seule fois : créer la base de test (dans le conteneur db), puis y appliquer les migrations
+docker exec defenders-db createdb -U <POSTGRES_USER> defenders_test
+cd backend && npm run test:db
+npm test
+```
+
+Par défaut, les tests utilisent la base de `backend/.env` renommée en `defenders_test`. `TEST_DATABASE_URL` permet d'en choisir une autre.
+Par sécurité, ils refusent de tourner sur une base dont le nom ne finit pas par `_test`. Aucun e-mail n'est envoyé.
+
+**Frontend** : tests unitaires des fonctions pures (`frontend/tests/`) : liens WhatsApp, filtrage des liens, export CSV.
+Ils ne demandent aucune installation : `cd frontend && npm test`.
 
 ## Personnalisation
 

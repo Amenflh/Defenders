@@ -9,6 +9,7 @@ import { AVAILABILITY_LABELS, PROFILE_LABELS, STATUS_LABELS, TRAINING_LABELS, da
 import { StatusSelect } from "./StatusSelect";
 import { AnalyticsOverview } from "./AnalyticsOverview";
 import { followUpMessage, whatsappHref } from "@/lib/contact-links";
+import { toCsv } from "@/lib/csv";
 import type { AdminStats } from "./actions";
 import {
   deleteCmsItemAction,
@@ -282,12 +283,6 @@ function ContactQuickActions({ contact }: { contact: Contact }) {
   );
 }
 
-/** Une cellule CSV : guillemets doublés, et neutralisation des formules (=, +, -, @) à l'ouverture dans Excel. */
-function csvCell(value: string): string {
-  const safe = /^[=+\-@\t\r]/.test(value) ? `'${value}` : value;
-  return `"${safe.replace(/"/g, '""')}"`;
-}
-
 /** Télécharge les demandes affichées (filtres appliqués) au format CSV, lisible par Excel (UTF-8 + « ; »). */
 function downloadContactsCsv(contacts: Contact[], type: "inquiry" | "registration") {
   const header = ["Date", "Prénom", "Nom", "E-mail", "Téléphone", "Ville", "Profil", "Formations", "Disponibilité", "Statut", "Message"];
@@ -299,7 +294,7 @@ function downloadContactsCsv(contacts: Contact[], type: "inquiry" | "registratio
     STATUS_LABELS[c.status] ?? c.status,
     c.message,
   ]);
-  const csv = "\uFEFF" + [header, ...rows].map((row) => row.map((cell) => csvCell(String(cell ?? ""))).join(";")).join("\r\n");
+  const csv = toCsv([header, ...rows]);
   const url = URL.createObjectURL(new Blob([csv], { type: "text/csv;charset=utf-8" }));
   const link = document.createElement("a");
   link.href = url;

@@ -18,7 +18,7 @@ export const RESERVED_SLUGS = new Set([
 ]);
 
 /** Slug d'une formation créée ou modifiée : format valide et non réservé. */
-const formationSlugSchema = slugSchema.refine((slug) => !RESERVED_SLUGS.has(slug), "Cette URL est déjà utilisée par une page du site");
+export const formationSlugSchema = slugSchema.refine((slug) => !RESERVED_SLUGS.has(slug), "Cette URL est déjà utilisée par une page du site");
 
 const line = (max: number) => z.string().trim().min(1).max(max, `${max} caractères maximum par ligne`);
 /** Liste de lignes de texte (objectifs, prérequis…). Les lignes vides sont ignorées. */
