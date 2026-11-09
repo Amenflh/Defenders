@@ -27,5 +27,5 @@ export const config = {
   // (sinon la vidéo de l'écran de connexion serait elle-même redirigée vers /login),
   // ainsi que l'envoi de médias (le proxy mettrait en mémoire les fichiers de plus de 10 Mo ;
   // la route vérifie elle-même la session).
-  matcher: ["/((?!_next/static|_next/image|pics/|video/|uploads/|admin/medias/upload|favicon.ico|robots.txt|sitemap.xml|.*\\.(?:png|jpe?g|svg|webp|avif|ico|mp4|webm)$).*)"],
+  matcher: ["/((?!_next/static|_next/image|pics/|videos/|uploads/|admin/medias/upload|favicon.ico|robots.txt|sitemap.xml|.*\\.(?:png|jpe?g|svg|webp|avif|ico|mp4|webm)$).*)"],
 };
