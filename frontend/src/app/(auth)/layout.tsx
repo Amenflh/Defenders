@@ -24,7 +24,7 @@ export default async function AuthLayout({ children }: { children: React.ReactNo
           className="object-cover grayscale-[40%]"
         />
         {/* La photo reste visible pendant le chargement de la vidéo. */}
-        <AuthVideo src="/video/formation.mp4" poster={bannerPhotos[0].src.src} />
+        <AuthVideo src="/videos/2-Video by defenders_fitness_academy.mp4" poster={bannerPhotos[0].src.src} />
         <div className="absolute inset-0 bg-gradient-to-t from-ink via-ink/55 to-ink/10" />
         <div className="absolute inset-x-0 bottom-0 p-12 xl:p-16">
           <p className="eyebrow mb-4">Centre de formation certifié · {site.approval}</p>
