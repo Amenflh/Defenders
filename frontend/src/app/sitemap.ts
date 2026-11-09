@@ -7,6 +7,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const routes = [
     "",
     "/formations",
+    "/trouver-ma-formation",
     ...formations.map((f) => `/formations/${f.slug}`),
     "/planning",
     "/securite",

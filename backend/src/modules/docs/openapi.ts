@@ -113,6 +113,8 @@ export function buildOpenApiDocument() {
       { name: "Admin · Formations" },
       { name: "Admin · Inscriptions" },
       { name: "Admin · Médias" },
+      { name: "Discussion", description: "Messagerie entre un client connecté et l'équipe (rafraîchissement par ?after=)" },
+      { name: "Admin · Discussion" },
     ],
     components: {
       securitySchemes: {
@@ -250,6 +252,49 @@ export function buildOpenApiDocument() {
         get: { tags: ["Inscriptions"], summary: "Mes demandes d'inscription (client connecté)", ...admin, responses: { 200: ok("Demandes", { type: "object" }), 401: E[401] } },
       },
 
+      "/api/me/chat": {
+        get: {
+          tags: ["Discussion"],
+          summary: "Ma conversation avec l'équipe (marque les réponses comme lues)",
+          ...admin,
+          parameters: [{ name: "after", in: "query", description: "Seulement les messages d'id supérieur", schema: { type: "integer" } }],
+          responses: { 200: ok("Fil : conversationId (null si aucun message), messages, adminReadAt", { type: "object" }), 401: E[401], 403: E[403] },
+        },
+        post: {
+          tags: ["Discussion"],
+          summary: "Écrire à l'équipe (20 messages / min ; e-mail à l'équipe au premier message non lu)",
+          ...admin,
+          requestBody: { required: true, content: { "application/json": { schema: { type: "object", required: ["body"], properties: { body: { type: "string", maxLength: 2000 } } } } } },
+          responses: { 201: ok("Message enregistré", { type: "object" }), 401: E[401], 403: E[403], 422: E[422], 429: E[429] },
+        },
+      },
+      "/api/me/chat/unread": {
+        get: { tags: ["Discussion"], summary: "Nombre de réponses non lues", ...admin, responses: { 200: ok("{ unread }", { type: "object" }), 401: E[401], 403: E[403] } },
+      },
+      "/api/admin/chat": {
+        get: { tags: ["Admin · Discussion"], summary: "Conversations (aperçu, non-lus) et total non lu", ...admin, responses: { 200: ok("{ conversations, unread }", { type: "object" }), 401: E[401], 403: E[403] } },
+      },
+      "/api/admin/chat/unread": {
+        get: { tags: ["Admin · Discussion"], summary: "Total des messages clients non lus", ...admin, responses: { 200: ok("{ unread }", { type: "object" }), 401: E[401], 403: E[403] } },
+      },
+      "/api/admin/chat/{id}": {
+        get: {
+          tags: ["Admin · Discussion"],
+          summary: "Fil d'une conversation (marque les messages du client comme lus)",
+          ...admin,
+          parameters: [{ name: "id", in: "path", required: true, schema: { type: "integer" } }, { name: "after", in: "query", schema: { type: "integer" } }],
+          responses: { 200: ok("Fil : user, messages, clientReadAt", { type: "object" }), 401: E[401], 403: E[403], 404: E[404] },
+        },
+        post: {
+          tags: ["Admin · Discussion"],
+          summary: "Répondre au client",
+          ...admin,
+          parameters: [{ name: "id", in: "path", required: true, schema: { type: "integer" } }],
+          requestBody: { required: true, content: { "application/json": { schema: { type: "object", required: ["body"], properties: { body: { type: "string", maxLength: 2000 } } } } } },
+          responses: { 201: ok("Réponse enregistrée", { type: "object" }), 401: E[401], 403: E[403], 404: E[404], 422: E[422] },
+        },
+      },
+
       "/api/media": {
         get: {
           tags: ["Médias"],
@@ -322,6 +367,22 @@ export function buildOpenApiDocument() {
 
       "/api/admin/media": {
         get: { tags: ["Admin · Médias"], summary: "Tous les médias", ...admin, responses: { 200: ok("Médias", { type: "object" }), 401: E[401], 403: E[403] } },
+        post: {
+          tags: ["Admin · Médias"],
+          summary: "Ajouter un média déjà hébergé (chemin /… ou URL https), sans téléversement",
+          ...admin,
+          requestBody: { required: true, content: json({ type: "object", required: ["type", "url"], properties: { type: { type: "string", enum: ["image", "video"] }, url: { type: "string" }, title: { type: "string" }, category: { type: "string" }, formationId: { type: "integer", nullable: true } } }, { type: "image", url: "/pics/info.jpg", title: "Affiche", category: "promotions" }) },
+          responses: { 201: ok("Média enregistré", { type: "object", properties: { media: ref("Media") } }), 401: E[401], 403: E[403], 422: E[422] },
+        },
+      },
+      "/api/admin/stats": {
+        get: {
+          tags: ["Admin · Tableau de bord"],
+          summary: "Statistiques : évolution, conversion, formations demandées, relances",
+          ...admin,
+          parameters: [{ name: "days", in: "query", schema: { type: "integer", minimum: 7, maximum: 365, default: 30 } }],
+          responses: { 200: ok("Statistiques de la période, comparées à la période précédente", { type: "object" }), 400: E[400], 401: E[401], 403: E[403] },
+        },
       },
       "/api/admin/media/images": {
         post: {

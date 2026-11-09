@@ -9,7 +9,7 @@ import { Reveal } from "./Reveal";
 
 export async function DisciplinePage({ d }: { d: Discipline }) {
   const [hero, ...gallery] = d.photos;
-  const relatedRes = await apiFetch("/api/content/formations");
+  const relatedRes = await apiFetch("/api/formations");
   const others = relatedRes.ok
     ? (((await relatedRes.json()) as { formations: FormationContent[] }).formations)
         .filter((formation) => formation.slug !== d.slug)

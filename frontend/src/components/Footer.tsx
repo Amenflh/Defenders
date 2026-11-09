@@ -1,19 +1,12 @@
 import Link from "next/link";
 import { disciplineList } from "@/lib/disciplines";
 import { mainNav, site } from "@/lib/site";
-import { apiFetch } from "@/lib/session";
+import { getPublishedFormations, getSiteSettings } from "@/lib/settings";
 import { Icon } from "./Icon";
 import { Logo } from "./Logo";
 
 export async function Footer() {
-  const [settingsRes, formationsRes] = await Promise.all([
-    apiFetch("/api/content/settings/site"),
-    apiFetch("/api/content/formations"),
-  ]);
-  const settings = settingsRes.ok ? ((await settingsRes.json()) as { value: Record<string, unknown> }).value : {};
-  const formations = formationsRes.ok
-    ? ((await formationsRes.json()) as { formations: { slug: string; name: string }[] }).formations ?? []
-    : [];
+  const [settings, formations] = await Promise.all([getSiteSettings(), getPublishedFormations()]);
   const phone = typeof settings.phone === "string" ? settings.phone : site.phone.label;
   const phone2 = typeof settings.phone2 === "string" ? settings.phone2 : site.phone2.label;
   const email = typeof settings.email === "string" ? settings.email : site.email.label;

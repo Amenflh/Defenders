@@ -1,0 +1,72 @@
+name: CI
+
+# Vérifie chaque PR et chaque push sur les branches principales :
+# backend : types + tests d'intégration sur une vraie base PostgreSQL ;
+# frontend : lint, types, tests unitaires et build.
+on:
+  pull_request:
+  push:
+    branches: [amenTasks, main]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  backend:
+    name: Backend (typecheck + tests)
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_USER: ci
+          POSTGRES_PASSWORD: ci
+          POSTGRES_DB: defenders_test
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U ci -d defenders_test"
+          --health-interval 5s --health-timeout 3s --health-retries 10
+    defaults:
+      run:
+        working-directory: backend
+    env:
+      # La compilation ne se connecte pas à la base ; les tests utilisent TEST_DATABASE_URL (service ci-dessus).
+      DATABASE_URL: postgres://ci:ci@localhost:5432/defenders_test
+      TEST_DATABASE_URL: postgres://ci:ci@localhost:5432/defenders_test
+      JWT_SECRET: ci-only-secret-at-least-32-characters-long
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: backend/package-lock.json
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm run test:db
+      - run: npm test
+
+  frontend:
+    name: Frontend (lint + tests + build)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    env:
+      BACKEND_URL: http://localhost:4000
+      NEXT_TELEMETRY_DISABLED: "1"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - run: npm ci
+      - run: npm run lint
+      # next-env.d.ts et les types globaux (PageProps, LayoutProps, imports d'images) sont générés
+      # par Next dans .next/ et ignorés par Git : il faut les générer avant tsc sur un checkout neuf.
+      - run: npm run typecheck
+      - run: npm test
+      - run: npm run build

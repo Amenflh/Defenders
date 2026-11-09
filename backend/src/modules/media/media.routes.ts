@@ -5,7 +5,7 @@ import { requireAdmin } from "../../middlewares/auth.js";
 import { validate } from "../../middlewares/validate.js";
 import * as controller from "./media.controller.js";
 import { receiveFile } from "./media.files.js";
-import { idParamsSchema, listQuerySchema, updateMediaSchema } from "./media.schemas.js";
+import { idParamsSchema, linkMediaSchema, listQuerySchema, updateMediaSchema } from "./media.schemas.js";
 
 const badQuery = () => new BadRequestError("Paramètres de recherche invalides");
 const notFound = () => new NotFoundError("Média introuvable");
@@ -18,6 +18,7 @@ publicMediaRoutes.get("/", validate({ query: listQuerySchema }, badQuery), contr
 export const adminMediaRoutes = Router();
 adminMediaRoutes.use(requireAdmin);
 adminMediaRoutes.get("/", validate({ query: listQuerySchema }, badQuery), controller.listAdmin);
+adminMediaRoutes.post("/", validate({ body: linkMediaSchema }), controller.link);
 adminMediaRoutes.post("/images", receiveFile("image"), controller.upload("image"));
 adminMediaRoutes.post("/videos", receiveFile("video"), controller.upload("video"));
 adminMediaRoutes.patch("/:id", validate({ params: idParamsSchema }, notFound), validate({ body: updateMediaSchema }), controller.update);

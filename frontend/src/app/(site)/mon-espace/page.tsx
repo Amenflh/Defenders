@@ -1,10 +1,12 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import { ChatThread } from "@/components/chat/ChatThread";
 import { Icon } from "@/components/Icon";
 import { PageIntro } from "@/components/PageIntro";
 import { STATUS_CLIENT_LABELS, TRAINING_LABELS, dateFmt } from "@/lib/labels";
 import { apiFetch, getCurrentUser } from "@/lib/session";
+import { getMyThreadAction, sendMyMessageAction } from "../chat-actions";
 
 export const metadata: Metadata = { title: "Mon espace", robots: { index: false } };
 
@@ -22,7 +24,7 @@ export default async function MonEspacePage() {
   return (
     <>
       <PageIntro eyebrow="Mon espace" title={firstName ? `Bonjour ${firstName}` : "Mon espace"}>
-        Suivez ici l&apos;état de vos demandes d&apos;inscription aux formations Defenders Fitness Academy.
+        Suivez ici l&apos;état de vos demandes d&apos;inscription et échangez directement avec l&apos;équipe Defenders Fitness Academy.
       </PageIntro>
 
       <section className="py-16">
@@ -62,6 +64,29 @@ export default async function MonEspacePage() {
           )}
         </div>
       </section>
+
+      {user !== "unavailable" && (
+        <section id="messages" className="scroll-mt-24 border-t border-line pb-20 pt-16">
+          <div className="container-site">
+            <div className="mb-6">
+              <h2 className="font-display text-2xl tracking-wide uppercase">Mes messages</h2>
+              <p className="mt-2 text-sm text-mist">
+                Une question sur une formation, une date ou un paiement ? L&apos;équipe vous répond ici, en général dans la journée.
+              </p>
+            </div>
+            <div className="flex h-[min(560px,75dvh)] flex-col border border-line bg-ink-2">
+              <ChatThread
+                load={getMyThreadAction}
+                send={sendMyMessageAction}
+                viewer="client"
+                className="flex-1"
+                placeholder="Écrivez votre message…"
+                empty="Aucun message pour l'instant. Écrivez-nous, nous vous répondrons ici."
+              />
+            </div>
+          </div>
+        </section>
+      )}
     </>
   );
 }

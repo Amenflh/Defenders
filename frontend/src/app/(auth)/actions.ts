@@ -77,7 +77,9 @@ export async function registerAction(_prev: RegisterState, formData: FormData): 
   if (!res.ok) return { error: "Service indisponible. Réessayez dans un instant.", values };
 
   await startSession((await res.json()) as SessionPayload);
-  redirect("/");
+  // Retour à la page d'origine (ex. la discussion ouverte avant de créer le compte), jamais vers /admin.
+  const next = safeNext(formData.get("next"));
+  redirect(next && !next.startsWith("/admin") ? next : "/");
 }
 
 /* ------------------------------ Déconnexion ------------------------------ */

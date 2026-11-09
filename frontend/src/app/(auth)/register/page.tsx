@@ -1,10 +1,12 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { safeNext } from "@/lib/session";
 import { RegisterForm } from "./RegisterForm";
 
 export const metadata: Metadata = { title: "Créer un compte" };
 
-export default function RegisterPage() {
+export default async function RegisterPage({ searchParams }: PageProps<"/register">) {
+  const next = safeNext((await searchParams).next) ?? undefined;
   return (
     <>
       <p className="eyebrow mb-3">Nouveau stagiaire</p>
@@ -14,12 +16,12 @@ export default function RegisterPage() {
       </p>
 
       <div className="mt-8">
-        <RegisterForm />
+        <RegisterForm next={next} />
       </div>
 
       <p className="mt-8 border-t border-line pt-6 text-sm text-mist">
         Déjà inscrit ?{" "}
-        <Link href="/login" className="font-medium text-gold hover:text-gold-soft">
+        <Link href={next ? `/login?next=${encodeURIComponent(next)}` : "/login"} className="font-medium text-gold hover:text-gold-soft">
           Se connecter
         </Link>
       </p>

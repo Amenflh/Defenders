@@ -10,6 +10,16 @@ export const slugSchema = z
   .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, "Lettres minuscules, chiffres et tirets uniquement (ex. preparation-physique)")
   .max(60, "60 caractères maximum");
 
+/** URL déjà prises par des pages du site : une formation à ce slug serait inaccessible. */
+export const RESERVED_SLUGS = new Set([
+  "admin", "api", "contact", "cookies", "formations", "login", "logout", "mentions-legales", "mon-espace",
+  "planning", "politique-de-confidentialite", "register", "securite", "trouver-ma-formation", "uploads",
+  "sitemap.xml", "robots.txt",
+]);
+
+/** Slug d'une formation créée ou modifiée : format valide et non réservé. */
+export const formationSlugSchema = slugSchema.refine((slug) => !RESERVED_SLUGS.has(slug), "Cette URL est déjà utilisée par une page du site");
+
 const line = (max: number) => z.string().trim().min(1).max(max, `${max} caractères maximum par ligne`);
 /** Liste de lignes de texte (objectifs, prérequis…). Les lignes vides sont ignorées. */
 const lines = (maxItems: number, maxLength = 300) =>
@@ -26,7 +36,7 @@ const mediaUrl = z
   .refine((v) => /^\/(?!\/)[\w\-./%]+$/.test(v) || /^https:\/\/\S+$/.test(v), "Chemin (/uploads/…) ou URL https attendu");
 
 const formationFields = {
-  slug: slugSchema,
+  slug: formationSlugSchema,
   name: z.string({ error: "Le nom est requis" }).trim().min(2, "2 caractères minimum").max(80, "80 caractères maximum"),
   headline: z.string().trim().max(160, "160 caractères maximum"),
   summary: z.string().trim().max(600, "600 caractères maximum"),
