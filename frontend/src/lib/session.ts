@@ -77,3 +77,13 @@ export async function getContactDefaults(): Promise<Partial<Record<"firstName" |
   const [firstName, ...rest] = user.name.trim().split(/\s+/);
   return { firstName, lastName: rest.join(" "), email: user.email, phone: user.phone };
 }
+
+/** Adresse publique du site (liens à partager) : NEXT_PUBLIC_SITE_URL, sinon l'hôte de la requête. */
+export async function publicOrigin(): Promise<string> {
+  const configured = process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/+$/, "");
+  if (configured) return configured;
+  const h = await headers();
+  const host = h.get("x-forwarded-host") ?? h.get("host") ?? "localhost:3000";
+  const proto = h.get("x-forwarded-proto") ?? (host.startsWith("localhost") ? "http" : "https");
+  return `${proto}://${host}`;
+}

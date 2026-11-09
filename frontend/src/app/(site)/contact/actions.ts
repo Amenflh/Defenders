@@ -1,5 +1,7 @@
 "use server";
 
+import { cookies } from "next/headers";
+import { REFERRAL_COOKIE } from "@/lib/program";
 import { apiFetch } from "@/lib/session";
 
 export type ContactFields =
@@ -61,6 +63,8 @@ export async function submitContact(prev: ContactState, formData: FormData): Pro
     consent: formData.get("consent") === "on",
     website: str("website"),
     attachment: attachmentPayload,
+    // Lien de parrainage suivi dans les 30 derniers jours (code vérifié par l'API, ignoré s'il est invalide).
+    referralCode: (await cookies()).get(REFERRAL_COOKIE)?.value || undefined,
   };
 
   const values = {
