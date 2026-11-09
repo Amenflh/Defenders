@@ -227,7 +227,7 @@ Avec Docker, le frontend est servi sur http://localhost:3001.
 ## Vérifications
 
 ```bash
-cd frontend && npm run lint && npm test && npm run build
+cd frontend && npm run lint && npm run typecheck && npm test && npm run build
 cd ../backend && npm run typecheck && npm test && npm run build
 docker compose ps
 curl http://localhost:4000/api/health
