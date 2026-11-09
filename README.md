@@ -70,6 +70,10 @@ Spécification brute : `/api/docs/openapi.json`. En production, activer avec `AP
 | GET | `/api/media?type=&category=&formation=` | Galerie publique |
 | POST | `/api/admin/media/images` · `/videos` | Téléversement (multipart, champ `file`) : JPG/PNG/WebP 5 Mo · MP4/WebM 100 Mo (admin) |
 | GET · PATCH · DELETE | `/api/admin/media` · `/api/admin/media/:id` | Liste · modification · suppression du média et de son fichier (admin) |
+| GET · POST | `/api/me/chat?after=` | Discussion du client connecté avec l'équipe : lecture (marque lu) · envoi (20 messages / min) |
+| GET | `/api/me/chat/unread` | Réponses non lues du client |
+| GET | `/api/admin/chat` · `/api/admin/chat/unread` | Conversations avec aperçu et non-lus · total non lu (admin) |
+| GET · POST | `/api/admin/chat/:id?after=` | Fil d'une conversation (marque lu) · réponse (admin) |
 
 **Authentification** : `Authorization: Bearer <JWT>`. Le JWT (HS256, signé avec `JWT_SECRET`) contient
 `sub`, `role`, `jti`, `iat`, `exp`, `iss`, `aud` ; il expire après `SESSION_TTL_HOURS` et est révocable :

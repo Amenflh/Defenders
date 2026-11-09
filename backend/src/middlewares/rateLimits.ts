@@ -24,3 +24,12 @@ export const loginAccountLimiter = rateLimit({
   keyGenerator: (req) => `login:${String((req.body as { email?: unknown } | undefined)?.email ?? "").trim().toLowerCase()}`,
   message: message("Trop de tentatives sur ce compte. Réessayez dans 15 minutes."),
 });
+
+/** Discussion : 20 messages / minute par compte (placé après requireAuth, donc req.user est connu). */
+export const chatLimiter = rateLimit({
+  ...common,
+  windowMs: 60_000,
+  limit: 20,
+  keyGenerator: (req) => `chat:${req.user?.id ?? "anonymous"}`,
+  message: message("Vous envoyez des messages trop vite. Patientez quelques secondes."),
+});

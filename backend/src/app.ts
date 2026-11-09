@@ -16,6 +16,7 @@ import {
 } from "./modules/registrations/registrations.routes.js";
 import { cmsAdminRoutes, cmsPublicRoutes } from "./modules/cms/cms.routes.js";
 import { cmsUploadsStatic, uploadRoutes } from "./modules/uploads/upload.routes.js";
+import { adminChatRoutes, myChatRoutes } from "./modules/chat/chat.routes.js";
 
 export function createApp() {
   const app = express();
@@ -44,6 +45,8 @@ export function createApp() {
   app.use("/api/contact", publicRegistrationRoutes);
   app.use("/api/admin/contacts", adminRegistrationRoutes);
   app.use("/api/me/inscriptions", myRegistrationRoutes);
+  app.use("/api/me/chat", myChatRoutes);
+  app.use("/api/admin/chat", adminChatRoutes);
   app.use("/api/content", cmsPublicRoutes);
   app.use("/api/admin/uploads", uploadRoutes);
   app.use("/api/admin", cmsAdminRoutes);
