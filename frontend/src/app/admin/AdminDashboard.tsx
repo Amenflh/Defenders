@@ -1,13 +1,15 @@
 "use client";
 
 import { uploadFile } from "./uploadFile";
-import { useState, useTransition } from "react";
+import { useEffect, useState, useTransition } from "react";
 import Image from "next/image";
 import { logoutAction } from "@/app/(auth)/actions";
 import { Logo } from "@/components/Logo";
 import { AVAILABILITY_LABELS, PROFILE_LABELS, STATUS_LABELS, TRAINING_LABELS, dateFmt } from "@/lib/labels";
 import { StatusSelect } from "./StatusSelect";
 import { AnalyticsOverview } from "./AnalyticsOverview";
+import { ChatInbox } from "./ChatInbox";
+import { getAdminUnreadAction } from "./chat-actions";
 import { followUpMessage, whatsappHref } from "@/lib/contact-links";
 import { toCsv } from "@/lib/csv";
 import type { AdminStats } from "./actions";
@@ -61,8 +63,19 @@ function normalizeHomepageSections(value: unknown): HomepageSection[] {
   }).sort((a, b) => a.order - b.order).map((section, index) => ({ ...section, order: index }));
 }
 
-export function AdminDashboard({ stats, formations, media, cms, contacts = [], initialSettings = {}, userName = "Administrateur", userEmail = "" }: { stats: AdminStats | null; formations: Formation[]; media: Media[]; cms: CmsItem[]; contacts?: Contact[]; initialSettings?: Record<string, unknown>; userName?: string; userEmail?: string }) {
-  const [tab, setTab] = useState("aperçu");
+const TABS = ["aperçu", "messages", "demandes d'information", "inscriptions", "formations", "contenus", "médias", "partenaires", "paramètres & footer"];
+
+export function AdminDashboard({ stats, formations, media, cms, contacts = [], initialSettings = {}, userName = "Administrateur", userEmail = "", initialTab, initialUnreadMessages = 0 }: { initialTab?: string; initialUnreadMessages?: number; stats: AdminStats | null; formations: Formation[]; media: Media[]; cms: CmsItem[]; contacts?: Contact[]; initialSettings?: Record<string, unknown>; userName?: string; userEmail?: string }) {
+  const [tab, setTab] = useState(initialTab && TABS.includes(initialTab) ? initialTab : "aperçu");
+  const [unreadMessages, setUnreadMessages] = useState(initialUnreadMessages);
+  // Badge « messages » tenu à jour hors de l'onglet (l'onglet ouvert le met à jour lui-même).
+  useEffect(() => {
+    if (tab === "messages") return;
+    const timer = setInterval(() => {
+      if (document.visibilityState === "visible") getAdminUnreadAction().then(setUnreadMessages).catch(() => undefined);
+    }, 30_000);
+    return () => clearInterval(timer);
+  }, [tab]);
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const inquiryCount = contacts.filter((contact) => contact.profile === "demande-info").length;
   const registrationCount = contacts.length - inquiryCount;
@@ -72,7 +85,7 @@ export function AdminDashboard({ stats, formations, media, cms, contacts = [], i
   const logoUrl = typeof initialSettings.logoUrl === "string" && initialSettings.logoUrl ? initialSettings.logoUrl : undefined;
   const brandName = typeof initialSettings.brandName === "string" && initialSettings.brandName ? initialSettings.brandName : undefined;
   const brandDescriptor = typeof initialSettings.brandDescriptor === "string" && initialSettings.brandDescriptor ? initialSettings.brandDescriptor : undefined;
-  const tabs = ["aperçu", "demandes d'information", "inscriptions", "formations", "contenus", "médias", "partenaires", "paramètres & footer"];
+  const tabs = TABS;
   const initials = userName.split(/\s+/).map((part) => part[0]).join("").slice(0, 2).toUpperCase() || "AD";
   return (
     <div className="min-h-dvh bg-ink">
@@ -135,12 +148,14 @@ export function AdminDashboard({ stats, formations, media, cms, contacts = [], i
                 {name}
                 {name === "demandes d'information" && <span className="ml-2 rounded-full bg-ink/15 px-2 py-0.5 text-[10px]">{inquiryCount}</span>}
                 {name === "inscriptions" && <span className="ml-2 rounded-full bg-ink/15 px-2 py-0.5 text-[10px]">{registrationCount}</span>}
+                {name === "messages" && unreadMessages > 0 && <span className={`ml-2 rounded-full px-2 py-0.5 text-[10px] font-bold ${tab === name ? "bg-ink text-gold" : "bg-gold text-ink"}`} aria-label={`${unreadMessages} non lu(s)`}>{unreadMessages}</span>}
               </button>
             ))}
           </nav>
         </aside>
         <main className="min-w-0 bg-ink px-4 py-8 sm:px-8 lg:px-10">
           {tab === "aperçu" && <AnalyticsOverview initialStats={stats} onOpenTab={setTab} />}
+          {tab === "messages" && <ChatInbox onUnreadChange={setUnreadMessages} />}
           {tab === "demandes d'information" && <ContactsManager contacts={contacts} type="inquiry" />}
           {tab === "inscriptions" && <ContactsManager contacts={contacts} type="registration" />}
           {tab === "contenus" && <ContentManager cms={cms.filter((item) => ["faq", "testimonials", "promotions"].includes(item.section))} />}

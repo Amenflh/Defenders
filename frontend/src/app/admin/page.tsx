@@ -29,17 +29,19 @@ export default async function AdminPage({ searchParams }: PageProps<"/admin">) {
     );
   }
 
-  await searchParams;
+  const { tab } = await searchParams;
   const res = await apiFetch("/api/admin/contacts");
   if (res.status === 401) redirect("/login?next=/admin");
   const data = res.ok ? ((await res.json()) as { contacts: Contact[] }) : null;
-  const [statsRes, formationsRes, mediaRes, cmsRes, settingsRes] = await Promise.all([
+  const [statsRes, formationsRes, mediaRes, cmsRes, settingsRes, unreadRes] = await Promise.all([
     apiFetch("/api/admin/stats?days=30"),
     apiFetch("/api/admin/formations"),
     apiFetch("/api/admin/media"),
     apiFetch("/api/admin/cms/all"),
     apiFetch("/api/admin/settings/site"),
+    apiFetch("/api/admin/chat/unread"),
   ]);
+  const unreadMessages = unreadRes.ok ? ((await unreadRes.json()) as { unread: number }).unread : 0;
   const stats = statsRes.ok ? ((await statsRes.json()) as AdminStats) : null;
   const formations = formationsRes.ok ? ((await formationsRes.json()) as { formations: React.ComponentProps<typeof AdminDashboard>["formations"] }).formations : [];
   const media = mediaRes.ok ? ((await mediaRes.json()) as { media: React.ComponentProps<typeof AdminDashboard>["media"] }).media : [];
@@ -48,6 +50,8 @@ export default async function AdminPage({ searchParams }: PageProps<"/admin">) {
 
   return (
     <AdminDashboard
+      initialTab={typeof tab === "string" ? tab : undefined}
+      initialUnreadMessages={unreadMessages}
       stats={stats}
       formations={formations}
       media={media}

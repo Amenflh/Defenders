@@ -2,8 +2,10 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
+import { getMyUnreadAction } from "@/app/(site)/chat-actions";
 import { site } from "@/lib/site";
+import { ClientChatPanel, OPEN_CHAT_EVENT, type ChatViewer } from "./chat/ClientChatPanel";
 import { Icon } from "./Icon";
 
 /** Logo WhatsApp (pictogramme officiel simplifié). */
@@ -15,17 +17,59 @@ function WhatsAppIcon({ className = "size-6" }: { className?: string }) {
   );
 }
 
+/** Rafraîchissement du badge « messages non lus » (le fil ouvert, lui, se rafraîchit toutes les 4 s). */
+const UNREAD_POLL_MS = 30_000;
+
 /**
- * Bouton flottant présent sur tout le site public : WhatsApp en un clic,
- * et un menu pour appeler ou lancer le quiz d'orientation.
+ * Bouton flottant présent sur tout le site public : un menu pour discuter avec l'équipe,
+ * écrire sur WhatsApp, appeler ou lancer le quiz d'orientation.
  */
-export function FloatingActions() {
+export function FloatingActions({ viewer = { role: "guest" } }: { viewer?: ChatViewer }) {
   const pathname = usePathname();
   // Le menu est lié à la page où il a été ouvert : changer de page le referme.
   const [openedOn, setOpenedOn] = useState<string | null>(null);
   const open = openedOn === pathname;
   const setOpen = (next: boolean) => setOpenedOn(next ? pathname : null);
   const [visible, setVisible] = useState(false);
+  const [chatOpen, setChatOpen] = useState(false);
+  const [unread, setUnread] = useState(0);
+  const isClient = viewer.role === "client";
+
+  const openChatPanel = useCallback(() => {
+    setOpenedOn(null);
+    setChatOpen(true);
+    setUnread(0);
+  }, []);
+  const closeChat = useCallback(() => setChatOpen(false), []);
+  const markRead = useCallback(() => setUnread(0), []);
+
+  // Ouverture depuis un autre bouton du site, ou au retour de la connexion (?chat=1).
+  useEffect(() => {
+    window.addEventListener(OPEN_CHAT_EVENT, openChatPanel);
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("chat") === "1") {
+      params.delete("chat");
+      const query = params.toString();
+      window.history.replaceState(null, "", `${window.location.pathname}${query ? `?${query}` : ""}${window.location.hash}`);
+      setTimeout(openChatPanel, 0);
+    }
+    return () => window.removeEventListener(OPEN_CHAT_EVENT, openChatPanel);
+  }, [openChatPanel]);
+
+  // Badge des réponses non lues (client connecté, discussion fermée).
+  useEffect(() => {
+    if (!isClient || chatOpen) return;
+    let cancelled = false;
+    const refresh = () => {
+      if (document.visibilityState === "visible") getMyUnreadAction().then((n) => !cancelled && setUnread(n)).catch(() => undefined);
+    };
+    refresh();
+    const timer = setInterval(refresh, UNREAD_POLL_MS);
+    return () => {
+      cancelled = true;
+      clearInterval(timer);
+    };
+  }, [isClient, chatOpen]);
 
   // Apparaît après un léger défilement, pour ne pas masquer la bannière d'accueil au chargement.
   useEffect(() => {
@@ -43,13 +87,16 @@ export function FloatingActions() {
 
   const message = encodeURIComponent("Bonjour, je souhaite avoir des informations sur vos formations.");
   const actions = [
+    { label: unread ? `Discuter avec l'équipe (${unread} nouveau${unread > 1 ? "x" : ""})` : "Discuter avec l'équipe", onClick: openChatPanel, icon: <Icon name="chat" width={18} height={18} /> },
     { href: `${site.whatsapp.href}?text=${message}`, label: "Écrire sur WhatsApp", external: true, icon: <WhatsAppIcon className="size-5" /> },
     { href: site.phone.href, label: `Appeler ${site.phone.label}`, icon: <Icon name="phone" width={18} height={18} /> },
     ...(pathname === "/trouver-ma-formation" ? [] : [{ href: "/trouver-ma-formation", label: "Trouver ma formation", internal: true, icon: <Icon name="star" width={18} height={18} /> }]),
   ];
 
   return (
-    <div className={`fixed right-4 bottom-4 z-30 flex flex-col items-end gap-3 transition-all duration-500 sm:right-6 sm:bottom-6 ${visible || open ? "translate-y-0 opacity-100" : "pointer-events-none translate-y-6 opacity-0"}`}>
+    <>
+    {chatOpen && <ClientChatPanel viewer={viewer} onClose={closeChat} onActivity={markRead} />}
+    <div className={`fixed right-4 bottom-4 z-30 flex flex-col items-end gap-3 transition-all duration-500 sm:right-6 sm:bottom-6 ${visible || open || chatOpen || unread > 0 ? "translate-y-0 opacity-100" : "pointer-events-none translate-y-6 opacity-0"}`}>
       {open && (
         <ul id="floating-actions" className="flex flex-col items-end gap-2 animate-[fade-in_0.25s_ease]">
           {actions.map((a) => {
@@ -57,7 +104,9 @@ export function FloatingActions() {
             const content = <><span>{a.label}</span><span className="grid size-8 place-items-center bg-ink text-gold">{a.icon}</span></>;
             return (
               <li key={a.label}>
-                {"internal" in a ? (
+                {"onClick" in a ? (
+                  <button type="button" onClick={a.onClick} className={className}>{content}</button>
+                ) : "internal" in a ? (
                   <Link href={a.href} className={className}>{content}</Link>
                 ) : (
                   <a href={a.href} {...("external" in a ? { target: "_blank", rel: "noreferrer" } : {})} className={className}>{content}</a>
@@ -69,14 +118,18 @@ export function FloatingActions() {
       )}
       <button
         type="button"
-        onClick={() => setOpen(!open)}
-        aria-expanded={open}
+        onClick={() => (chatOpen ? setChatOpen(false) : setOpen(!open))}
+        aria-expanded={open || chatOpen}
         aria-controls="floating-actions"
-        aria-label={open ? "Fermer le menu de contact" : "Nous contacter rapidement"}
-        className={`fab-pulse grid size-14 place-items-center rounded-full text-white shadow-[0_12px_32px_rgba(0,0,0,0.45)] transition-transform hover:scale-105 ${open ? "bg-ink-3" : "bg-[#1fa855] animate-[fab-pulse_2.4s_ease-out_infinite]"}`}
+        aria-label={chatOpen ? "Fermer la discussion" : open ? "Fermer le menu de contact" : `Nous contacter rapidement${unread ? ` (${unread} message${unread > 1 ? "s" : ""} non lu${unread > 1 ? "s" : ""})` : ""}`}
+        className={`fab-pulse relative grid size-14 place-items-center rounded-full text-white shadow-[0_12px_32px_rgba(0,0,0,0.45)] transition-transform hover:scale-105 ${open || chatOpen ? "bg-ink-3" : "bg-[#1fa855] animate-[fab-pulse_2.4s_ease-out_infinite]"}`}
       >
-        {open ? <Icon name="close" width={22} height={22} /> : <WhatsAppIcon className="size-7" />}
+        {open || chatOpen ? <Icon name="close" width={22} height={22} /> : <WhatsAppIcon className="size-7" />}
+        {unread > 0 && !open && !chatOpen && (
+          <span aria-hidden="true" className="absolute -top-1 -right-1 grid min-h-6 min-w-6 place-items-center rounded-full border-2 border-ink bg-gold px-1 text-[11px] font-bold text-ink">{unread}</span>
+        )}
       </button>
     </div>
+    </>
   );
 }

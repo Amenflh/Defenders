@@ -7,7 +7,7 @@ import { inputClass } from "../fields";
 
 type FieldName = "name" | "email" | "phone" | "password" | "confirm";
 
-export function RegisterForm() {
+export function RegisterForm({ next }: { next?: string }) {
   const [state, action, pending] = useActionState<RegisterState, FormData>(registerAction, {});
   const err = (k: FieldName) => state.errors?.[k]?.[0];
 
@@ -30,6 +30,7 @@ export function RegisterForm() {
   return (
     // La clé change avec les valeurs renvoyées : les champs sont pré-remplis après une erreur.
     <form key={JSON.stringify(state.values ?? {})} action={action} className="space-y-5">
+      {next && <input type="hidden" name="next" value={next} />}
       {state.error && (
         <p role="alert" className="border border-red-500/50 bg-red-500/10 px-4 py-3 text-sm text-red-200">
           {state.error}

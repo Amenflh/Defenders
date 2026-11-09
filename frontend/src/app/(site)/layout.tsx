@@ -38,7 +38,15 @@ export default async function SiteLayout({ children }: { children: React.ReactNo
         {children}
       </main>
       <Footer />
-      <FloatingActions />
+      <FloatingActions
+        viewer={
+          user && user !== "unavailable"
+            ? user.role === "admin"
+              ? { role: "admin" }
+              : { role: "client", firstName: user.name.trim().split(/\s+/)[0] ?? "" }
+            : { role: "guest" }
+        }
+      />
     </>
   );
 }
