@@ -8,10 +8,20 @@ export const SESSION_COOKIE = "dfa_session";
 export type Role = "admin" | "client";
 export type User = { id: number; email: string; name: string; phone: string; role: Role };
 
-/** IP du visiteur, transmise à l'API pour que ses limites (rate limit) soient par visiteur. */
+/**
+ * Nombre de reverse proxies de confiance devant Next.js (Nginx, Traefik…). Chacun ajoute une IP
+ * à droite de X-Forwarded-For : seules ces entrées sont fiables, celles de gauche viennent du navigateur.
+ */
+const TRUSTED_PROXY_HOPS = Math.max(1, Number.parseInt(process.env.TRUSTED_PROXY_HOPS ?? "1", 10) || 1);
+
+/**
+ * IP du visiteur, transmise à l'API pour que ses limites (rate limit) soient par visiteur.
+ * On lit X-Forwarded-For depuis la droite : la première valeur (à gauche) est falsifiable par le client.
+ */
 export async function clientIp(): Promise<string> {
   const h = await headers();
-  return h.get("x-forwarded-for")?.split(",")[0]?.trim() || h.get("x-real-ip") || "unknown";
+  const chain = (h.get("x-forwarded-for") ?? "").split(",").map((ip) => ip.trim()).filter(Boolean);
+  return chain[Math.max(0, chain.length - TRUSTED_PROXY_HOPS)] || h.get("x-real-ip") || "unknown";
 }
 
 export async function getSessionToken(): Promise<string | undefined> {
@@ -58,4 +68,22 @@ export const homeFor = (role: Role) => (role === "admin" ? "/admin" : "/");
 /** N'accepte que des chemins internes (évite les redirections ouvertes vers un autre site). */
 export function safeNext(next: unknown): string | null {
   return typeof next === "string" && next.startsWith("/") && !next.startsWith("//") && !next.startsWith("/\\") ? next : null;
+}
+
+/** Coordonnées du client connecté, pour pré-remplir les formulaires d'inscription ({} sinon). */
+export async function getContactDefaults(): Promise<Partial<Record<"firstName" | "lastName" | "email" | "phone", string>>> {
+  const user = await getCurrentUser();
+  if (!user || user === "unavailable" || user.role !== "client") return {};
+  const [firstName, ...rest] = user.name.trim().split(/\s+/);
+  return { firstName, lastName: rest.join(" "), email: user.email, phone: user.phone };
+}
+
+/** Adresse publique du site (liens à partager) : NEXT_PUBLIC_SITE_URL, sinon l'hôte de la requête. */
+export async function publicOrigin(): Promise<string> {
+  const configured = process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/+$/, "");
+  if (configured) return configured;
+  const h = await headers();
+  const host = h.get("x-forwarded-host") ?? h.get("host") ?? "localhost:3000";
+  const proto = h.get("x-forwarded-proto") ?? (host.startsWith("localhost") ? "http" : "https");
+  return `${proto}://${host}`;
 }

@@ -15,8 +15,11 @@ import {
   publicRegistrationRoutes,
 } from "./modules/registrations/registrations.routes.js";
 import { cmsAdminRoutes, cmsPublicRoutes } from "./modules/cms/cms.routes.js";
-import { uploadRoutes } from "./modules/uploads/upload.routes.js";
-import path from "node:path";
+import { cmsUploadsStatic, uploadRoutes } from "./modules/uploads/upload.routes.js";
+import { adminChatRoutes, myChatRoutes } from "./modules/chat/chat.routes.js";
+import { adminPaymentsRoutes, myPaymentsRoutes, paymentsPublicRoutes } from "./modules/payments/payments.routes.js";
+import { adminReferralRoutes, myReferralRoutes, referralsPublicRoutes } from "./modules/referrals/referrals.routes.js";
+import { adminResourceRoutes, myResourceRoutes } from "./modules/resources/resources.routes.js";
 
 export function createApp() {
   const app = express();
@@ -26,7 +29,8 @@ export function createApp() {
   app.set("trust proxy", 1);
   app.use(helmet());
   app.use(cors({ origin: config.corsOrigins }));
-  app.use("/uploads", express.static(path.resolve("src/assets/uploads")));
+  // Fichiers du tableau de bord (CMS) : seulement images et vidéos vérifiées.
+  app.use("/uploads", cmsUploadsStatic);
   // Seul le formulaire d'inscription accepte un corps volumineux (pièce jointe de 5 Mo en base64).
   app.use("/api/contact", express.json({ limit: "7mb" }));
   app.use(express.json({ limit: "20kb" }));
@@ -44,6 +48,16 @@ export function createApp() {
   app.use("/api/contact", publicRegistrationRoutes);
   app.use("/api/admin/contacts", adminRegistrationRoutes);
   app.use("/api/me/inscriptions", myRegistrationRoutes);
+  app.use("/api/me/chat", myChatRoutes);
+  app.use("/api/admin/chat", adminChatRoutes);
+  app.use("/api/payments", paymentsPublicRoutes);
+  app.use("/api/me/payments", myPaymentsRoutes);
+  app.use("/api/admin/payments", adminPaymentsRoutes);
+  app.use("/api/referrals", referralsPublicRoutes);
+  app.use("/api/me/referral", myReferralRoutes);
+  app.use("/api/admin/referrals", adminReferralRoutes);
+  app.use("/api/me/resources", myResourceRoutes);
+  app.use("/api/admin/resources", adminResourceRoutes);
   app.use("/api/content", cmsPublicRoutes);
   app.use("/api/admin/uploads", uploadRoutes);
   app.use("/api/admin", cmsAdminRoutes);

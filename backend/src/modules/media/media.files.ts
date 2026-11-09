@@ -26,6 +26,27 @@ const FORMATS: Record<UploadKind, { mime: string; ext: string; matches: (b: Buff
   ],
 };
 
+/** Format réel d'un fichier d'après ses premiers octets (16 suffisent), ou null s'il n'est pas accepté. */
+export function detectFormat(head: Buffer, kinds: UploadKind[] = ["image", "video"]) {
+  for (const kind of kinds) {
+    const format = FORMATS[kind].find((f) => f.matches(head));
+    if (format) return { kind, mime: format.mime, ext: format.ext };
+  }
+  return null;
+}
+
+/** Lit les 16 premiers octets d'un fichier. */
+export async function readHead(filePath: string): Promise<Buffer> {
+  const handle = await open(filePath, "r");
+  const head = Buffer.alloc(16);
+  try {
+    await handle.read(head, 0, 16, 0);
+  } finally {
+    await handle.close();
+  }
+  return head;
+}
+
 export const ACCEPTED = {
   image: { mimes: FORMATS.image.map((f) => f.mime), label: "JPG, PNG ou WebP", maxMb: () => config.uploads.maxImageMb },
   video: { mimes: FORMATS.video.map((f) => f.mime), label: "MP4 ou WebM", maxMb: () => config.uploads.maxVideoMb },

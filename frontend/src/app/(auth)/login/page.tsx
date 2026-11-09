@@ -23,7 +23,7 @@ export default async function LoginPage({ searchParams }: PageProps<"/login">) {
 
       <p className="mt-8 border-t border-line pt-6 text-sm text-mist">
         Pas encore de compte ?{" "}
-        <Link href="/register" className="font-medium text-gold hover:text-gold-soft">
+        <Link href={safeNext(next) ? `/register?next=${encodeURIComponent(safeNext(next)!)}` : "/register"} className="font-medium text-gold hover:text-gold-soft">
           Créer un compte client
         </Link>
       </p>

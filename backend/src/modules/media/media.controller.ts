@@ -1,6 +1,6 @@
 import type { RequestHandler } from "express";
 import { discardTemp, type UploadKind } from "./media.files.js";
-import { type ListQuery, type UpdateMediaInput, uploadFieldsSchema } from "./media.schemas.js";
+import { type LinkMediaInput, type ListQuery, type UpdateMediaInput, uploadFieldsSchema } from "./media.schemas.js";
 import * as service from "./media.service.js";
 
 export function upload(kind: UploadKind): RequestHandler {
@@ -16,6 +16,10 @@ export function upload(kind: UploadKind): RequestHandler {
     }
   };
 }
+
+export const link: RequestHandler = async (req, res) => {
+  res.status(201).json({ media: await service.link(req.valid.body as LinkMediaInput) });
+};
 
 export const listPublic: RequestHandler = async (req, res) => {
   res.json({ media: await service.list(req.valid.query as ListQuery, { publicOnly: true }) });

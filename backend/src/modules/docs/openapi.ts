@@ -113,6 +113,13 @@ export function buildOpenApiDocument() {
       { name: "Admin · Formations" },
       { name: "Admin · Inscriptions" },
       { name: "Admin · Médias" },
+      { name: "Discussion", description: "Messagerie entre un client connecté et l'équipe (rafraîchissement par ?after=)" },
+      { name: "Admin · Discussion" },
+      { name: "Paiement", description: "Acompte en ligne (Konnect, ou simulation hors production)" },
+      { name: "Parrainage", description: "Lien personnel /r/CODE et bonus par ami inscrit" },
+      { name: "Ressources", description: "Supports réservés aux stagiaires inscrits" },
+      { name: "Admin · Paiement & parrainage" },
+      { name: "Admin · Ressources" },
     ],
     components: {
       securitySchemes: {
@@ -250,6 +257,113 @@ export function buildOpenApiDocument() {
         get: { tags: ["Inscriptions"], summary: "Mes demandes d'inscription (client connecté)", ...admin, responses: { 200: ok("Demandes", { type: "object" }), 401: E[401] } },
       },
 
+      "/api/me/chat": {
+        get: {
+          tags: ["Discussion"],
+          summary: "Ma conversation avec l'équipe (marque les réponses comme lues)",
+          ...admin,
+          parameters: [{ name: "after", in: "query", description: "Seulement les messages d'id supérieur", schema: { type: "integer" } }],
+          responses: { 200: ok("Fil : conversationId (null si aucun message), messages, adminReadAt", { type: "object" }), 401: E[401], 403: E[403] },
+        },
+        post: {
+          tags: ["Discussion"],
+          summary: "Écrire à l'équipe (20 messages / min ; e-mail à l'équipe au premier message non lu)",
+          ...admin,
+          requestBody: { required: true, content: { "application/json": { schema: { type: "object", required: ["body"], properties: { body: { type: "string", maxLength: 2000 } } } } } },
+          responses: { 201: ok("Message enregistré", { type: "object" }), 401: E[401], 403: E[403], 422: E[422], 429: E[429] },
+        },
+      },
+      "/api/me/chat/unread": {
+        get: { tags: ["Discussion"], summary: "Nombre de réponses non lues", ...admin, responses: { 200: ok("{ unread }", { type: "object" }), 401: E[401], 403: E[403] } },
+      },
+      "/api/admin/chat": {
+        get: { tags: ["Admin · Discussion"], summary: "Conversations (aperçu, non-lus) et total non lu", ...admin, responses: { 200: ok("{ conversations, unread }", { type: "object" }), 401: E[401], 403: E[403] } },
+      },
+      "/api/admin/chat/unread": {
+        get: { tags: ["Admin · Discussion"], summary: "Total des messages clients non lus", ...admin, responses: { 200: ok("{ unread }", { type: "object" }), 401: E[401], 403: E[403] } },
+      },
+      "/api/admin/chat/{id}": {
+        get: {
+          tags: ["Admin · Discussion"],
+          summary: "Fil d'une conversation (marque les messages du client comme lus)",
+          ...admin,
+          parameters: [{ name: "id", in: "path", required: true, schema: { type: "integer" } }, { name: "after", in: "query", schema: { type: "integer" } }],
+          responses: { 200: ok("Fil : user, messages, clientReadAt", { type: "object" }), 401: E[401], 403: E[403], 404: E[404] },
+        },
+        post: {
+          tags: ["Admin · Discussion"],
+          summary: "Répondre au client",
+          ...admin,
+          parameters: [{ name: "id", in: "path", required: true, schema: { type: "integer" } }],
+          requestBody: { required: true, content: { "application/json": { schema: { type: "object", required: ["body"], properties: { body: { type: "string", maxLength: 2000 } } } } } },
+          responses: { 201: ok("Réponse enregistrée", { type: "object" }), 401: E[401], 403: E[403], 404: E[404], 422: E[422] },
+        },
+      },
+
+      "/api/payments/config": {
+        get: { tags: ["Paiement"], summary: "Paiement disponible ? montant de l'acompte, mode (konnect | simulation)", responses: { 200: ok("{ enabled, depositTnd, mode }", { type: "object" }) } },
+      },
+      "/api/payments/verify": {
+        post: {
+          tags: ["Paiement"],
+          summary: "Vérifie un paiement auprès du prestataire puis l'enregistre (idempotent) — appelé au retour Konnect",
+          requestBody: { required: true, content: { "application/json": { schema: { type: "object", required: ["ref"], properties: { ref: { type: "string" } } } } } },
+          responses: { 200: ok("{ status, registrationId }", { type: "object" }), 404: E[404], 429: E[429] },
+        },
+      },
+      "/api/me/payments": {
+        get: { tags: ["Paiement"], summary: "Mes paiements", ...admin, responses: { 200: ok("{ payments }", { type: "object" }), 401: E[401], 403: E[403] } },
+        post: {
+          tags: ["Paiement"],
+          summary: "Payer l'acompte d'une de mes demandes → adresse de paiement ; payé = demande « inscrit »",
+          ...admin,
+          requestBody: { required: true, content: { "application/json": { schema: { type: "object", required: ["registrationId"], properties: { registrationId: { type: "string", format: "uuid" } } } } } },
+          responses: { 201: ok("{ payUrl, paymentId, amountTnd }", { type: "object" }), 401: E[401], 403: E[403], 404: E[404], 409: E[409] },
+        },
+      },
+      "/api/referrals/{code}": {
+        get: { tags: ["Parrainage"], summary: "Prénom du parrain d'un lien /r/CODE", parameters: [{ name: "code", in: "path", required: true, schema: { type: "string" } }], responses: { 200: ok("{ firstName }", { type: "object" }), 404: E[404] } },
+      },
+      "/api/me/referral": {
+        get: { tags: ["Parrainage"], summary: "Mon code, mes filleuls (prénom + initiale) et mes bonus", ...admin, responses: { 200: ok("{ code, rewardTnd, referrals, stats }", { type: "object" }), 401: E[401], 403: E[403] } },
+      },
+      "/api/me/resources": {
+        get: { tags: ["Ressources"], summary: "Supports actifs : ouverts si inscrit à la formation, sinon verrouillés (titre seul)", ...admin, responses: { 200: ok("{ enrolled, resources }", { type: "object" }), 401: E[401], 403: E[403] } },
+      },
+      "/api/me/resources/{id}/file": {
+        get: { tags: ["Ressources"], summary: "Fichier d'un support (contrôle d'accès, requêtes Range)", ...admin, parameters: [{ name: "id", in: "path", required: true, schema: { type: "integer" } }], responses: { 200: { description: "Fichier" }, 401: E[401], 403: E[403], 404: E[404] } },
+      },
+      "/api/admin/payments": {
+        get: { tags: ["Admin · Paiement & parrainage"], summary: "Paiements et total encaissé (réglages : PUT /api/admin/settings/paiements { depositTnd, referralRewardTnd })", ...admin, responses: { 200: ok("{ payments, totals }", { type: "object" }), 401: E[401], 403: E[403] } },
+      },
+      "/api/admin/referrals": {
+        get: { tags: ["Admin · Paiement & parrainage"], summary: "Demandes parrainées, parrains et bonus à verser", ...admin, responses: { 200: ok("{ rewardTnd, referrals, totals }", { type: "object" }), 401: E[401], 403: E[403] } },
+      },
+      "/api/admin/referrals/{registrationId}": {
+        patch: {
+          tags: ["Admin · Paiement & parrainage"],
+          summary: "Marquer le bonus comme versé (filleul inscrit) ou annuler",
+          ...admin,
+          parameters: [{ name: "registrationId", in: "path", required: true, schema: { type: "string", format: "uuid" } }],
+          requestBody: { required: true, content: { "application/json": { schema: { type: "object", required: ["granted"], properties: { granted: { type: "boolean" } } } } } },
+          responses: { 200: ok("{ reward, rewardGrantedAt }", { type: "object" }), 400: E[400], 401: E[401], 403: E[403], 404: E[404] },
+        },
+      },
+      "/api/admin/resources": {
+        get: { tags: ["Admin · Ressources"], summary: "Tous les supports", ...admin, responses: { 200: ok("{ resources }", { type: "object" }), 401: E[401], 403: E[403] } },
+        post: {
+          tags: ["Admin · Ressources"],
+          summary: "Ajouter un support : fichier (PDF, image, MP4/WebM, vérifié par signature) ou lien",
+          ...admin,
+          requestBody: { required: true, content: { "multipart/form-data": { schema: { type: "object", required: ["title"], properties: { title: { type: "string" }, description: { type: "string" }, formationId: { type: "integer", description: "vide = tous les inscrits" }, url: { type: "string" }, file: { type: "string", format: "binary" } } } } } },
+          responses: { 201: ok("{ resource }", { type: "object" }), 401: E[401], 403: E[403], 413: E[413], 422: E[422] },
+        },
+      },
+      "/api/admin/resources/{id}": {
+        patch: { tags: ["Admin · Ressources"], summary: "Modifier (titre, description, formation, active, position)", ...admin, parameters: [{ name: "id", in: "path", required: true, schema: { type: "integer" } }], responses: { 200: ok("{ resource }", { type: "object" }), 401: E[401], 403: E[403], 404: E[404], 422: E[422] } },
+        delete: { tags: ["Admin · Ressources"], summary: "Supprimer le support et son fichier", ...admin, parameters: [{ name: "id", in: "path", required: true, schema: { type: "integer" } }], responses: { 204: { description: "Supprimé" }, 401: E[401], 403: E[403], 404: E[404] } },
+      },
+
       "/api/media": {
         get: {
           tags: ["Médias"],
@@ -322,6 +436,22 @@ export function buildOpenApiDocument() {
 
       "/api/admin/media": {
         get: { tags: ["Admin · Médias"], summary: "Tous les médias", ...admin, responses: { 200: ok("Médias", { type: "object" }), 401: E[401], 403: E[403] } },
+        post: {
+          tags: ["Admin · Médias"],
+          summary: "Ajouter un média déjà hébergé (chemin /… ou URL https), sans téléversement",
+          ...admin,
+          requestBody: { required: true, content: json({ type: "object", required: ["type", "url"], properties: { type: { type: "string", enum: ["image", "video"] }, url: { type: "string" }, title: { type: "string" }, category: { type: "string" }, formationId: { type: "integer", nullable: true } } }, { type: "image", url: "/pics/info.jpg", title: "Affiche", category: "promotions" }) },
+          responses: { 201: ok("Média enregistré", { type: "object", properties: { media: ref("Media") } }), 401: E[401], 403: E[403], 422: E[422] },
+        },
+      },
+      "/api/admin/stats": {
+        get: {
+          tags: ["Admin · Tableau de bord"],
+          summary: "Statistiques : évolution, conversion, formations demandées, relances",
+          ...admin,
+          parameters: [{ name: "days", in: "query", schema: { type: "integer", minimum: 7, maximum: 365, default: 30 } }],
+          responses: { 200: ok("Statistiques de la période, comparées à la période précédente", { type: "object" }), 400: E[400], 401: E[401], 403: E[403] },
+        },
       },
       "/api/admin/media/images": {
         post: {

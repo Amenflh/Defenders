@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { PageIntro } from "@/components/PageIntro";
-import { apiFetch } from "@/lib/session";
+import { getSiteSettings } from "@/lib/settings";
 
 export const metadata: Metadata = {
   title: "Cookies",
@@ -9,8 +9,7 @@ export const metadata: Metadata = {
 };
 
 export default async function CookiesPage() {
-  const res = await apiFetch("/api/content/settings/site");
-  const settings = res.ok ? ((await res.json()) as { value: Record<string, unknown> }).value : {};
+  const settings = await getSiteSettings();
   const text = typeof settings.cookies === "string" && settings.cookies ? settings.cookies : "";
   return (
     <>

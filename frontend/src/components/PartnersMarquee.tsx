@@ -1,5 +1,6 @@
 import Image from "next/image";
 import { site } from "@/lib/site";
+import { safeHref } from "@/lib/utils";
 
 export type PublicPartner = { id?: number; name?: string; title?: string; role?: string; subtitle?: string; description?: string; body?: string; href?: string; linkUrl?: string; logo?: string; imageUrl?: string };
 const fallbackPartners = [...site.partners.employment, ...site.partners.training].map((partner) => ({ ...partner, role: partner.role, description: partner.description, logo: partner.logo, href: partner.href }));
@@ -16,7 +17,7 @@ export function PartnersMarquee({ partners: inputPartners }: { partners?: Public
     name: partner.title || partner.name || "",
     role: partner.subtitle || partner.role || "",
     description: partner.body || partner.description || "",
-    href: partner.linkUrl || partner.href || "#",
+    href: safeHref(partner.linkUrl || partner.href),
     logo: partner.imageUrl || partner.logo || "/pics/logo.jpg",
   })) : fallbackPartners).filter((partner) => partner.name);
   // Deux moitiés identiques : la piste se translate de -50 % pour une boucle sans couture.

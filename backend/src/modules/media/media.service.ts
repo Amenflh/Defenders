@@ -2,7 +2,7 @@ import type { MediaType, Prisma } from "../../generated/prisma/client.js";
 import { NotFoundError, ValidationError } from "../../lib/errors.js";
 import { prisma } from "../../lib/prisma.js";
 import { deleteStoredFile, storeFile, type UploadKind } from "./media.files.js";
-import type { ListQuery, UpdateMediaInput, UploadFields } from "./media.schemas.js";
+import type { LinkMediaInput, ListQuery, UpdateMediaInput, UploadFields } from "./media.schemas.js";
 
 const select = {
   id: true,
@@ -42,6 +42,12 @@ export async function upload(kind: UploadKind, file: Express.Multer.File, fields
     await deleteStoredFile(stored.storageKey);
     throw err;
   }
+}
+
+/** Enregistre un média déjà hébergé (aucun fichier stocké : sa suppression ne touche pas au disque). */
+export async function link(input: LinkMediaInput) {
+  await assertFormation(input.formationId);
+  return prisma.media.create({ data: { ...input, type: input.type as MediaType }, select });
 }
 
 /** Liste des médias, filtrable par type, catégorie et formation (galerie publique #18 ou admin). */

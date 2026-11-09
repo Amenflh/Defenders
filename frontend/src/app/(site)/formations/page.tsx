@@ -51,9 +51,12 @@ export default async function FormationsPage() {
             </div>
             <Reveal className="mt-14 flex flex-wrap items-center justify-between gap-6 border border-line bg-ink-2 p-8">
               <p className="max-w-xl text-mist">
-                Vous hésitez entre plusieurs formations ? Notre équipe vous oriente selon votre profil et vos objectifs.
+                Vous hésitez entre plusieurs formations ? Faites notre quiz d&apos;orientation en 4 questions, ou laissez notre équipe vous conseiller.
               </p>
               <div className="flex flex-wrap gap-3">
+                <Link href="/trouver-ma-formation" className="btn btn-ghost">
+                  <Icon name="star" /> Faire le quiz
+                </Link>
                 <Link href="/planning" className="btn btn-ghost">
                   <Icon name="calendar" /> Planning
                 </Link>

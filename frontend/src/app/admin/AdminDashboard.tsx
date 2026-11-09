@@ -1,11 +1,21 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { uploadFile } from "./uploadFile";
+import { useEffect, useState, useTransition } from "react";
 import Image from "next/image";
 import { logoutAction } from "@/app/(auth)/actions";
 import { Logo } from "@/components/Logo";
 import { AVAILABILITY_LABELS, PROFILE_LABELS, STATUS_LABELS, TRAINING_LABELS, dateFmt } from "@/lib/labels";
 import { StatusSelect } from "./StatusSelect";
+import { AnalyticsOverview } from "./AnalyticsOverview";
+import { ChatInbox } from "./ChatInbox";
+import { PaymentsManager } from "./PaymentsManager";
+import { ReferralsManager } from "./ReferralsManager";
+import { ResourcesManager } from "./ResourcesManager";
+import { getAdminUnreadAction } from "./chat-actions";
+import { followUpMessage, whatsappHref } from "@/lib/contact-links";
+import { toCsv } from "@/lib/csv";
+import type { AdminStats } from "./actions";
 import {
   deleteCmsItemAction,
   deleteFormationAction,
@@ -14,10 +24,8 @@ import {
   saveFormationAction,
   saveMediaAction,
   saveSettingsAction,
-  uploadMediaAction,
 } from "./actions";
 
-type Metric = { contacts: number; clients: number; formations: number; media: number; cmsItems: number; status: Record<string, number> };
 type Formation = {
   id: number; slug: string; name: string; headline: string; summary: string; durationLabel: string | null; priceTnd: string | null; status: string; position: number;
   intro?: string[]; facts?: { label: string; value: string }[]; objectives?: string[]; modules?: { title: string; text: string }[]; audience?: string[]; careers?: string[];
@@ -58,8 +66,19 @@ function normalizeHomepageSections(value: unknown): HomepageSection[] {
   }).sort((a, b) => a.order - b.order).map((section, index) => ({ ...section, order: index }));
 }
 
-export function AdminDashboard({ metrics, formations, media, cms, contacts = [], initialSettings = {}, userName = "Administrateur", userEmail = "" }: { metrics: Metric | null; formations: Formation[]; media: Media[]; cms: CmsItem[]; contacts?: Contact[]; initialSettings?: Record<string, unknown>; userName?: string; userEmail?: string }) {
-  const [tab, setTab] = useState("aperçu");
+const TABS = ["aperçu", "messages", "demandes d'information", "inscriptions", "paiements", "parrainage", "ressources", "formations", "contenus", "médias", "partenaires", "paramètres & footer"];
+
+export function AdminDashboard({ stats, formations, media, cms, contacts = [], initialSettings = {}, userName = "Administrateur", userEmail = "", initialTab, initialUnreadMessages = 0 }: { initialTab?: string; initialUnreadMessages?: number; stats: AdminStats | null; formations: Formation[]; media: Media[]; cms: CmsItem[]; contacts?: Contact[]; initialSettings?: Record<string, unknown>; userName?: string; userEmail?: string }) {
+  const [tab, setTab] = useState(initialTab && TABS.includes(initialTab) ? initialTab : "aperçu");
+  const [unreadMessages, setUnreadMessages] = useState(initialUnreadMessages);
+  // Badge « messages » tenu à jour hors de l'onglet (l'onglet ouvert le met à jour lui-même).
+  useEffect(() => {
+    if (tab === "messages") return;
+    const timer = setInterval(() => {
+      if (document.visibilityState === "visible") getAdminUnreadAction().then(setUnreadMessages).catch(() => undefined);
+    }, 30_000);
+    return () => clearInterval(timer);
+  }, [tab]);
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const inquiryCount = contacts.filter((contact) => contact.profile === "demande-info").length;
   const registrationCount = contacts.length - inquiryCount;
@@ -69,7 +88,7 @@ export function AdminDashboard({ metrics, formations, media, cms, contacts = [],
   const logoUrl = typeof initialSettings.logoUrl === "string" && initialSettings.logoUrl ? initialSettings.logoUrl : undefined;
   const brandName = typeof initialSettings.brandName === "string" && initialSettings.brandName ? initialSettings.brandName : undefined;
   const brandDescriptor = typeof initialSettings.brandDescriptor === "string" && initialSettings.brandDescriptor ? initialSettings.brandDescriptor : undefined;
-  const tabs = ["aperçu", "demandes d'information", "inscriptions", "formations", "contenus", "médias", "partenaires", "paramètres & footer"];
+  const tabs = TABS;
   const initials = userName.split(/\s+/).map((part) => part[0]).join("").slice(0, 2).toUpperCase() || "AD";
   return (
     <div className="min-h-dvh bg-ink">
@@ -132,12 +151,17 @@ export function AdminDashboard({ metrics, formations, media, cms, contacts = [],
                 {name}
                 {name === "demandes d'information" && <span className="ml-2 rounded-full bg-ink/15 px-2 py-0.5 text-[10px]">{inquiryCount}</span>}
                 {name === "inscriptions" && <span className="ml-2 rounded-full bg-ink/15 px-2 py-0.5 text-[10px]">{registrationCount}</span>}
+                {name === "messages" && unreadMessages > 0 && <span className={`ml-2 rounded-full px-2 py-0.5 text-[10px] font-bold ${tab === name ? "bg-ink text-gold" : "bg-gold text-ink"}`} aria-label={`${unreadMessages} non lu(s)`}>{unreadMessages}</span>}
               </button>
             ))}
           </nav>
         </aside>
         <main className="min-w-0 bg-ink px-4 py-8 sm:px-8 lg:px-10">
-          {tab === "aperçu" && <Overview metrics={metrics} />}
+          {tab === "aperçu" && <AnalyticsOverview initialStats={stats} onOpenTab={setTab} />}
+          {tab === "messages" && <ChatInbox onUnreadChange={setUnreadMessages} />}
+          {tab === "paiements" && <PaymentsManager />}
+          {tab === "parrainage" && <ReferralsManager />}
+          {tab === "ressources" && <ResourcesManager formations={formations.map((f) => ({ id: f.id, name: f.name }))} />}
           {tab === "demandes d'information" && <ContactsManager contacts={contacts} type="inquiry" />}
           {tab === "inscriptions" && <ContactsManager contacts={contacts} type="registration" />}
           {tab === "contenus" && <ContentManager cms={cms.filter((item) => ["faq", "testimonials", "promotions"].includes(item.section))} />}
@@ -146,42 +170,6 @@ export function AdminDashboard({ metrics, formations, media, cms, contacts = [],
           {tab === "partenaires" && <ContentManager cms={cms.filter((item) => item.section === "partners")} section="partners" />}
           {tab === "paramètres & footer" && <SettingsManager initialSettings={initialSettings} />}
         </main>
-      </div>
-    </div>
-  );
-}
-
-function Overview({ metrics }: { metrics: Metric | null }) {
-  if (!metrics) return <p className="text-mist">Impossible de charger les statistiques.</p>;
-  const cards = [
-    ["Demandes", metrics.contacts, "gold", "Toutes les demandes reçues"],
-    ["Clients", metrics.clients, "bone", "Comptes clients enregistrés"],
-    ["Formations", metrics.formations, "bone", "Programmes configurés"],
-    ["Médias", metrics.media, "bone", "Images et vidéos publiées"],
-  ] as const;
-  return (
-    <div>
-      <div className="grid gap-px overflow-hidden border border-line bg-line sm:grid-cols-2 lg:grid-cols-4">
-        {cards.map(([label, value, color, description]) => <div key={label} className="bg-ink-2 p-6"><p className={`font-display text-4xl text-${color}`}>{value}</p><p className="mt-2 text-xs uppercase tracking-widest text-bone">{label}</p><p className="mt-2 text-xs text-mist">{description}</p></div>)}
-      </div>
-      <div className="mt-6 grid gap-6 lg:grid-cols-[1.35fr_0.65fr]">
-        <section className="border border-line bg-ink-2 p-6">
-          <div className="flex items-center justify-between"><div><p className="eyebrow text-gold">Demandes</p><h2 className="mt-2 font-display text-2xl uppercase">Suivi des demandes</h2></div><p className="font-display text-3xl text-gold">{metrics.contacts}</p></div>
-          <div className="mt-8 space-y-5">
-            {Object.entries(STATUS_LABELS).map(([status, label]) => {
-              const count = metrics.status[status] ?? 0;
-              const width = metrics.contacts ? Math.max(4, Math.round((count / metrics.contacts) * 100)) : 0;
-              return <div key={status}><div className="mb-2 flex justify-between text-sm"><span className="text-mist">{label}</span><span className="text-bone">{count}</span></div><div className="h-2 overflow-hidden bg-line"><div className="h-full bg-gold transition-all" style={{ width: `${width}%` }} /></div></div>;
-            })}
-          </div>
-        </section>
-        <section className="border border-line bg-ink-2 p-6">
-          <p className="eyebrow text-gold">État du site</p>
-          <div className="mt-6 space-y-4">
-            {[["Contenu CMS", metrics.cmsItems], ["Formations", metrics.formations], ["Médias", metrics.media]].map(([label, value]) => <div key={String(label)} className="flex items-center justify-between border-b border-line pb-4"><span className="text-sm text-mist">{label}</span><span className="font-display text-xl text-bone">{value}</span></div>)}
-            <a href="/" target="_blank" rel="noreferrer" className="btn btn-primary mt-2 w-full justify-center">Ouvrir le site</a>
-          </div>
-        </section>
       </div>
     </div>
   );
@@ -254,7 +242,13 @@ function ContactsManager({ contacts, type }: { contacts: Contact[]; type: "inqui
           </>}
         </div>
       </div>
-      <p className="mb-4 text-xs text-mist">{filtered.length} demande{filtered.length === 1 ? "" : "s"} affichée{filtered.length === 1 ? "" : "s"} sur {total}</p>
+      <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+        <p className="text-xs text-mist">{filtered.length} demande{filtered.length === 1 ? "" : "s"} affichée{filtered.length === 1 ? "" : "s"} sur {total}</p>
+        <button type="button" disabled={filtered.length === 0} onClick={() => downloadContactsCsv(filtered, type)} className="inline-flex items-center gap-2 border border-gold/60 px-4 py-2 text-xs uppercase tracking-wider text-gold transition-colors hover:bg-gold hover:text-ink disabled:opacity-40">
+          <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="size-4"><path strokeLinecap="round" strokeLinejoin="round" d="M12 4v11m0 0-4-4m4 4 4-4M5 19h14" /></svg>
+          Exporter en CSV ({filtered.length})
+        </button>
+      </div>
       <div className="mb-6 grid grid-cols-2 gap-px overflow-hidden border border-line bg-line lg:grid-cols-5">
         {filters.map((item) => (
           <button key={item.value} onClick={() => setFilter(item.value)} className={`p-4 text-left transition-colors ${filter === item.value ? "bg-gold text-ink" : "bg-ink-2 text-bone hover:bg-ink-3"}`}>
@@ -287,12 +281,47 @@ function ContactsManager({ contacts, type }: { contacts: Contact[]; type: "inqui
                 {contact.city && <div><dt className="text-[0.65rem] uppercase tracking-widest text-mist">Ville</dt><dd className="mt-1 text-bone">{contact.city}</dd></div>}
               </dl>
               {contact.message && <p className="mt-4 border-l-2 border-gold/50 bg-ink px-4 py-3 text-sm whitespace-pre-line text-mist">{contact.message}</p>}
+              <ContactQuickActions contact={contact} />
             </article>
           ))}
         </div>
       )}
     </div>
   );
+}
+
+/** Actions rapides sur une demande : WhatsApp avec message pré-rempli, appel, e-mail. */
+function ContactQuickActions({ contact }: { contact: Contact }) {
+  const formationNames = contact.trainings.map((training) => TRAINING_LABELS[training] ?? training);
+  const wa = whatsappHref(contact.phone, followUpMessage(contact.firstName, formationNames));
+  const subject = encodeURIComponent(contact.profile === "demande-info" ? "Votre demande d'information" : "Votre inscription");
+  return (
+    <div className="mt-4 flex flex-wrap gap-2 border-t border-line pt-4">
+      {wa && <a href={wa} target="_blank" rel="noreferrer" className="border border-football/50 px-3 py-1.5 text-xs uppercase tracking-wider text-football hover:bg-football/10">WhatsApp</a>}
+      <a href={`tel:${contact.phone.replace(/\s/g, "")}`} className="border border-line px-3 py-1.5 text-xs uppercase tracking-wider text-mist hover:border-gold hover:text-gold">Appeler</a>
+      <a href={`mailto:${contact.email}?subject=${subject}`} className="border border-line px-3 py-1.5 text-xs uppercase tracking-wider text-mist hover:border-gold hover:text-gold">E-mail</a>
+    </div>
+  );
+}
+
+/** Télécharge les demandes affichées (filtres appliqués) au format CSV, lisible par Excel (UTF-8 + « ; »). */
+function downloadContactsCsv(contacts: Contact[], type: "inquiry" | "registration") {
+  const header = ["Date", "Prénom", "Nom", "E-mail", "Téléphone", "Ville", "Profil", "Formations", "Disponibilité", "Statut", "Message"];
+  const rows = contacts.map((c) => [
+    dateFmt.format(new Date(c.createdAt)), c.firstName, c.lastName, c.email, c.phone, c.city,
+    PROFILE_LABELS[c.profile] ?? c.profile,
+    c.trainings.map((t) => TRAINING_LABELS[t] ?? t).join(", "),
+    AVAILABILITY_LABELS[c.availability] ?? c.availability,
+    STATUS_LABELS[c.status] ?? c.status,
+    c.message,
+  ]);
+  const csv = toCsv([header, ...rows]);
+  const url = URL.createObjectURL(new Blob([csv], { type: "text/csv;charset=utf-8" }));
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = `defenders-${type === "inquiry" ? "demandes-info" : "inscriptions"}-${new Date().toISOString().slice(0, 10)}.csv`;
+  link.click();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
 function SettingsManager({ initialSettings = {} }: { initialSettings?: Record<string, unknown> }) {
@@ -484,18 +513,16 @@ function ImageUploadControl({ label, url, onUploaded }: { label: string; url: st
       <span className="mb-1 block text-xs text-mist">{label}</span>
       <label className="flex min-h-24 cursor-pointer items-center justify-center border border-dashed border-line bg-ink px-4 py-5 text-center text-xs text-mist transition-colors hover:border-gold hover:text-bone">
         <span>{pending ? "Importation..." : "Choisir une image · JPEG, PNG, WebP · 25 Mo max"}</span>
-        <input type="file" accept="image/jpeg,image/png,image/webp,image/gif" className="sr-only" disabled={pending} onChange={(event) => {
+        <input type="file" accept="image/jpeg,image/png,image/webp" className="sr-only" disabled={pending} onChange={(event) => {
           const file = event.target.files?.[0];
           if (!file) return;
-          const formData = new FormData();
-          formData.set("file", file);
           startTransition(async () => {
-            const result = await uploadMediaAction(formData);
+            const result = await uploadFile(file);
             if (result.file?.type === "image") {
               onUploaded(result.file.url);
               setMessage({ text: "Image importée. Enregistrez pour publier.", error: false });
             } else {
-              setMessage({ text: "Échec de l’importation. Vérifiez le format et la taille.", error: true });
+              setMessage({ text: result.error ?? "Échec de l’importation. Vérifiez le format et la taille.", error: true });
             }
           });
           event.currentTarget.value = "";
@@ -606,18 +633,16 @@ function MediaManager({ media }: { media: Media[] }) {
         <h3 className="font-display text-xl uppercase">{editingId ? "Modifier un média" : "Ajouter un média"}</h3>
         <label className="block border border-dashed border-line bg-ink p-4 text-sm text-mist">
           Importer un fichier (max. 25 Mo)
-          <input type="file" accept="image/jpeg,image/png,image/webp,image/gif,video/mp4,video/webm" className="mt-3 block w-full text-xs text-mist" disabled={pending} onChange={(event) => {
+          <input type="file" accept="image/jpeg,image/png,image/webp,video/mp4,video/webm" className="mt-3 block w-full text-xs text-mist" disabled={pending} onChange={(event) => {
             const file = event.target.files?.[0];
             if (!file) return;
-            const formData = new FormData();
-            formData.set("file", file);
             startTransition(async () => {
-              const result = await uploadMediaAction(formData);
+              const result = await uploadFile(file);
               if (result.file) {
                 setDraft((old) => ({ ...old, url: result.file!.url, type: result.file!.type }));
                 setUploadMessage({ text: "Fichier importé. Enregistrez pour publier.", error: false });
               } else {
-                setUploadMessage({ text: "Échec de l'importation. Vérifiez le format et la taille.", error: true });
+                setUploadMessage({ text: result.error ?? "Échec de l'importation. Vérifiez le format et la taille.", error: true });
               }
             });
             event.currentTarget.value = "";

@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { PageIntro } from "@/components/PageIntro";
 import { site } from "@/lib/site";
-import { apiFetch } from "@/lib/session";
+import { getSiteSettings } from "@/lib/settings";
 
 export const metadata: Metadata = {
   title: "Mentions légales",
@@ -9,8 +9,7 @@ export const metadata: Metadata = {
 };
 
 export default async function LegalPage() {
-  const res = await apiFetch("/api/content/settings/site");
-  const settings = res.ok ? ((await res.json()) as { value: Record<string, unknown> }).value : {};
+  const settings = await getSiteSettings();
   const text = typeof settings.mentions === "string" && settings.mentions ? settings.mentions : "";
   return (
     <>

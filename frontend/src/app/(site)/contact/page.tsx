@@ -3,7 +3,10 @@ import Image from "next/image";
 import { Icon } from "@/components/Icon";
 import { PageIntro } from "@/components/PageIntro";
 import { brand } from "@/lib/images";
-import { apiFetch, getCurrentUser } from "@/lib/session";
+import { trainingOptions } from "@/lib/formations";
+import { cookies } from "next/headers";
+import { REFERRAL_CODE, REFERRAL_COOKIE } from "@/lib/program";
+import { apiFetch, getContactDefaults } from "@/lib/session";
 import { site } from "@/lib/site";
 import { ContactForm, type ContactDefaults } from "./ContactForm";
 import { ContactPopup } from "./ContactPopup";
@@ -17,27 +20,24 @@ export default async function ContactPage({ searchParams }: PageProps<"/contact"
   const params = await searchParams;
   const formation = typeof params.formation === "string" ? params.formation : undefined;
   const popup = typeof params.popup === "string" ? params.popup : undefined;
-  const formationsRes = await apiFetch("/api/content/formations");
+  const formationsRes = await apiFetch("/api/formations");
   const formations = formationsRes.ok
     ? ((await formationsRes.json()) as { formations: { slug: string; name: string; accent?: string }[] }).formations
     : [];
-  const availableTrainings = formations.length
-    ? formations.map((item) => ({
-        value: item.slug,
-        label: item.name,
-        dot: ({ pilates: "bg-pilates", football: "bg-football", personal: "bg-personal" } as Record<string, string>)[item.accent ?? ""] ?? "bg-gold",
-      }))
-    : undefined;
+  const availableTrainings = formations.length ? trainingOptions(formations) : undefined;
   const preselected = formations.some((item) => item.slug === formation) ? formation : undefined;
   const popupMode = popup === "1";
 
   // Client connecté : coordonnées pré-remplies depuis son compte.
-  const user = await getCurrentUser();
-  let defaults: ContactDefaults = {};
-  if (user && user !== "unavailable" && user.role === "client") {
-    const [firstName, ...rest] = user.name.trim().split(/\s+/);
-    defaults = { firstName, lastName: rest.join(" "), email: user.email, phone: user.phone };
-  }
+  const defaults: ContactDefaults = await getContactDefaults();
+
+  // Ami invité par un lien /r/CODE : mot d'accueil avec le prénom du parrain.
+  const referralCode = (await cookies()).get(REFERRAL_COOKIE)?.value;
+  const referrer = referralCode && REFERRAL_CODE.test(referralCode)
+    ? await apiFetch(`/api/referrals/${encodeURIComponent(referralCode)}`)
+        .then(async (r) => (r.ok ? ((await r.json()) as { firstName: string }).firstName : null))
+        .catch(() => null)
+    : null;
 
   const contacts = [
     { icon: "pin" as const, label: "Adresse", value: site.address.lines.join(", "), href: site.address.href, external: true },
@@ -58,6 +58,15 @@ export default async function ContactPage({ searchParams }: PageProps<"/contact"
       </PageIntro>
 
       {popupMode && <ContactPopup preselected={preselected} defaults={defaults} availableTrainings={availableTrainings} />}
+
+      {referrer && (
+        <div className="container-site pt-10">
+          <p role="status" className="flex items-center gap-3 border border-gold/50 bg-gold/10 px-5 py-4 text-sm text-bone">
+            <Icon name="star" width={18} height={18} className="shrink-0 text-gold" />
+            <span><strong>{referrer}</strong> vous recommande Defenders Fitness Academy : remplissez le formulaire, l&apos;équipe vous recontacte rapidement.</span>
+          </p>
+        </div>
+      )}
 
       <section className="py-16 lg:py-24">
         <div className="container-site grid gap-14 lg:grid-cols-[1fr_22rem] lg:gap-20">

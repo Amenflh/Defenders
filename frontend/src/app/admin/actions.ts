@@ -113,15 +113,34 @@ export async function deleteMediaAction(id: number): Promise<{ ok: boolean }> {
   return { ok: true };
 }
 
-export async function uploadMediaAction(formData: FormData): Promise<{ ok: boolean; file?: { url: string; type: string } }> {
-  const res = await apiFetch("/api/admin/uploads", {
-    method: "POST",
-    body: formData,
-  }).catch(() => null);
+export type AdminStats = {
+  days: number;
+  generatedAt: string;
+  kpis: {
+    total: { value: number; trend: number | null };
+    registrations: { value: number; trend: number | null };
+    inquiries: { value: number; trend: number | null };
+    enrolled: { value: number; trend: number | null };
+    conversionRate: number;
+    processingRate: number;
+    newClients: { value: number; trend: number | null };
+  };
+  series: { date: string; registrations: number; inquiries: number }[];
+  funnel: { status: string; count: number }[];
+  topFormations: { id: number; name: string; slug: string; accent: string; count: number }[];
+  profiles: { label: string; count: number }[];
+  availabilities: { label: string; count: number }[];
+  cities: { label: string; count: number }[];
+  followUps: {
+    afterHours: number;
+    total: number;
+    items: { id: string; createdAt: string; firstName: string; lastName: string; phone: string; email: string; profile: string; formations: string[] }[];
+  };
+};
+
+/** Statistiques du tableau de bord pour la période choisie (7, 30, 90 ou 365 jours). */
+export async function getStatsAction(days: number): Promise<AdminStats | null> {
+  const res = await apiFetch(`/api/admin/stats?days=${encodeURIComponent(String(days))}`).catch(() => null);
   if (res?.status === 401) redirect("/login?next=/admin");
-  if (!res?.ok) return { ok: false };
-  const data = await res.json() as { file: { url: string; type: string } };
-  revalidatePath("/admin");
-  revalidatePath("/");
-  return { ok: true, file: data.file };
+  return res?.ok ? ((await res.json()) as AdminStats) : null;
 }

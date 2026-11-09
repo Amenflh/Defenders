@@ -10,7 +10,7 @@ export const metadata: Metadata = { title: `Formation ${d.name}`, description: d
 
 export default async function Page() {
   const fallback = disciplines.football;
-  const res = await apiFetch("/api/content/formations/football");
+  const res = await apiFetch("/api/formations/football");
   if (!res.ok) return <DisciplinePage d={fallback} />;
   const data = await res.json() as { formation: FormationContent };
   return <DisciplinePage d={mergeFormationContent(fallback, data.formation)} />;
