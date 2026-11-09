@@ -28,6 +28,8 @@ export const createRegistrationSchema = z.object({
   availability: z.enum([...AVAILABILITIES, "non-precisee"], { error: "Veuillez choisir une disponibilité" }),
   message: z.string().trim().max(2000, "Message trop long (2000 caractères max)").optional().default(""),
   consent: z.literal(true, { error: "Vous devez accepter d'être recontacté" }),
+  /** Code de parrainage (lien /r/CODE) ; un code inconnu est ignoré sans bloquer la demande. */
+  referralCode: z.string().trim().max(16).optional(),
   /** Pièce jointe facultative (CV, diplôme…), transmise par e-mail uniquement, jamais stockée. */
   attachment: z
     .object({

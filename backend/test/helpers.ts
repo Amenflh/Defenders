@@ -14,7 +14,8 @@ export type Api = (path: string, options?: Options) => Promise<{ status: number;
 
 /** Vide les données de test (formations et réglages de référence conservés), puis recrée l'admin. */
 export async function resetDb(): Promise<void> {
-  await prisma.$executeRawUnsafe(`TRUNCATE chat_messages, conversations, registration_formations, registrations, auth_sessions, users RESTART IDENTITY CASCADE`);
+  await prisma.$executeRawUnsafe(`TRUNCATE payments, resources, chat_messages, conversations, registration_formations, registrations, auth_sessions, users RESTART IDENTITY CASCADE`);
+  await prisma.siteSetting.deleteMany({ where: { key: "paiements" } });
   await ensureSeedData();
 }
 
@@ -22,7 +23,15 @@ export async function resetDb(): Promise<void> {
  * Démarre l'API sur un port libre pour le fichier de test courant et renvoie un client HTTP minimal.
  * La base est remise à zéro avant les tests du fichier.
  */
-export function useApi(): { api: Api; adminToken: () => Promise<string>; clientToken: () => Promise<string> } {
+export function useApi(): {
+  api: Api;
+  /** URL complète (pour un envoi multipart ou une réponse binaire). */
+  url: (path: string) => string;
+  adminToken: () => Promise<string>;
+  clientToken: () => Promise<string>;
+  /** Crée un autre compte client et renvoie son jeton. */
+  newClient: (name: string, email: string) => Promise<string>;
+} {
   let base = "";
   let server: ReturnType<ReturnType<typeof createApp>["listen"]>;
 
@@ -65,8 +74,15 @@ export function useApi(): { api: Api; adminToken: () => Promise<string>; clientT
   let admin: string | undefined;
   let client: string | undefined;
 
+  const newClient = async (name: string, email: string) => {
+    const res = await api("/api/auth/register", { method: "POST", body: { name, email, phone: "+216 20 333 444", password: "Client-123" } });
+    return res.body.token as string;
+  };
+
   return {
     api,
+    url: (path: string) => base + path,
+    newClient,
     adminToken: async () => {
       if (!admin) admin = (await api("/api/auth/login", { method: "POST", body: ADMIN })).body.token as string;
       return admin;

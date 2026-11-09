@@ -37,11 +37,11 @@ COPY prisma ./prisma
 COPY --from=build /app/src/assets ./src/assets
 
 # Dossier des fichiers téléversés (volume Docker), accessible à l'utilisateur node
-RUN mkdir -p /app/uploads && chown node:node /app/uploads
+RUN mkdir -p /app/uploads /app/private-uploads && chown node:node /app/uploads /app/private-uploads
 
 EXPOSE 4000
 HEALTHCHECK --interval=15s --timeout=3s --start-period=30s --retries=3 \
   CMD wget -qO- http://127.0.0.1:4000/api/health || exit 1
 # Le volume uploads peut être initialisé root par Docker ; corrige son propriétaire
 # avant de lancer les migrations et l'API avec l'utilisateur non-root.
-CMD ["sh", "-c", "mkdir -p /app/src/assets/uploads && chown node:node /app/src/assets/uploads && exec su-exec node sh -c 'npx prisma migrate deploy && node dist/server.js'"]
+CMD ["sh", "-c", "mkdir -p /app/src/assets/uploads /app/private-uploads && chown node:node /app/src/assets/uploads /app/private-uploads && exec su-exec node sh -c 'npx prisma migrate deploy && node dist/server.js'"]

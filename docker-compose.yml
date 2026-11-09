@@ -46,10 +46,15 @@ services:
       SMTP_USER: ${SMTP_USER:-}
       SMTP_PASS: ${SMTP_PASS:-}
       CONTACT_TO: ${CONTACT_TO:-ahannachi193@gmail.com}
+      KONNECT_API_KEY: ${KONNECT_API_KEY:-}
+      KONNECT_WALLET_ID: ${KONNECT_WALLET_ID:-}
+      KONNECT_API_URL: ${KONNECT_API_URL:-https://api.konnect.network/api/v2}
     volumes:
       # Images et vidéos téléversées depuis l'espace admin
       - uploads:/app/uploads
       - backend_uploads:/app/src/assets/uploads
+      # Ressources réservées aux inscrits : dossier privé, jamais servi publiquement
+      - private_uploads:/app/private-uploads
     depends_on:
       db:
         condition: service_healthy
@@ -93,5 +98,7 @@ volumes:
   # Données PostgreSQL (demandes de contact, admins, sessions).
   pgdata:
   backend_uploads:
+  # Supports de formation réservés aux stagiaires inscrits (téléchargés via l'API après contrôle d'accès).
+  private_uploads:
   # Images et vidéos téléversées (espace admin > Médias).
   uploads:

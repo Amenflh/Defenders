@@ -1,6 +1,7 @@
 import type { Prisma, RegistrationStatus } from "../../generated/prisma/client.js";
 import { NotFoundError, ValidationError } from "../../lib/errors.js";
 import { prisma } from "../../lib/prisma.js";
+import { referrerFor } from "../referrals/referrals.service.js";
 import type { CreateRegistrationInput } from "./registrations.schemas.js";
 
 /** Forme renvoyée par l'API (inchangée pour le frontend). */
@@ -22,7 +23,7 @@ export type RegistrationDto = {
 const include = { formations: { select: { formation: { select: { slug: true, position: true } } } } } satisfies Prisma.RegistrationInclude;
 type Row = Prisma.RegistrationGetPayload<{ include: typeof include }>;
 
-function toDto({ formations, userId: _userId, ...r }: Row): RegistrationDto {
+function toDto({ formations, userId: _userId, referrerId: _referrer, referralRewardGrantedAt: _reward, ...r }: Row): RegistrationDto {
   const trainings = formations.map((f) => f.formation).sort((a, b) => a.position - b.position).map((f) => f.slug);
   return { ...r, trainings };
 }
@@ -37,9 +38,10 @@ export async function createRegistration(input: CreateRegistrationInput, userId?
     throw new ValidationError({ trainings: ["Formation inconnue ou indisponible"] });
   }
 
-  const { trainings: _slugs, consent: _consent, attachment: _attachment, ...data } = input;
+  const { trainings: _slugs, consent: _consent, attachment: _attachment, referralCode, ...data } = input;
+  const referrerId = await referrerFor(referralCode, { userId, email: data.email });
   const row = await prisma.registration.create({
-    data: { ...data, userId, formations: { create: formations.map((f) => ({ formationId: f.id })) } },
+    data: { ...data, userId, referrerId, formations: { create: formations.map((f) => ({ formationId: f.id })) } },
     include,
   });
   return toDto(row);

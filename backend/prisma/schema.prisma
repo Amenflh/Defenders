@@ -30,10 +30,14 @@ model User {
   role         Role      @default(client)
   createdAt    DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
   lastLoginAt  DateTime? @map("last_login_at") @db.Timestamptz(6)
+  /// Code de parrainage personnel (lien /r/CODE), créé à la première demande.
+  referralCode String?   @unique @map("referral_code")
 
   authSessions  AuthSession[]
-  registrations Registration[]
+  registrations Registration[] @relation("RegistrationOwner")
+  referrals     Registration[] @relation("RegistrationReferrer")
   conversation  Conversation?
+  payments      Payment[]
 
   @@map("users")
 }
@@ -98,6 +102,7 @@ model Formation {
   trainers         FormationTrainer[]
   media            Media[]
   registrations    RegistrationFormation[]
+  resources        Resource[]
 
   @@index([status, position])
   @@map("formations")
@@ -181,25 +186,32 @@ enum RegistrationStatus {
 
 /// Demande d'inscription envoyée depuis le formulaire (liée au compte client si connecté).
 model Registration {
-  id           String             @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  createdAt    DateTime           @default(now()) @map("created_at") @db.Timestamptz(6)
-  firstName    String             @map("first_name")
-  lastName     String             @map("last_name")
-  email        String
-  phone        String
-  city         String             @default("")
-  profile      String
-  availability String
-  message      String             @default("")
-  status       RegistrationStatus @default(nouveau)
-  userId       Int?               @map("user_id")
+  id                      String             @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  createdAt               DateTime           @default(now()) @map("created_at") @db.Timestamptz(6)
+  firstName               String             @map("first_name")
+  lastName                String             @map("last_name")
+  email                   String
+  phone                   String
+  city                    String             @default("")
+  profile                 String
+  availability            String
+  message                 String             @default("")
+  status                  RegistrationStatus @default(nouveau)
+  userId                  Int?               @map("user_id")
+  /// Parrain : client dont le lien /r/CODE a amené cette demande.
+  referrerId              Int?               @map("referrer_id")
+  /// Date à laquelle l'équipe a versé le bonus de parrainage (null = pas encore versé).
+  referralRewardGrantedAt DateTime?          @map("referral_reward_granted_at") @db.Timestamptz(6)
 
-  user       User?                   @relation(fields: [userId], references: [id], onDelete: SetNull)
+  user       User?                   @relation("RegistrationOwner", fields: [userId], references: [id], onDelete: SetNull)
+  referrer   User?                   @relation("RegistrationReferrer", fields: [referrerId], references: [id], onDelete: SetNull)
   formations RegistrationFormation[]
+  payments   Payment[]
 
   @@index([createdAt(sort: Desc)])
   @@index([status])
   @@index([userId])
+  @@index([referrerId])
   @@map("registrations")
 }
 
@@ -307,4 +319,65 @@ model ChatMessage {
 
   @@index([conversationId, id])
   @@map("chat_messages")
+}
+
+// ───────────────────────────── Paiement de l'acompte ─────────────────────────────
+
+enum PaymentStatus {
+  pending
+  paid
+  failed
+}
+
+/// Paiement en ligne de l'acompte d'une demande d'inscription (Konnect, ou simulation en développement).
+model Payment {
+  id             String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  registrationId String        @map("registration_id") @db.Uuid
+  userId         Int?          @map("user_id")
+  amountMillimes Int           @map("amount_millimes")
+  status         PaymentStatus @default(pending)
+  provider       String
+  /// Référence du prestataire (payment_ref Konnect) : unique, sert à rapprocher le webhook.
+  providerRef    String?       @unique @map("provider_ref")
+  createdAt      DateTime      @default(now()) @map("created_at") @db.Timestamptz(6)
+  paidAt         DateTime?     @map("paid_at") @db.Timestamptz(6)
+
+  registration Registration @relation(fields: [registrationId], references: [id], onDelete: Restrict)
+  user         User?        @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([registrationId])
+  @@index([createdAt(sort: Desc)])
+  @@map("payments")
+}
+
+// ───────────────────────────── Ressources réservées aux inscrits ─────────────────────────────
+
+enum ResourceKind {
+  file
+  link
+}
+
+/// Support pédagogique (PDF, vidéo, image ou lien) visible seulement des stagiaires inscrits.
+model Resource {
+  id           Int          @id @default(autoincrement())
+  title        String
+  description  String       @default("")
+  kind         ResourceKind
+  /// Formation concernée ; null = tous les stagiaires inscrits.
+  formationId  Int?         @map("formation_id")
+  /// Fichier privé (hors du dossier public) : nom stocké, nom d'origine, type et taille.
+  storedName   String?      @map("stored_name")
+  originalName String?      @map("original_name")
+  mime         String?
+  size         Int?
+  /// Lien externe (kind = link).
+  url          String?
+  position     Int          @default(0)
+  active       Boolean      @default(true)
+  createdAt    DateTime     @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  formation Formation? @relation(fields: [formationId], references: [id], onDelete: SetNull)
+
+  @@index([formationId, position])
+  @@map("resources")
 }
