@@ -50,7 +50,8 @@ export function ContactForm({
   availableTrainings?: { value: string; label: string; dot?: string }[];
   /** Coordonnées du client connecté, pour pré-remplir le formulaire. */
   defaults?: ContactDefaults;
-  variant?: "classic" | "reservation" | "inquiry";
+  /** quick : inscription express (après une vidéo) — mêmes champs, sans message ni pièce jointe. */
+  variant?: "classic" | "reservation" | "inquiry" | "quick";
   onSuccess?: (message: string) => void;
   inquiryCopy?: ContactInquiryCopy;
 }) {
@@ -88,7 +89,7 @@ export function ContactForm({
 
   return (
     // La clé change à chaque envoi : le formulaire est remonté avec les valeurs renvoyées.
-    <form key={state.attempt} action={action} noValidate encType="multipart/form-data" className="space-y-10">
+    <form key={state.attempt} action={action} noValidate className="space-y-10">
       {state.status === "error" && (
         <div ref={statusRef} tabIndex={-1} role="alert" className="border border-red-500/50 bg-red-500/10 px-5 py-4 text-sm text-red-200 outline-none">
           {state.message}
@@ -163,6 +164,8 @@ export function ContactForm({
             </div>
           </Fieldset>
 
+          {variant !== "quick" && (
+          <>
           <Fieldset legend="5. Votre message" hint="Facultatif">
             <label htmlFor="message" className="sr-only">Message</label>
             <textarea id="message" name="message" rows={5} maxLength={2000} defaultValue={val("message")} placeholder="Vos questions, votre expérience, vos objectifs…" className="w-full border border-line bg-ink px-4 py-3 text-bone placeholder:text-mist/50 focus:border-gold focus:outline-none" />
@@ -173,6 +176,8 @@ export function ContactForm({
             <label htmlFor="attachment" className="sr-only">Pièce jointe</label>
             <input id="attachment" name="attachment" type="file" accept=".pdf,.jpg,.jpeg,.png,application/pdf,image/jpeg,image/png" className="block w-full border border-line bg-ink px-4 py-3 text-sm text-mist file:mr-4 file:border-0 file:bg-gold file:px-4 file:py-2 file:font-display file:text-xs file:uppercase file:text-ink" />
           </Fieldset>
+          </>
+          )}
         </>
       )}
 
@@ -185,7 +190,7 @@ export function ContactForm({
       </div>
 
       <button type="submit" disabled={pending} className="btn btn-primary w-full disabled:cursor-wait disabled:opacity-60 sm:w-auto">
-        {pending ? "Envoi en cours…" : variant === "inquiry" ? inquiryCopy.submitLabel || "Envoyer mon message" : "Envoyer ma demande"}
+        {pending ? "Envoi en cours…" : variant === "inquiry" ? inquiryCopy.submitLabel || "Envoyer mon message" : variant === "quick" ? "Je m'inscris" : "Envoyer ma demande"}
         {!pending && <Icon name="arrow" />}
       </button>
     </form>

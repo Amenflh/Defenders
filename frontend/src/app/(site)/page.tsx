@@ -10,7 +10,9 @@ import { site } from "@/lib/site";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { AnimatedAccent } from "@/components/AnimatedAccent";
 import { BannerMarquee } from "@/components/BannerMarquee";
-import { apiFetch } from "@/lib/session";
+import { trainingOptions } from "@/lib/formations";
+import { apiFetch, getContactDefaults } from "@/lib/session";
+import { VideoShowcase } from "@/components/VideoShowcase";
 import { getSiteSettings } from "@/lib/settings";
 import { PartnersMarquee, type PublicPartner } from "@/components/PartnersMarquee";
 import { HomeContactButton } from "@/components/HomeContactButton";
@@ -115,7 +117,7 @@ const faqs = [
 export default async function HomePage({ searchParams }: PageProps<"/">) {
   const params = await searchParams;
   const inscriptionSuccess = params.inscription === "success";
-  const settings = await getSiteSettings();
+  const [settings, contactDefaults] = await Promise.all([getSiteSettings(), getContactDefaults()]);
   const [faqRes, testimonialRes, promotionsRes, mediaRes, formationsRes, partnersRes] = await Promise.all([
     apiFetch("/api/content/items/faq"),
     apiFetch("/api/content/items/testimonials"),
@@ -328,30 +330,14 @@ export default async function HomePage({ searchParams }: PageProps<"/">) {
             <p className="eyebrow mb-3">Vidéos</p>
             <h2 className="heading-lg">Au cœur de nos formations</h2>
           </Reveal>
-          <div className="mx-auto grid max-w-4xl gap-6 md:grid-cols-2">
-            {(videosCms.length > 0 ? videosCms.map((video) => ({ title: video.title || "Vidéo Defenders", src: video.url })) : [
+          <VideoShowcase
+            videos={videosCms.length > 0 ? videosCms.map((video) => ({ title: video.title || "Vidéo Defenders", src: video.url, category: video.category })) : [
               { title: "Une équipe, une formation", src: "/videos/1-Video by defenders_fitness_academy.mp4" },
-              { title: "Pilates Matwork & Reformer", src: "/videos/2-Video by defenders_fitness_academy.mp4" },
-            ]).map((video, index) => (
-              <Reveal key={video.src} delay={index * 120}>
-                <figure className="mx-auto w-full max-w-[440px] overflow-hidden border border-line bg-ink-2">
-                  <video
-                    src={video.src}
-                    autoPlay
-                    loop
-                    muted
-                    playsInline
-                    preload="metadata"
-                    controls
-                    className="mx-auto block max-h-[360px] w-full bg-black object-contain"
-                  />
-                  <figcaption className="px-5 py-4 font-display text-sm uppercase text-gold-soft">
-                    {video.title}
-                  </figcaption>
-                </figure>
-              </Reveal>
-            ))}
-          </div>
+              { title: "Pilates Matwork & Reformer", src: "/videos/2-Video by defenders_fitness_academy.mp4", category: "pilates" },
+            ]}
+            trainings={formationsCms.length ? trainingOptions(formationsCms) : undefined}
+            defaults={contactDefaults}
+          />
         </div>
       </section>
 

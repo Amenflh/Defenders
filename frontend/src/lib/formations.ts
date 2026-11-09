@@ -77,3 +77,9 @@ export function keyFacts(f: Formation): { label: string; value: string }[] {
 /** Version légère pour les composants client (formulaire, planning, pied de page). */
 export type FormationOption = { slug: string; name: string; accent: Accent };
 export const toOptions = (list: Formation[]): FormationOption[] => list.map((f) => ({ slug: f.slug, name: f.name, accent: visualFor(f.slug).accent }));
+
+/** Cases « formation » des formulaires d'inscription (page Contact, inscription express après une vidéo). */
+export function trainingOptions(formations: { slug: string; name: string; accent?: string | null }[]) {
+  const dots: Record<string, string> = { pilates: "bg-pilates", football: "bg-football", personal: "bg-personal" };
+  return formations.map((f) => ({ value: f.slug, label: f.name, dot: dots[f.accent ?? ""] ?? "bg-gold" }));
+}

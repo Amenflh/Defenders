@@ -69,3 +69,11 @@ export const homeFor = (role: Role) => (role === "admin" ? "/admin" : "/");
 export function safeNext(next: unknown): string | null {
   return typeof next === "string" && next.startsWith("/") && !next.startsWith("//") && !next.startsWith("/\\") ? next : null;
 }
+
+/** Coordonnées du client connecté, pour pré-remplir les formulaires d'inscription ({} sinon). */
+export async function getContactDefaults(): Promise<Partial<Record<"firstName" | "lastName" | "email" | "phone", string>>> {
+  const user = await getCurrentUser();
+  if (!user || user === "unavailable" || user.role !== "client") return {};
+  const [firstName, ...rest] = user.name.trim().split(/\s+/);
+  return { firstName, lastName: rest.join(" "), email: user.email, phone: user.phone };
+}

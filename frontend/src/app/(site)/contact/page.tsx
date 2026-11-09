@@ -3,7 +3,8 @@ import Image from "next/image";
 import { Icon } from "@/components/Icon";
 import { PageIntro } from "@/components/PageIntro";
 import { brand } from "@/lib/images";
-import { apiFetch, getCurrentUser } from "@/lib/session";
+import { trainingOptions } from "@/lib/formations";
+import { apiFetch, getContactDefaults } from "@/lib/session";
 import { site } from "@/lib/site";
 import { ContactForm, type ContactDefaults } from "./ContactForm";
 import { ContactPopup } from "./ContactPopup";
@@ -21,23 +22,12 @@ export default async function ContactPage({ searchParams }: PageProps<"/contact"
   const formations = formationsRes.ok
     ? ((await formationsRes.json()) as { formations: { slug: string; name: string; accent?: string }[] }).formations
     : [];
-  const availableTrainings = formations.length
-    ? formations.map((item) => ({
-        value: item.slug,
-        label: item.name,
-        dot: ({ pilates: "bg-pilates", football: "bg-football", personal: "bg-personal" } as Record<string, string>)[item.accent ?? ""] ?? "bg-gold",
-      }))
-    : undefined;
+  const availableTrainings = formations.length ? trainingOptions(formations) : undefined;
   const preselected = formations.some((item) => item.slug === formation) ? formation : undefined;
   const popupMode = popup === "1";
 
   // Client connecté : coordonnées pré-remplies depuis son compte.
-  const user = await getCurrentUser();
-  let defaults: ContactDefaults = {};
-  if (user && user !== "unavailable" && user.role === "client") {
-    const [firstName, ...rest] = user.name.trim().split(/\s+/);
-    defaults = { firstName, lastName: rest.join(" "), email: user.email, phone: user.phone };
-  }
+  const defaults: ContactDefaults = await getContactDefaults();
 
   const contacts = [
     { icon: "pin" as const, label: "Adresse", value: site.address.lines.join(", "), href: site.address.href, external: true },
