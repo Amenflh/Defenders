@@ -48,6 +48,8 @@ export const config = {
     dir: resolve(process.env.UPLOAD_DIR ?? "uploads"),
     maxImageMb: toInt(process.env.MAX_IMAGE_MB, 5),
     maxVideoMb: toInt(process.env.MAX_VIDEO_MB, 100),
+    /** Ressources réservées aux inscrits : HORS du dossier public, servies seulement après contrôle d'accès. */
+    privateDir: resolve(process.env.PRIVATE_UPLOAD_DIR ?? "private-uploads"),
   },
   /** Durée de validité d'une session (et du JWT correspondant). */
   sessionTtlHours: toInt(process.env.SESSION_TTL_HOURS, 12),
@@ -57,6 +59,17 @@ export const config = {
     password: process.env.ADMIN_PASSWORD,
     name: process.env.ADMIN_NAME ?? "Administrateur",
   },
+  /**
+   * Paiement en ligne de l'acompte (Konnect, passerelle tunisienne : carte, wallet, e-DINAR).
+   * Sans clé : mode « simulation » en développement, paiement désactivé en production.
+   */
+  konnect: {
+    apiKey: process.env.KONNECT_API_KEY ?? "",
+    walletId: process.env.KONNECT_WALLET_ID ?? "",
+    /** Bac à sable par défaut ; production : https://api.konnect.network/api/v2 */
+    apiUrl: (process.env.KONNECT_API_URL ?? "https://api.sandbox.konnect.network/api/v2").replace(/\/+$/, ""),
+  },
+  isProduction: process.env.NODE_ENV === "production",
   smtp: {
     host: process.env.SMTP_HOST ?? "smtp.gmail.com",
     port: toInt(process.env.SMTP_PORT, 587),

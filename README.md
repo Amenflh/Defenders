@@ -74,6 +74,14 @@ Spécification brute : `/api/docs/openapi.json`. En production, activer avec `AP
 | GET | `/api/me/chat/unread` | Réponses non lues du client |
 | GET | `/api/admin/chat` · `/api/admin/chat/unread` | Conversations avec aperçu et non-lus · total non lu (admin) |
 | GET · POST | `/api/admin/chat/:id?after=` | Fil d'une conversation (marque lu) · réponse (admin) |
+| GET | `/api/payments/config` | Paiement en ligne disponible, montant de l'acompte, mode `konnect` ou `simulation` |
+| GET · POST | `/api/me/payments` | Mes paiements · payer l'acompte d'une demande → `payUrl` (payé = statut `inscrit`) |
+| POST | `/api/payments/verify` | Vérifie un paiement auprès de Konnect puis l'enregistre (idempotent) |
+| GET | `/api/me/referral` · `/api/referrals/:code` | Mon lien, mes filleuls et bonus · prénom du parrain d'un lien |
+| GET | `/api/me/resources` · `/api/me/resources/:id/file` | Supports (verrouillés si non inscrit) · fichier après contrôle d'accès |
+| GET | `/api/admin/payments` · `/api/admin/referrals` | Paiements et total encaissé · parrainages et bonus à verser (admin) |
+| PATCH | `/api/admin/referrals/:registrationId` | Marquer le bonus de parrainage comme versé (admin) |
+| GET · POST · PATCH · DELETE | `/api/admin/resources[/:id]` | Supports réservés aux inscrits : fichier privé ou lien (admin) |
 
 **Authentification** : `Authorization: Bearer <JWT>`. Le JWT (HS256, signé avec `JWT_SECRET`) contient
 `sub`, `role`, `jti`, `iat`, `exp`, `iss`, `aud` ; il expire après `SESSION_TTL_HOURS` et est révocable :
@@ -236,6 +244,25 @@ cd ../backend && npm run typecheck && npm test && npm run build
 docker compose ps
 curl http://localhost:4000/api/health
 ```
+
+## Acompte en ligne, parrainage et ressources
+
+**Acompte (Konnect)** : dans « Mon espace », chaque demande non confirmée propose « Payer l'acompte ».
+- Le stagiaire paie sur la page sécurisée de Konnect (carte bancaire, wallet, e-DINAR).
+- Konnect appelle ensuite `SITE_URL/paiement/retour`, et l'API redemande le statut réel à Konnect avant de valider.
+- Une fois payé, la demande passe au statut « Inscrit », le stagiaire et l'équipe reçoivent un e-mail, et ses supports se débloquent.
+- Configuration : `KONNECT_API_KEY` et `KONNECT_WALLET_ID` (tableau de bord Konnect) ; `KONNECT_API_URL` vaut le bac à sable par défaut. En production, `SITE_URL` doit être public et en HTTPS.
+- Sans clé, en développement, une page de paiement **simulée** permet de tester tout le parcours. En production sans clé, le paiement en ligne est désactivé.
+- Le montant de l'acompte se règle dans l'admin, onglet Paiements (0 = désactivé).
+
+**Parrainage** : chaque client a un lien `/r/CODE` dans son espace.
+- Le code est gardé 30 jours (cookie) et joint à sa prochaine demande. L'auto-parrainage et les codes inconnus sont ignorés.
+- Quand le filleul passe « Inscrit », le parrain gagne le bonus réglé dans l'onglet Paiements.
+- L'équipe suit les parrainages et marque les bonus versés dans l'onglet Parrainage.
+
+**Ressources** : dans l'admin, onglet Ressources, on ajoute des PDF, images, vidéos ou liens, par formation ou pour tous les inscrits.
+- Les fichiers sont stockés dans `private-uploads/` (variable `PRIVATE_UPLOAD_DIR`, volume Docker `private_uploads`), jamais servis publiquement.
+- Un stagiaire inscrit les ouvre via `/mon-espace/ressources/:id`, après contrôle d'accès par l'API. Les autres clients voient les titres sous cadenas.
 
 ## Tests
 

@@ -17,6 +17,9 @@ import {
 import { cmsAdminRoutes, cmsPublicRoutes } from "./modules/cms/cms.routes.js";
 import { cmsUploadsStatic, uploadRoutes } from "./modules/uploads/upload.routes.js";
 import { adminChatRoutes, myChatRoutes } from "./modules/chat/chat.routes.js";
+import { adminPaymentsRoutes, myPaymentsRoutes, paymentsPublicRoutes } from "./modules/payments/payments.routes.js";
+import { adminReferralRoutes, myReferralRoutes, referralsPublicRoutes } from "./modules/referrals/referrals.routes.js";
+import { adminResourceRoutes, myResourceRoutes } from "./modules/resources/resources.routes.js";
 
 export function createApp() {
   const app = express();
@@ -47,6 +50,14 @@ export function createApp() {
   app.use("/api/me/inscriptions", myRegistrationRoutes);
   app.use("/api/me/chat", myChatRoutes);
   app.use("/api/admin/chat", adminChatRoutes);
+  app.use("/api/payments", paymentsPublicRoutes);
+  app.use("/api/me/payments", myPaymentsRoutes);
+  app.use("/api/admin/payments", adminPaymentsRoutes);
+  app.use("/api/referrals", referralsPublicRoutes);
+  app.use("/api/me/referral", myReferralRoutes);
+  app.use("/api/admin/referrals", adminReferralRoutes);
+  app.use("/api/me/resources", myResourceRoutes);
+  app.use("/api/admin/resources", adminResourceRoutes);
   app.use("/api/content", cmsPublicRoutes);
   app.use("/api/admin/uploads", uploadRoutes);
   app.use("/api/admin", cmsAdminRoutes);

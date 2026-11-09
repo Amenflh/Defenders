@@ -2,15 +2,16 @@ import { backendUrl } from "@/lib/api";
 import { clientIp, getSessionToken } from "@/lib/session";
 
 /**
- * POST /admin/medias/upload?type=image|video|cms — relaie l'envoi d'un fichier vers l'API :
- *   image / video → /api/admin/media/… (onglet Médias) ; cms → /api/admin/uploads (tableau de bord).
+ * POST /admin/medias/upload?type=image|video|cms|resource — relaie l'envoi d'un fichier vers l'API :
+ *   image / video → /api/admin/media/… (onglet Médias) ; cms → /api/admin/uploads (tableau de bord) ;
+ *   resource → /api/admin/resources (supports réservés aux inscrits, stockés en privé).
  * Le corps (multipart) est transmis en flux continu, sans limite des Server Actions.
  * Le jeton reste côté serveur (cookie httpOnly) ; le rôle admin est vérifié par l'API.
  * Exclu du proxy (proxy.ts) : celui-ci mettrait le corps en mémoire au-delà de 10 Mo.
  */
 export async function POST(request: Request) {
   const type = new URL(request.url).searchParams.get("type");
-  const targets: Record<string, string> = { image: "/api/admin/media/images", video: "/api/admin/media/videos", cms: "/api/admin/uploads" };
+  const targets: Record<string, string> = { image: "/api/admin/media/images", video: "/api/admin/media/videos", cms: "/api/admin/uploads", resource: "/api/admin/resources" };
   const target = type ? targets[type] : undefined;
   if (!target) return Response.json({ error: "Type de média invalide" }, { status: 400 });
 

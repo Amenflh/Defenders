@@ -9,6 +9,9 @@ import { AVAILABILITY_LABELS, PROFILE_LABELS, STATUS_LABELS, TRAINING_LABELS, da
 import { StatusSelect } from "./StatusSelect";
 import { AnalyticsOverview } from "./AnalyticsOverview";
 import { ChatInbox } from "./ChatInbox";
+import { PaymentsManager } from "./PaymentsManager";
+import { ReferralsManager } from "./ReferralsManager";
+import { ResourcesManager } from "./ResourcesManager";
 import { getAdminUnreadAction } from "./chat-actions";
 import { followUpMessage, whatsappHref } from "@/lib/contact-links";
 import { toCsv } from "@/lib/csv";
@@ -63,7 +66,7 @@ function normalizeHomepageSections(value: unknown): HomepageSection[] {
   }).sort((a, b) => a.order - b.order).map((section, index) => ({ ...section, order: index }));
 }
 
-const TABS = ["aperçu", "messages", "demandes d'information", "inscriptions", "formations", "contenus", "médias", "partenaires", "paramètres & footer"];
+const TABS = ["aperçu", "messages", "demandes d'information", "inscriptions", "paiements", "parrainage", "ressources", "formations", "contenus", "médias", "partenaires", "paramètres & footer"];
 
 export function AdminDashboard({ stats, formations, media, cms, contacts = [], initialSettings = {}, userName = "Administrateur", userEmail = "", initialTab, initialUnreadMessages = 0 }: { initialTab?: string; initialUnreadMessages?: number; stats: AdminStats | null; formations: Formation[]; media: Media[]; cms: CmsItem[]; contacts?: Contact[]; initialSettings?: Record<string, unknown>; userName?: string; userEmail?: string }) {
   const [tab, setTab] = useState(initialTab && TABS.includes(initialTab) ? initialTab : "aperçu");
@@ -156,6 +159,9 @@ export function AdminDashboard({ stats, formations, media, cms, contacts = [], i
         <main className="min-w-0 bg-ink px-4 py-8 sm:px-8 lg:px-10">
           {tab === "aperçu" && <AnalyticsOverview initialStats={stats} onOpenTab={setTab} />}
           {tab === "messages" && <ChatInbox onUnreadChange={setUnreadMessages} />}
+          {tab === "paiements" && <PaymentsManager />}
+          {tab === "parrainage" && <ReferralsManager />}
+          {tab === "ressources" && <ResourcesManager formations={formations.map((f) => ({ id: f.id, name: f.name }))} />}
           {tab === "demandes d'information" && <ContactsManager contacts={contacts} type="inquiry" />}
           {tab === "inscriptions" && <ContactsManager contacts={contacts} type="registration" />}
           {tab === "contenus" && <ContentManager cms={cms.filter((item) => ["faq", "testimonials", "promotions"].includes(item.section))} />}
