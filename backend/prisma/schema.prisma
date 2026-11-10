@@ -95,6 +95,8 @@ model Formation {
   coverUrl      String?         @map("cover_url")
   galleryUrls   Json            @default("[]") @map("gallery_urls")
   accent        String          @default("gold")
+  /// Date unique de la prochaine session (affichée dans le planning).
+  nextSessionDate DateTime?     @map("next_session_date") @db.Date
   createdAt     DateTime        @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt     DateTime        @updatedAt @map("updated_at") @db.Timestamptz(6)
 
@@ -202,6 +204,8 @@ model Registration {
   referrerId              Int?               @map("referrer_id")
   /// Date à laquelle l'équipe a versé le bonus de parrainage (null = pas encore versé).
   referralRewardGrantedAt DateTime?          @map("referral_reward_granted_at") @db.Timestamptz(6)
+  /// Date à laquelle le candidat a confirmé avoir lu le règlement intérieur.
+  rulesAcceptedAt         DateTime?          @map("rules_accepted_at") @db.Timestamptz(6)
 
   user       User?                   @relation("RegistrationOwner", fields: [userId], references: [id], onDelete: SetNull)
   referrer   User?                   @relation("RegistrationReferrer", fields: [referrerId], references: [id], onDelete: SetNull)

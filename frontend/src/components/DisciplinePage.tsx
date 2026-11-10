@@ -4,28 +4,35 @@ import type { Discipline } from "@/lib/disciplines";
 import { disciplineList } from "@/lib/disciplines";
 import { mergeFormationContent, type FormationContent } from "@/lib/formation-content";
 import { apiFetch } from "@/lib/session";
+import { localizeFormation } from "@/lib/formation-i18n";
+import { getDictionary } from "@/lib/i18n/server";
+import { accentClassFor } from "@/lib/formation-visuals";
+import { FormationHighlights, FormationHistoryLink } from "./FormationExtras";
 import { Icon } from "./Icon";
 import { Reveal } from "./Reveal";
 
-export async function DisciplinePage({ d }: { d: Discipline }) {
+export async function DisciplinePage({ d: source }: { d: Discipline }) {
+  const { locale, t } = await getDictionary();
+  const p = t.pages.formation;
+  const d = localizeFormation(source, locale);
   const [hero, ...gallery] = d.photos;
   const relatedRes = await apiFetch("/api/formations");
   const others = relatedRes.ok
     ? (((await relatedRes.json()) as { formations: FormationContent[] }).formations)
         .filter((formation) => formation.slug !== d.slug)
-        .map((formation) => mergeFormationContent(undefined, formation))
-    : disciplineList.filter((formation) => formation.slug !== d.slug);
+        .map((formation) => localizeFormation(mergeFormationContent(undefined, formation), locale))
+    : disciplineList.filter((formation) => formation.slug !== d.slug).map((formation) => localizeFormation(formation, locale));
 
   return (
-    <>
+    <div className={accentClassFor(d.slug)}>
       {/* -------- Héro -------- */}
       <section className="relative overflow-hidden pt-32 pb-20 lg:pt-40 lg:pb-28">
         <div className={`pointer-events-none absolute -top-40 -right-40 size-[36rem] rounded-full ${d.accent.bg} opacity-10 blur-3xl`} />
         <div className="container-site grid items-center gap-14 lg:grid-cols-2">
           <div>
             <Reveal>
-              <nav aria-label="Fil d'Ariane" className="mb-6 text-xs tracking-[0.2em] text-mist uppercase">
-                <Link href="/" className="hover:text-bone">Accueil</Link> <span aria-hidden="true">/</span>{" "}
+              <nav aria-label={p.breadcrumb} className="mb-6 text-xs tracking-[0.2em] text-mist uppercase">
+                <Link href="/" className="hover:text-bone">{t.nav.home}</Link> <span aria-hidden="true">/</span>{" "}
                 <span className={d.accent.text}>{d.name}</span>
               </nav>
             </Reveal>
@@ -48,10 +55,10 @@ export async function DisciplinePage({ d }: { d: Discipline }) {
             </Reveal>
             <Reveal delay={320} className="mt-10 flex flex-wrap gap-4">
               <Link href={`/contact?formation=${d.slug}`} className="btn btn-primary">
-                S&apos;inscrire <Icon name="arrow" />
+                {t.common.register} <Icon name="arrow" className="rtl:-scale-x-100" />
               </Link>
-              <Link href={`/planning?discipline=${d.slug}`} className="btn btn-ghost">
-                <Icon name="calendar" /> Planning
+              <Link href="/planning" className="btn btn-ghost">
+                <Icon name="calendar" /> {t.nav.planning}
               </Link>
             </Reveal>
           </div>
@@ -65,12 +72,14 @@ export async function DisciplinePage({ d }: { d: Discipline }) {
         </div>
       </section>
 
+      <FormationHighlights slug={d.slug} />
+
       {/* -------- Présentation + objectifs -------- */}
       <section className="border-y border-line bg-ink-2 py-24">
         <div className="container-site grid gap-14 lg:grid-cols-2">
           <Reveal>
-            <p className="eyebrow mb-3">La formation</p>
-            <h2 className="heading-lg mb-6">Ce que vous allez apprendre</h2>
+            <p className="eyebrow mb-3">{p.theFormation}</p>
+            <h2 className="heading-lg mb-6">{p.whatYouLearn}</h2>
             <div className="space-y-4 text-lg leading-relaxed text-mist">
               {d.intro.map((p) => (
                 <p key={p.slice(0, 24)}>{p}</p>
@@ -78,7 +87,7 @@ export async function DisciplinePage({ d }: { d: Discipline }) {
             </div>
           </Reveal>
           <Reveal delay={120}>
-            <h3 className="mb-6 font-display text-2xl tracking-wide uppercase">Objectifs</h3>
+            <h3 className="mb-6 font-display text-2xl tracking-wide uppercase">{p.objectives}</h3>
             <ul className="space-y-4">
               {d.objectives.map((o) => (
                 <li key={o} className="flex gap-4 border-b border-line pb-4">
@@ -95,13 +104,13 @@ export async function DisciplinePage({ d }: { d: Discipline }) {
       <section className="py-24">
         <div className="container-site">
           <Reveal className="mb-12">
-            <p className="eyebrow mb-3">Programme</p>
-            <h2 className="heading-lg">Les modules</h2>
+            <p className="eyebrow mb-3">{p.programme}</p>
+            <h2 className="heading-lg">{p.modules}</h2>
           </Reveal>
           <ol className="grid gap-px overflow-hidden border border-line bg-line sm:grid-cols-2 lg:grid-cols-3">
             {d.modules.map((m, i) => (
               <Reveal as="li" key={m.title} delay={(i % 3) * 100} className="group bg-ink p-8 transition-colors hover:bg-ink-2">
-                <span className={`font-display text-sm tracking-[0.3em] ${d.accent.text}`}>MODULE 0{i + 1}</span>
+                <span className={`font-display text-sm tracking-[0.3em] ${d.accent.text}`}>{p.module.toUpperCase()} 0{i + 1}</span>
                 <h3 className="mt-3 font-display text-2xl tracking-wide uppercase">{m.title}</h3>
                 <p className="mt-3 text-sm leading-relaxed text-mist">{m.text}</p>
               </Reveal>
@@ -141,8 +150,8 @@ export async function DisciplinePage({ d }: { d: Discipline }) {
       <section className="bg-bone py-24 text-ink">
         <div className="container-site grid gap-10 md:grid-cols-2">
           {[
-            { title: "Public concerné", items: d.audience },
-            { title: "Débouchés", items: d.careers },
+            { title: p.audience, items: d.audience },
+            { title: p.careers, items: d.careers },
           ].map((col, i) => (
             <Reveal key={col.title} delay={i * 120}>
               <h2 className="mb-6 font-display text-3xl tracking-wide uppercase">{col.title}</h2>
@@ -158,13 +167,16 @@ export async function DisciplinePage({ d }: { d: Discipline }) {
         </div>
       </section>
 
+      {/* -------- Lien vers l'historique des sessions -------- */}
+      <FormationHistoryLink slug={d.slug} />
+
       {/* -------- Autres formations -------- */}
       <section className="py-24">
         <div className="container-site">
           <Reveal className="mb-10 flex flex-wrap items-end justify-between gap-6">
-            <h2 className="heading-lg">Découvrez aussi</h2>
+            <h2 className="heading-lg">{p.discoverAlso}</h2>
             <Link href={`/contact?formation=${d.slug}`} className="btn btn-primary">
-              Demander une inscription <Icon name="arrow" />
+              {p.requestRegistration} <Icon name="arrow" className="rtl:-scale-x-100" />
             </Link>
           </Reveal>
           <div className="grid gap-6 sm:grid-cols-2">
@@ -178,13 +190,13 @@ export async function DisciplinePage({ d }: { d: Discipline }) {
                     <h3 className="font-display text-2xl tracking-wide uppercase">{o.name}</h3>
                     <p className="mt-1 line-clamp-2 text-sm text-mist">{o.headline}</p>
                   </div>
-                  <Icon name="arrow" className="ml-auto shrink-0 transition-transform group-hover:translate-x-1" />
+                  <Icon name="arrow" className="ms-auto shrink-0 transition-transform group-hover:translate-x-1 rtl:-scale-x-100" />
                 </Link>
               </Reveal>
             ))}
           </div>
         </div>
       </section>
-    </>
+    </div>
   );
 }

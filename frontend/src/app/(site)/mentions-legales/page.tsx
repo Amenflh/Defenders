@@ -1,39 +1,36 @@
 import type { Metadata } from "next";
 import { PageIntro } from "@/components/PageIntro";
-import { site } from "@/lib/site";
+import { getDictionary } from "@/lib/i18n/server";
 import { getSiteSettings } from "@/lib/settings";
+import { site } from "@/lib/site";
 
-export const metadata: Metadata = {
-  title: "Mentions légales",
-  description: "Informations légales relatives au site Defenders Fitness Academy.",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const { t } = await getDictionary();
+  return { title: t.pages.legal.mentions.title, description: t.pages.legal.mentions.description };
+}
 
 export default async function LegalPage() {
-  const settings = await getSiteSettings();
-  const text = typeof settings.mentions === "string" && settings.mentions ? settings.mentions : "";
+  const [settings, { locale, t }] = await Promise.all([getSiteSettings(), getDictionary()]);
+  const L = t.pages.legal;
+  // Le texte personnalisé dans l'admin est rédigé en français : il n'est affiché qu'en français.
+  const text = locale === "fr" && typeof settings.mentions === "string" && settings.mentions ? settings.mentions : "";
   return (
     <>
-      <PageIntro eyebrow="Informations légales" title="Mentions légales" />
+      <PageIntro eyebrow={L.eyebrow} title={L.mentions.title} />
       <section className="py-16 lg:py-20">
         <article className="container-site max-w-4xl space-y-8 text-sm leading-7 text-mist">
           {text ? <p className="whitespace-pre-line">{text}</p> : (
             <>
-          <LegalSection title="Éditeur du site">
-            <p>{site.name}<br />{site.address.lines.join(" — ")}</p>
-          </LegalSection>
-          <LegalSection title="Contact">
-            <p><a href={site.phone.href} className="text-bone hover:text-gold">{site.phone.label}</a><br />
-              <a href={site.email.href} className="text-bone hover:text-gold">{site.email.label}</a></p>
-          </LegalSection>
-          <LegalSection title="Activité">
-            <p>Centre de formation certifié. {site.approval}. Les contenus pédagogiques et les prochaines sessions doivent être confirmés directement auprès de l&apos;académie.</p>
-          </LegalSection>
-          <LegalSection title="Propriété intellectuelle">
-            <p>Les textes, photographies, vidéos, marques et éléments graphiques présents sur ce site sont protégés. Toute reproduction ou exploitation non autorisée est interdite.</p>
-          </LegalSection>
-          <LegalSection title="Responsabilité">
-            <p>Les informations du site sont fournies à titre informatif. L&apos;académie peut les modifier ou les actualiser sans préavis. Les horaires et tarifs exacts sont confirmés auprès de l&apos;équipe.</p>
-          </LegalSection>
+              <LegalSection title={L.mentions.publisher}>
+                <p>{site.name}<br />{site.address.lines.join(" — ")}</p>
+              </LegalSection>
+              <LegalSection title={L.mentions.contact}>
+                <p><a href={site.phone.href} className="text-bone hover:text-gold" dir="ltr">{site.phone.label}</a><br />
+                  <a href={site.email.href} className="text-bone hover:text-gold">{site.email.label}</a></p>
+              </LegalSection>
+              {L.mentions.sections.map(([title, body]) => (
+                <LegalSection key={title} title={title}><p>{body}</p></LegalSection>
+              ))}
             </>
           )}
         </article>

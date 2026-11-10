@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { ContactForm, type ContactDefaults } from "@/app/(site)/contact/ContactForm";
 import { Reveal } from "./Reveal";
+import { useI18n } from "@/lib/i18n/client";
 import { Dialog, DialogClose, DialogContent, DialogTitle } from "./ui/dialog";
 
 export type ShowcaseVideo = { title: string; src: string; category?: string };
@@ -23,6 +24,7 @@ function guessFormation(video: ShowcaseVideo, trainings: Training[]): string | u
  */
 export function VideoShowcase({ videos, trainings, defaults }: { videos: ShowcaseVideo[]; trainings?: Training[]; defaults?: ContactDefaults }) {
   const [current, setCurrent] = useState<ShowcaseVideo | null>(null);
+  const v = useI18n().t.pages.video;
   const [phase, setPhase] = useState<"video" | "form">("video");
 
   const open = (video: ShowcaseVideo) => {
@@ -39,7 +41,7 @@ export function VideoShowcase({ videos, trainings, defaults }: { videos: Showcas
               type="button"
               onClick={() => open(video)}
               className="group mx-auto block w-full max-w-[440px] overflow-hidden border border-line bg-ink-2 text-left focus-visible:outline-2 focus-visible:outline-gold"
-              aria-label={`Regarder la vidéo « ${video.title} »`}
+              aria-label={v.watch(video.title)}
             >
               <span className="relative block bg-black">
                 <video src={video.src} autoPlay loop muted playsInline preload="metadata" aria-hidden="true" className="mx-auto block max-h-[360px] w-full object-contain transition duration-700 group-hover:scale-[1.02]" />
@@ -48,7 +50,7 @@ export function VideoShowcase({ videos, trainings, defaults }: { videos: Showcas
                   <span className="grid size-12 place-items-center rounded-full border border-bone/70 bg-ink/75 text-bone transition-transform group-hover:scale-110">
                     <span className="ml-0.5" aria-hidden="true">▶</span>
                   </span>
-                  <span className="text-xs tracking-[0.14em] text-bone uppercase">Regarder avec le son</span>
+                  <span className="text-xs tracking-[0.14em] text-bone uppercase">{v.withSound}</span>
                 </span>
               </span>
               <span className="block px-5 py-4 font-display text-sm uppercase text-gold-soft">{video.title}</span>
@@ -63,19 +65,19 @@ export function VideoShowcase({ videos, trainings, defaults }: { videos: Showcas
             <>
               <div className="sticky top-0 z-10 flex items-center justify-between gap-3 border-b border-line bg-ink-2 px-4 py-3 sm:px-6">
                 <DialogTitle className="min-w-0 truncate font-display text-sm uppercase tracking-[0.08em] text-bone">
-                  {phase === "video" ? current.title : "Inscription express"}
+                  {phase === "video" ? current.title : v.express}
                 </DialogTitle>
                 <div className="flex shrink-0 items-center gap-2">
                   {phase === "video" ? (
                     <button type="button" onClick={() => setPhase("form")} className="hidden border border-gold/60 px-3 py-1.5 text-[0.65rem] tracking-[0.14em] text-gold uppercase hover:bg-gold hover:text-ink sm:inline-block">
-                      Je m&apos;inscris
+                      {v.register}
                     </button>
                   ) : (
                     <button type="button" onClick={() => setPhase("video")} className="border border-line px-3 py-1.5 text-[0.65rem] tracking-[0.14em] text-mist uppercase hover:border-gold hover:text-bone">
-                      Revoir la vidéo
+                      {v.replay}
                     </button>
                   )}
-                  <DialogClose aria-label="Fermer" className="grid size-9 place-items-center border border-line text-xl text-mist hover:border-gold hover:text-bone">×</DialogClose>
+                  <DialogClose aria-label={v.close} className="grid size-9 place-items-center border border-line text-xl text-mist hover:border-gold hover:text-bone">×</DialogClose>
                 </div>
               </div>
 
@@ -92,10 +94,10 @@ export function VideoShowcase({ videos, trainings, defaults }: { videos: Showcas
                 />
               ) : (
                 <div className="px-5 py-6 animate-[fade-in_0.3s_ease] sm:px-7 sm:py-8">
-                  <p className="eyebrow mb-2">Vous avez aimé ?</p>
-                  <h2 className="font-display text-2xl tracking-wide uppercase sm:text-3xl">Réservez votre place</h2>
+                  <p className="eyebrow mb-2">{v.liked}</p>
+                  <h2 className="font-display text-2xl tracking-wide uppercase sm:text-3xl">{v.bookTitle}</h2>
                   <p className="mt-2 mb-8 max-w-xl text-sm text-mist">
-                    Laissez vos coordonnées : l&apos;équipe vous rappelle pour les prochaines dates et les modalités d&apos;inscription. Sans engagement.
+                    {v.bookText}
                   </p>
                   <ContactForm variant="quick" preselected={guessFormation(current, trainings ?? [])} availableTrainings={trainings} defaults={defaults} />
                 </div>

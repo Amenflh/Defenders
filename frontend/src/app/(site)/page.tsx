@@ -13,67 +13,24 @@ import { BannerMarquee } from "@/components/BannerMarquee";
 import { trainingOptions } from "@/lib/formations";
 import { apiFetch, getContactDefaults } from "@/lib/session";
 import { VideoShowcase } from "@/components/VideoShowcase";
-import { getSiteSettings } from "@/lib/settings";
+import { brandIdentity, getSiteSettings } from "@/lib/settings";
+import { getDictionary } from "@/lib/i18n/server";
+import type { Dictionary } from "@/lib/i18n/dictionaries";
+import { BranchesSection, HighlightsSection } from "@/components/AcademySections";
+import { accentClassFor } from "@/lib/formation-visuals";
+import { localizeFormation } from "@/lib/formation-i18n";
 import { PartnersMarquee, type PublicPartner } from "@/components/PartnersMarquee";
 import { HomeContactButton } from "@/components/HomeContactButton";
 
-const domain = (brandLabel: string, approval: string): StoryItem[] => [
-  {
-    id: "formation-continue",
-    label: "Formation continue",
-    title: "Se former tout au long de sa carrière",
-    body: (
-      <p>
-        {brandLabel} est un centre de formation continue : nous accompagnons les professionnels du sport à
-        chaque étape, de la première certification à la spécialisation, avec des formats intensifs pensés pour s&apos;intégrer
-        à une vie active.
-      </p>
-    ),
-    points: ["Formats intensifs sur quelques jours", "Hébergement inclus sur nos sessions résidentielles", "Petits groupes encadrés", "Contenus mis à jour en continu"],
-  },
-  {
-    id: "coaching-prive",
-    label: "Coaching privé",
-    title: "L'expertise du coaching individuel",
-    body: (
-      <p>
-        Le coaching privé exige plus qu&apos;un programme : il faut savoir évaluer, adapter, motiver et fidéliser. Nos
-        formations développent ces compétences pour que chaque coach offre un accompagnement réellement personnalisé.
-      </p>
-    ),
-    points: ["Évaluation et suivi du client", "Programmation individualisée", "Communication et relation client", "Développer son activité"],
-  },
-  {
-    id: "sciences-du-sport",
-    label: "Sciences du sport",
-    title: "La science au service de la performance",
-    body: (
-      <p>
-        Anatomie, biomécanique, physiologie de l&apos;effort, nutrition : chaque formation repose sur des bases scientifiques
-        solides, traduites en outils concrets et directement applicables sur le terrain.
-      </p>
-    ),
-    points: ["Anatomie & biomécanique", "Physiologie de l'effort", "Nutrition du sportif", "Prévention des blessures"],
-  },
-  {
-    id: "certification",
-    label: "Certification & emploi",
-    title: "Une certification qui ouvre des portes",
-    body: (
-      <p>
-        Centre de formation certifié ({approval}), nous combinons apprentissages théoriques, pratique et évaluation
-        pour préparer chaque stagiaire à transmettre ses compétences sur le terrain.
-      </p>
-    ),
-    points: ["Évaluations théoriques et pratiques", "Certificat en fin de parcours", "Accompagnement vers l'emploi", "Réseau de partenaires professionnels"],
-  },
-];
-
-const steps = [
-  { title: "Orientation", text: "L'équipe vous aide à choisir une discipline et une session adaptées à votre profil." },
-  { title: "Formation", text: "Un parcours intensif qui associe notions théoriques, pratique et mises en situation." },
-  { title: "Évaluation", text: "Chaque parcours se termine par une évaluation théorique et pratique." },
-];
+/** Domaines d'activité (bloc « À propos ») dans la langue active. */
+const domain = (t: Dictionary): StoryItem[] =>
+  t.home.domain.map((item, i) => ({
+    id: ["formation-continue", "coaching-prive", "sciences-du-sport", "certification"][i] ?? `domaine-${i}`,
+    label: item.label,
+    title: item.title,
+    body: <p>{item.body}</p>,
+    points: item.points,
+  }));
 
 const hiddenPromotionImages = new Set([
   "/pics/football_images/acc_images.jpg",
@@ -81,43 +38,20 @@ const hiddenPromotionImages = new Set([
   "/pics/personal_trainers/acc_images.jpg",
 ]);
 
-const HOME_SECTION_IDS = ["hero", "stats", "promotions", "about", "videos", "security", "formations", "method", "testimonials", "faq", "cta", "partners"] as const;
+/** Titres des vidéos d'origine (saisis en français dans l'admin), dans les trois langues. */
+const VIDEO_TITLES: Record<string, Record<"fr" | "en" | "ar", string>> = {
+  "Une équipe, une formation": { fr: "Une équipe, une formation", en: "One team, one course", ar: "فريق واحد، تكوين واحد" },
+};
 
-const faqs = [
-  {
-    question: "À qui s'adressent les formations ?",
-    answer: "Aux coachs qui souhaitent se spécialiser et aux jeunes diplômés en sciences du sport qui veulent développer des compétences pratiques. Contactez l'équipe pour vérifier les prérequis d'une session.",
-  },
-  {
-    question: "Que comprend la formation Pilates ?",
-    answer: "Les publications de l'académie présentent un parcours Matwork et Reformer, Level 1 & 2, sur 40 heures et 6 jours, avec anatomie, posture, pratique et support pédagogique. Les détails varient selon la session.",
-  },
-  {
-    question: "Quelles spécialités football sont proposées ?",
-    answer: "Les spécialités présentées par l'académie comprennent l'entraînement de football, la préparation physique, l'entraînement des gardiens et la direction technique ou sportive.",
-  },
-  {
-    question: "Une certification est-elle délivrée ?",
-    answer: `Les parcours comprennent une évaluation théorique et pratique, avec certificat en fin de formation (${site.approval}).`,
-  },
-  {
-    question: "Où ont lieu les sessions ?",
-    answer: "L'adresse de l'académie est à Hammamet. Le lieu de formation dépend de la session ; certaines annonces indiquent Nabeul ou Sunset Studio à Lac 1. Consultez le planning ou contactez l'équipe pour confirmer le lieu exact.",
-  },
-  {
-    question: "Les services de recrutement à l'étranger sont-ils payants ?",
-    answer: "Bayrak El Arab annonce des services gratuits pour les entretiens, les contrats et l'accompagnement. Les offres et recrutements dépendent du profil ; aucun emploi n'est garanti.",
-  },
-  {
-    question: "Comment connaître les tarifs et les prochaines dates ?",
-    answer: "Les tarifs et les places disponibles ne sont pas publiés de façon constante. Consultez le planning et contactez l'académie pour les informations à jour.",
-  },
-];
+const HOME_SECTION_IDS = ["hero", "stats", "promotions", "about", "videos", "security", "formations", "method", "testimonials", "faq", "cta", "partners", "branches", "highlights"] as const;
 
 export default async function HomePage({ searchParams }: PageProps<"/">) {
   const params = await searchParams;
   const inscriptionSuccess = params.inscription === "success";
-  const [settings, contactDefaults] = await Promise.all([getSiteSettings(), getContactDefaults()]);
+  const [settings, contactDefaults, { locale, t }] = await Promise.all([getSiteSettings(), getContactDefaults(), getDictionary()]);
+  const isFr = locale === "fr";
+  /** Texte personnalisé dans l'admin (en français) : utilisé seulement quand le site est affiché en français. */
+  const custom = (key: string, fallback: string) => (isFr && typeof settings[key] === "string" && settings[key] ? (settings[key] as string) : fallback);
   const [faqRes, testimonialRes, promotionsRes, mediaRes, formationsRes, partnersRes] = await Promise.all([
     apiFetch("/api/content/items/faq"),
     apiFetch("/api/content/items/testimonials"),
@@ -131,24 +65,23 @@ export default async function HomePage({ searchParams }: PageProps<"/">) {
   const promotionsCms = promotionsRes.ok ? ((await promotionsRes.json()) as { items: { id: number; title: string; subtitle: string; body: string; imageUrl: string; linkUrl: string }[] }).items : [];
   const visiblePromotions = promotionsCms.filter((promotion) => !hiddenPromotionImages.has(promotion.imageUrl));
   const videosCms = mediaRes.ok ? ((await mediaRes.json()) as { media: { id: number; type: string; url: string; title: string; category: string }[] }).media.filter((item) => item.type === "video") : [];
-  const formationsCms = formationsRes.ok ? ((await formationsRes.json()) as { formations: { id: number; slug: string; name: string; headline: string; summary: string; coverUrl?: string; accent?: string }[] }).formations : [];
+  const formationsCms = formationsRes.ok ? ((await formationsRes.json()) as { formations: { id: number; slug: string; name: string; headline: string; summary: string; coverUrl?: string; accent?: string }[] }).formations.map((formation) => localizeFormation(formation, locale)) : [];
   const partnersCms = partnersRes.ok ? ((await partnersRes.json()) as { items: PublicPartner[] }).items : [];
   const rotatingFormationNames = formationsCms.map((formation) => formation.name);
   const approval = typeof settings.approval === "string" && settings.approval ? settings.approval : site.approval;
-  const certificationLabel = typeof settings.certificationLabel === "string" && settings.certificationLabel ? settings.certificationLabel : "Centre de formation certifié";
-  const brandName = typeof settings.brandName === "string" && settings.brandName ? settings.brandName : site.shortName;
-  const brandDescriptor = typeof settings.brandDescriptor === "string" && settings.brandDescriptor ? settings.brandDescriptor : "Fitness Academy";
-  const heroDescription = typeof settings.heroDescription === "string" && settings.heroDescription ? settings.heroDescription : "Des formations certifiantes pour les coachs et les professionnels du sport.";
-  const heroLead = typeof settings.heroLead === "string" && settings.heroLead ? settings.heroLead : "Formez-vous en";
+  const certificationLabel = custom("certificationLabel", t.home.certification);
+  const { brandName, brandDescriptor } = brandIdentity(settings);
+  const heroDescription = custom("heroDescription", t.home.heroDescription);
+  const heroLead = custom("heroLead", t.home.heroLead);
   const stats = [
-    [typeof settings.statsDisciplines === "string" ? settings.statsDisciplines : "3", "Disciplines"],
-    [typeof settings.statsVideos === "string" ? settings.statsVideos : "2", "Vidéos"],
-    [typeof settings.statsPromotions === "string" ? settings.statsPromotions : "7+", "Promotions"],
-    [typeof settings.statsFacebook === "string" ? settings.statsFacebook : "5904+", "Abonnés Facebook"],
+    [typeof settings.statsDisciplines === "string" ? settings.statsDisciplines : "3", t.home.stats[0]],
+    [typeof settings.statsPromotions === "string" ? settings.statsPromotions : "7+", t.home.stats[1]],
+    [typeof settings.statsFacebook === "string" ? settings.statsFacebook : "5904+", t.home.stats[2]],
   ];
-  const visibleFaqs = faqsCms.length > 0
+  // La FAQ du CMS est rédigée en français ; dans les autres langues, la FAQ traduite est affichée.
+  const visibleFaqs = isFr && faqsCms.length > 0
     ? faqsCms.map((faq) => ({ question: faq.title, answer: faq.body }))
-    : faqs;
+    : t.home.faqs;
   const savedHomeSections = Array.isArray(settings.homepageSections) ? settings.homepageSections : [];
   const homepageSections = HOME_SECTION_IDS.map((id, index) => {
     const saved = savedHomeSections.find((section) => typeof section === "object" && section !== null && "id" in section && section.id === id);
@@ -162,16 +95,16 @@ export default async function HomePage({ searchParams }: PageProps<"/">) {
   const sectionEnabled = (id: typeof HOME_SECTION_IDS[number]) => homepageSections.find((section) => section.id === id)?.enabled ?? true;
   const inquiryCopy = {
     contactPopupEnabled: settings.contactPopupEnabled !== "false",
-    contactPopupButtonLabel: typeof settings.contactPopupButtonLabel === "string" && settings.contactPopupButtonLabel ? settings.contactPopupButtonLabel : "Nous contacter",
-    contactPopupTitle: typeof settings.contactPopupTitle === "string" && settings.contactPopupTitle ? settings.contactPopupTitle : "Nous contacter",
-    contactFirstNameLabel: typeof settings.contactFirstNameLabel === "string" && settings.contactFirstNameLabel ? settings.contactFirstNameLabel : "Prénom",
-    contactLastNameLabel: typeof settings.contactLastNameLabel === "string" && settings.contactLastNameLabel ? settings.contactLastNameLabel : "Nom",
-    contactEmailLabel: typeof settings.contactEmailLabel === "string" && settings.contactEmailLabel ? settings.contactEmailLabel : "E-mail",
-    contactPhoneLabel: typeof settings.contactPhoneLabel === "string" && settings.contactPhoneLabel ? settings.contactPhoneLabel : "Téléphone",
-    contactMessageLabel: typeof settings.contactMessageLabel === "string" && settings.contactMessageLabel ? settings.contactMessageLabel : "Votre message",
-    contactMessagePlaceholder: typeof settings.contactMessagePlaceholder === "string" && settings.contactMessagePlaceholder ? settings.contactMessagePlaceholder : "Comment pouvons-nous vous aider ?",
-    contactConsentText: typeof settings.contactConsentText === "string" && settings.contactConsentText ? settings.contactConsentText : "J'accepte que Defenders Fitness Academy utilise ces informations pour me recontacter au sujet de ma demande.",
-    contactSubmitLabel: typeof settings.contactSubmitLabel === "string" && settings.contactSubmitLabel ? settings.contactSubmitLabel : "Envoyer mon message",
+    contactPopupButtonLabel: custom("contactPopupButtonLabel", t.home.contactUs),
+    contactPopupTitle: custom("contactPopupTitle", t.home.contactUs),
+    contactFirstNameLabel: custom("contactFirstNameLabel", t.form.firstName),
+    contactLastNameLabel: custom("contactLastNameLabel", t.form.lastName),
+    contactEmailLabel: custom("contactEmailLabel", t.form.email),
+    contactPhoneLabel: custom("contactPhoneLabel", t.form.phone),
+    contactMessageLabel: custom("contactMessageLabel", t.form.step4.replace(/^\d+\.\s*/, "")),
+    contactMessagePlaceholder: custom("contactMessagePlaceholder", t.form.messagePlaceholder),
+    contactConsentText: custom("contactConsentText", t.form.consent),
+    contactSubmitLabel: custom("contactSubmitLabel", t.form.submit),
   };
   const contactButton = (className = "btn btn-ghost") => inquiryCopy.contactPopupEnabled
     ? <HomeContactButton
@@ -195,7 +128,7 @@ export default async function HomePage({ searchParams }: PageProps<"/">) {
     <>
       {inscriptionSuccess && (
         <div role="status" className="fixed bottom-5 left-1/2 z-[70] w-[calc(100%-2rem)] max-w-xl -translate-x-1/2 border border-gold bg-ink-2 px-5 py-4 text-center text-sm text-bone shadow-2xl">
-          Votre demande d&apos;inscription a bien été envoyée. Notre équipe vous recontactera prochainement.
+          {t.home.successToast}
         </div>
       )}
       <div className="flex flex-col">
@@ -240,12 +173,23 @@ export default async function HomePage({ searchParams }: PageProps<"/">) {
                 {heroLead} <span className="text-gold"><RotatingWord words={rotatingFormationNames.length ? rotatingFormationNames : ["Pilates", "Football", "Personal Training"]} /></span>
               </p>
             </Reveal>
+            <Reveal delay={350}>
+              <ul className="mt-6 flex flex-wrap gap-2" aria-label={t.branches.title}>
+                {site.branches.map((branch) => (
+                  <li key={branch.name}>
+                    <Link href={branch.href} className="inline-block border border-bone/25 bg-ink/40 px-3 py-1.5 text-[0.7rem] tracking-[0.14em] text-bone uppercase backdrop-blur-sm transition-colors hover:border-gold hover:text-gold">
+                      {branch.name}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </Reveal>
             <Reveal delay={400} className="mt-10 flex flex-wrap gap-4">
               <Link href="#formations" className="btn btn-primary">
-                Nos formations <Icon name="arrow" />
+                {t.home.ourFormations} <Icon name="arrow" className="rtl:-scale-x-100" />
               </Link>
               <Link href="/trouver-ma-formation" className="btn btn-ghost">
-                <Icon name="star" /> Trouver ma formation
+                <Icon name="star" /> {t.home.findFormation}
               </Link>
               {contactButton()}
             </Reveal>
@@ -257,14 +201,20 @@ export default async function HomePage({ searchParams }: PageProps<"/">) {
           href="#statistiques"
           className="absolute bottom-6 left-1/2 hidden -translate-x-1/2 flex-col items-center gap-2 text-[0.65rem] tracking-[0.3em] text-mist uppercase sm:flex"
         >
-          Défiler
+          {t.home.scroll}
           <span className="h-10 w-px animate-pulse bg-gradient-to-b from-gold to-transparent" />
         </a>
       </section>
 
+      {/* ---------------- LES 3 FILIÈRES ---------------- */}
+      <section id="filieres" style={{ order: sectionOrder("branches") }} hidden={!sectionEnabled("branches")} className="py-20 lg:py-24">
+        <BranchesSection t={t} />
+      </section>
+
       {/* ---------------- CHIFFRES ---------------- */}
       <section id="statistiques" style={{ order: sectionOrder("stats") }} hidden={!sectionEnabled("stats")} className="border-y border-line bg-ink-2 py-14">
-        <div className="container-site grid grid-cols-2 gap-px overflow-hidden border border-line bg-line lg:grid-cols-4">
+        <div className="container-site">
+        <div className="grid grid-cols-1 gap-px overflow-hidden border border-line bg-line sm:grid-cols-3">
           {stats.map(([value, label]) => (
             <div key={label} className="bg-ink-2 px-4 py-8 text-center sm:px-6 sm:py-10">
               <AnimatedAccent className="block font-display text-4xl text-gold sm:text-5xl">{value}</AnimatedAccent>
@@ -272,14 +222,20 @@ export default async function HomePage({ searchParams }: PageProps<"/">) {
             </div>
           ))}
         </div>
+        </div>
+      </section>
+
+      {/* ---------------- POINTS FORTS : MÉDECINS, EXCLUSIVITÉ ---------------- */}
+      <section id="engagements" style={{ order: sectionOrder("highlights") }} hidden={!sectionEnabled("highlights")} className="border-b border-line py-20 lg:py-24">
+        <HighlightsSection t={t} approval={approval} />
       </section>
 
       {/* ---------------- PROMOTIONS ---------------- */}
       <section id="galerie" style={{ order: sectionOrder("promotions") }} hidden={!sectionEnabled("promotions")} className="border-b border-line bg-ink-2 py-12 lg:py-16" aria-label="Promotions">
         <div className="container-site mb-8">
           <Reveal>
-            <p className="eyebrow mb-3">Promotions & certificats</p>
-            <h2 className="heading-lg">Moments marquants de nos formations</h2>
+            <p className="eyebrow mb-3">{t.home.promotionsEyebrow}</p>
+            <h2 className="heading-lg">{t.home.promotionsTitle}</h2>
           </Reveal>
         </div>
         {visiblePromotions.length > 0 ? (
@@ -310,16 +266,15 @@ export default async function HomePage({ searchParams }: PageProps<"/">) {
       <section id="a-propos" style={{ order: sectionOrder("about") }} hidden={!sectionEnabled("about")} className="py-24 lg:py-32">
         <div className="container-site">
           <Reveal className="mb-16 max-w-3xl lg:mb-8">
-            <p className="eyebrow mb-3">À propos de l&apos;académie</p>
+            <p className="eyebrow mb-3">{t.home.aboutEyebrow}</p>
             <h2 className="heading-lg">
-              Former les coachs <span className="text-gold">de demain</span>
+              {t.home.aboutTitle[0]} <span className="text-gold">{t.home.aboutTitle[1]}</span>
             </h2>
             <p className="mt-6 text-lg text-mist">
-              <strong className="font-medium text-bone">{brandName} {brandDescriptor}</strong> est un centre de formation continue
-              spécialisé en coaching privé et sciences du sport. Découvrez ce qui fait notre différence.
+              <strong className="font-medium text-bone">{brandName} {brandDescriptor}</strong> {t.home.aboutText}
             </p>
           </Reveal>
-          <ScrollStory items={domain(`${brandName} ${brandDescriptor}`.trim(), approval)} />
+          <ScrollStory items={domain(t)} />
         </div>
       </section>
 
@@ -327,12 +282,12 @@ export default async function HomePage({ searchParams }: PageProps<"/">) {
       <section style={{ order: sectionOrder("videos") }} hidden={!sectionEnabled("videos")} className="border-b border-line bg-ink py-20 lg:py-24" aria-label="Vidéos de l'académie">
         <div className="container-site">
           <Reveal className="mb-10 max-w-2xl">
-            <p className="eyebrow mb-3">Vidéos</p>
-            <h2 className="heading-lg">Au cœur de nos formations</h2>
+            <p className="eyebrow mb-3">{t.home.videosEyebrow}</p>
+            <h2 className="heading-lg">{t.home.videosTitle}</h2>
           </Reveal>
           <VideoShowcase
-            videos={videosCms.length > 0 ? videosCms.map((video) => ({ title: video.title || "Vidéo Defenders", src: video.url, category: video.category })) : [
-              { title: "Une équipe, une formation", src: "/videos/1-Video by defenders_fitness_academy.mp4" },
+            videos={videosCms.length > 0 ? videosCms.map((video) => ({ title: VIDEO_TITLES[video.title]?.[locale] ?? (video.title || t.pages.video.fallbackTitle), src: video.url, category: video.category })) : [
+              { title: VIDEO_TITLES["Une équipe, une formation"][locale], src: "/videos/1-Video by defenders_fitness_academy.mp4" },
               { title: "Pilates Matwork & Reformer", src: "/videos/2-Video by defenders_fitness_academy.mp4", category: "pilates" },
             ]}
             trainings={formationsCms.length ? trainingOptions(formationsCms) : undefined}
@@ -345,15 +300,12 @@ export default async function HomePage({ searchParams }: PageProps<"/">) {
       <section style={{ order: sectionOrder("security") }} hidden={!sectionEnabled("security")} className="border-b border-line bg-ink-2 py-20 lg:py-24" aria-label="Defenders Security Protection">
         <div className="container-site grid gap-10 lg:grid-cols-[1fr_0.8fr] lg:items-center">
           <Reveal>
-            <p className="eyebrow mb-3">Autre expertise Defenders</p>
+            <p className="eyebrow mb-3">{t.home.securityEyebrow}</p>
             <h2 className="heading-lg">Defenders Security Protection</h2>
-            <p className="mt-5 max-w-2xl leading-relaxed text-mist">
-              Découvrez nos services de gardiennage, de protection rapprochée, de sécurité et de formation professionnelle.
-              Notre équipe met son expertise au service des particuliers et des organisations.
-            </p>
+            <p className="mt-5 max-w-2xl leading-relaxed text-mist">{t.home.securityText}</p>
             <div className="mt-7 flex flex-wrap gap-4">
               <Link href="/securite" className="btn btn-primary">
-                Découvrir nos services <Icon name="arrow" />
+                {t.home.securityCta} <Icon name="arrow" className="rtl:-scale-x-100" />
               </Link>
               <a href={site.whatsapp.href} target="_blank" rel="noreferrer" className="btn btn-ghost">
                 <Icon name="phone" /> WhatsApp
@@ -362,12 +314,7 @@ export default async function HomePage({ searchParams }: PageProps<"/">) {
           </Reveal>
           <Reveal delay={120}>
             <div className="grid grid-cols-2 gap-px border border-line bg-line">
-              {[
-                ["Gardiennage", "Sécurisation des sites"],
-                ["Protection", "Accompagnement sécurisé"],
-                ["Formation", "Modules professionnels"],
-                ["Secourisme", "Premières interventions"],
-              ].map(([title, text]) => (
+              {t.home.securityCards.map(([title, text]) => (
                 <div key={title} className="bg-ink-2 p-5 sm:p-7">
                   <Icon name="shield" className="text-gold" />
                   <h3 className="mt-4 font-display text-lg uppercase text-bone">{title}</h3>
@@ -384,25 +331,26 @@ export default async function HomePage({ searchParams }: PageProps<"/">) {
         <div className="container-site">
           <Reveal className="mb-14 flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
             <div>
-              <p className="eyebrow mb-3 !text-ink/60">Nos formations</p>
-              <h2 className="heading-lg">{formationsCms.length ? `${formationsCms.length} formations, une exigence` : "Nos formations, une exigence"}</h2>
+              <p className="eyebrow mb-3 !text-ink/60">{t.home.formationsEyebrow}</p>
+              <h2 className="heading-lg">{t.home.formationsTitle(formationsCms.length)}</h2>
             </div>
             <div className="flex flex-wrap gap-3 self-start">
               <Link href="/formations" className="btn btn-dark">
-                Toutes les formations <Icon name="arrow" />
+                {t.home.allFormations} <Icon name="arrow" className="rtl:-scale-x-100" />
               </Link>
               <Link href="/planning" className="btn btn-dark">
-                <Icon name="calendar" /> Voir le planning
+                <Icon name="calendar" /> {t.home.seePlanning}
               </Link>
               <Link href="/trouver-ma-formation" className="btn btn-dark">
-                <Icon name="star" /> Quiz d&apos;orientation
+                <Icon name="star" /> {t.home.quiz}
               </Link>
             </div>
           </Reveal>
 
           <div className="grid gap-6 md:grid-cols-3">
             {(formationsCms.length > 0 ? formationsCms.map((formation) => {
-              const fallback = disciplineList.find((item) => item.slug === formation.slug);
+              const fallbackSource = disciplineList.find((item) => item.slug === formation.slug);
+              const fallback = fallbackSource && localizeFormation(fallbackSource, locale);
               return {
                 slug: formation.slug,
                 name: formation.name,
@@ -412,9 +360,9 @@ export default async function HomePage({ searchParams }: PageProps<"/">) {
                   : fallback?.cover,
                 accent: fallback?.accent ?? { bg: "bg-gold" },
               };
-            }) : disciplineList.map((d) => ({ ...d }))).map((d, i) => (
-              <Reveal key={d.slug} delay={i * 120}>
-                <Link href={`/formations/${d.slug}`} className="group relative block aspect-[4/5] overflow-hidden bg-ink transition duration-500 hover:-translate-y-2 hover:shadow-[0_24px_60px_rgba(201,162,39,0.16)]">
+            }) : disciplineList.map((d) => ({ ...localizeFormation(d, locale) }))).map((d, i) => (
+              <Reveal key={d.slug} delay={i * 120} className={accentClassFor(d.slug)}>
+                <Link href={`/formations/${d.slug}`} className="group relative block aspect-[4/5] overflow-hidden bg-ink transition duration-500 hover:-translate-y-2 hover:shadow-[0_24px_60px_rgba(205,180,140,0.16)]">
                   {d.cover ? (
                     <Image
                       src={d.cover.src}
@@ -430,11 +378,11 @@ export default async function HomePage({ searchParams }: PageProps<"/">) {
                   )}
                   <div className="absolute inset-0 bg-gradient-to-t from-ink via-ink/40 to-transparent" />
                   <div className="absolute inset-x-0 bottom-0 p-7 text-bone">
-                    <span className={`mb-4 block h-1 w-12 ${d.accent.bg} transition-all duration-500 group-hover:w-24`} />
+                    <span className="mb-4 block h-1 w-12 bg-gold transition-all duration-500 group-hover:w-24" />
                     <h3 className="font-display text-3xl tracking-wide uppercase">{d.name}</h3>
                     <p className="mt-3 text-sm leading-relaxed text-bone/80 transition-all duration-500 sm:translate-y-4 sm:opacity-0 sm:group-hover:translate-y-0 sm:group-hover:opacity-100">{d.summary}</p>
                     <span className="mt-5 inline-flex items-center gap-2 font-display text-sm tracking-[0.15em] uppercase">
-                      Découvrir la formation <Icon name="arrow" className="transition-transform group-hover:translate-x-1" />
+                      {t.home.discover} <Icon name="arrow" className="transition-transform group-hover:translate-x-1 rtl:-scale-x-100" />
                     </span>
                   </div>
                 </Link>
@@ -449,23 +397,21 @@ export default async function HomePage({ searchParams }: PageProps<"/">) {
         <div className="container-site">
           <div className="grid gap-12 lg:grid-cols-[1fr_1.2fr]">
             <Reveal>
-              <p className="eyebrow mb-3">Pour qui ?</p>
-              <h2 className="heading-lg">Un parcours pour les professionnels du sport</h2>
-              <p className="mt-5 max-w-xl leading-relaxed text-mist">
-                Coachs en activité et jeunes diplômés peuvent choisir une spécialisation, puis contacter l&apos;équipe pour vérifier les conditions de la session.
-              </p>
+              <p className="eyebrow mb-3">{t.home.forWhoEyebrow}</p>
+              <h2 className="heading-lg">{t.home.forWhoTitle}</h2>
+              <p className="mt-5 max-w-xl leading-relaxed text-mist">{t.home.forWhoText}</p>
               <ul className="mt-6 space-y-3 text-sm text-bone">
-                {["Coachs qui souhaitent se spécialiser", "Diplômés en sciences du sport", "Professionnels qui veulent actualiser leurs pratiques"].map((item) => (
+                {t.home.forWho.map((item) => (
                   <li key={item} className="flex items-center gap-3">
                     <Icon name="check" className="shrink-0 text-gold" /> {item}
                   </li>
                 ))}
               </ul>
             </Reveal>
-            <ol className="border-l border-line pl-6 sm:pl-8">
-              {steps.map((step, i) => (
+            <ol className="border-s border-line ps-6 sm:ps-8">
+              {t.home.steps.map((step, i) => (
                 <Reveal as="li" key={step.title} delay={i * 100} className="relative pb-7 last:pb-0">
-                  <span className="absolute -left-[2.05rem] top-0 grid size-8 place-items-center border border-gold bg-ink-2 font-display text-sm text-gold sm:-left-[2.55rem]">
+                  <span className="absolute -start-[2.05rem] top-0 grid size-8 place-items-center border border-gold bg-ink-2 font-display text-sm text-gold sm:-start-[2.55rem]">
                     0{i + 1}
                   </span>
                   <h3 className="font-display text-xl uppercase">{step.title}</h3>
@@ -481,17 +427,15 @@ export default async function HomePage({ searchParams }: PageProps<"/">) {
       <section id="temoignages" style={{ order: sectionOrder("testimonials") }} hidden={!sectionEnabled("testimonials")} className="py-24 lg:py-28">
         <div className="container-site grid gap-10 lg:grid-cols-[1.2fr_0.8fr] lg:items-end">
           <Reveal>
-            <p className="eyebrow mb-3">Témoignages</p>
-            <h2 className="heading-lg">Leurs expériences de formation</h2>
-            <p className="mt-5 max-w-2xl border-l-2 border-gold pl-4 text-sm leading-relaxed text-mist">
-              Les retours de nos stagiaires seront publiés ici avec leur accord.
-            </p>
+            <p className="eyebrow mb-3">{t.home.testimonialsEyebrow}</p>
+            <h2 className="heading-lg">{t.home.testimonialsTitle}</h2>
+            <p className="mt-5 max-w-2xl border-s-2 border-gold ps-4 text-sm leading-relaxed text-mist">{t.home.testimonialsNote}</p>
           </Reveal>
-          <Reveal delay={120} className="border-t border-gold pt-6 lg:border-t-0 lg:border-l lg:pt-0 lg:pl-8">
+          <Reveal delay={120} className="border-t border-gold pt-6 lg:border-t-0 lg:border-s lg:pt-0 lg:ps-8">
             <Icon name="star" className="text-gold" />
-            <p className="mt-4 font-display text-2xl uppercase">Partagez votre expérience</p>
+            <p className="mt-4 font-display text-2xl uppercase">{t.home.shareExperience}</p>
             <a href={site.email.href} className="btn btn-ghost mt-6">
-              Nous écrire <Icon name="arrow" />
+              {t.home.writeUs} <Icon name="arrow" className="rtl:-scale-x-100" />
             </a>
           </Reveal>
         </div>
@@ -509,7 +453,7 @@ export default async function HomePage({ searchParams }: PageProps<"/">) {
             </div>
           ) : (
             <p className="border border-line bg-ink-2 px-6 py-8 text-center text-sm text-mist">
-              Témoignages vérifiés à venir.
+              {t.home.testimonialsSoon}
             </p>
           )}
         </div>
@@ -520,10 +464,8 @@ export default async function HomePage({ searchParams }: PageProps<"/">) {
         <div className="container-site grid gap-12 lg:grid-cols-[0.8fr_1.2fr]">
           <Reveal>
             <p className="eyebrow mb-3">FAQ</p>
-            <h2 className="heading-lg">Vos questions, nos réponses</h2>
-            <p className="mt-5 max-w-md text-mist">
-              Vous avez besoin d&apos;un renseignement sur votre profil ou une session ? Notre équipe vous répond.
-            </p>
+            <h2 className="heading-lg">{t.home.faqTitle}</h2>
+            <p className="mt-5 max-w-md text-mist">{t.home.faqText}</p>
             {contactButton("btn btn-primary mt-7")}
           </Reveal>
           <div>
@@ -546,15 +488,13 @@ export default async function HomePage({ searchParams }: PageProps<"/">) {
         <div className="container-site flex flex-col items-start gap-8 lg:flex-row lg:items-center lg:justify-between">
           <Reveal>
             <h2 className="heading-lg max-w-2xl">
-              Prêt à rejoindre la <AnimatedAccent className="text-gold">prochaine promotion</AnimatedAccent> ?
+              {t.home.ctaTitle[0]} <AnimatedAccent className="text-gold">{t.home.ctaTitle[1]}</AnimatedAccent> {t.home.ctaTitle[2]}
             </h2>
-            <p className="mt-4 max-w-xl text-mist">
-              Places limitées par session. Contactez-nous pour connaître les prochaines dates et réserver votre place.
-            </p>
+            <p className="mt-4 max-w-xl text-mist">{t.home.ctaText}</p>
           </Reveal>
           <Reveal delay={150} className="flex flex-wrap gap-4">
             <Link href="/contact" className="btn btn-primary">
-              S&apos;inscrire <Icon name="arrow" />
+              {t.common.register} <Icon name="arrow" className="rtl:-scale-x-100" />
             </Link>
             <a href={site.phone.href} className="btn btn-ghost">
               <Icon name="phone" /> {site.phone.label}
@@ -563,7 +503,7 @@ export default async function HomePage({ searchParams }: PageProps<"/">) {
         </div>
       </section>
       <div style={{ order: sectionOrder("partners") }} hidden={!sectionEnabled("partners")}>
-        <PartnersMarquee partners={partnersCms} />
+        <PartnersMarquee partners={partnersCms} title={t.partners.title} locale={locale} />
       </div>
       </div>
     </>

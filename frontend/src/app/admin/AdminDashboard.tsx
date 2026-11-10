@@ -332,7 +332,7 @@ function SettingsManager({ initialSettings = {} }: { initialSettings?: Record<st
   };
   const defaults = {
     phone: "+216 92 204 005", phone2: "+216 29 039 493", email: "direction-dsp@outlook.com", securityEmail: "akkari-dsp@outlook.com", facebook: "https://www.facebook.com/DefendersFitnessAcademy", instagram: "https://www.instagram.com/defenders_fitness_academy", address: "Avenue Abou Dhabi, 8050 Hammamet, Tunisie", approval: "Agrément n° 21-340-24",
-    logoUrl: "", brandName: "Defenders", brandDescriptor: "Fitness Academy", certificationLabel: "Centre de formation certifié",
+    logoUrl: "", brandName: "Defenders", brandDescriptor: "Academy", certificationLabel: "Centre de formation certifié",
     heroLead: "Formez-vous en", heroDescription: "Des formations certifiantes pour les coachs et les professionnels du sport.", footerTagline: "Des formations certifiantes pour les coachs et les professionnels du sport.", footerGroup: "Defenders Academy",
     contactPopupEnabled: "true", contactPopupButtonLabel: "Nous contacter", contactPopupTitle: "Nous contacter",
     contactFirstNameLabel: "Prénom", contactLastNameLabel: "Nom", contactEmailLabel: "E-mail", contactPhoneLabel: "Téléphone",
@@ -589,7 +589,7 @@ function FormationManager({ formations }: { formations: Formation[] }) {
         <textarea placeholder="Faits : Libellé | Valeur (une ligne)" rows={3} value={draft.facts} onChange={(e) => setDraft({ ...draft, facts: e.target.value })} className="w-full border border-line bg-ink px-3 py-3" />
         <textarea placeholder="Public concerné : une ligne par profil" rows={3} value={draft.audience} onChange={(e) => setDraft({ ...draft, audience: e.target.value })} className="w-full border border-line bg-ink px-3 py-3" />
         <textarea placeholder="Débouchés : une ligne par débouché" rows={3} value={draft.careers} onChange={(e) => setDraft({ ...draft, careers: e.target.value })} className="w-full border border-line bg-ink px-3 py-3" />
-        <select value={draft.accent} onChange={(e) => setDraft({ ...draft, accent: e.target.value })} className="w-full border border-line bg-ink px-3 py-3"><option value="gold">Or</option><option value="pilates">Pilates</option><option value="football">Football</option><option value="personal">Personal Training</option></select>
+        <select value={draft.accent} onChange={(e) => setDraft({ ...draft, accent: e.target.value })} className="w-full border border-line bg-ink px-3 py-3"><option value="gold">Beige (par défaut)</option><option value="pilates">Fitness / Pilates — jaune</option><option value="football">Football — rouge</option><option value="personal">Personal Trainer — vert militaire</option></select>
         <select value={draft.status} onChange={(e) => setDraft({ ...draft, status: e.target.value })} className="w-full border border-line bg-ink px-3 py-3"><option value="published">Publié</option><option value="draft">Brouillon</option><option value="archived">Archivé</option></select>
         <input type="number" min={0} placeholder="Position" value={draft.position} onChange={(e) => setDraft({ ...draft, position: Number(e.target.value) })} className="w-full border border-line bg-ink px-3 py-3" />
         <div className="flex flex-wrap items-center gap-3">

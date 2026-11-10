@@ -25,6 +25,8 @@ export type Formation = {
   coverUrl: string | null;
   galleryUrls: string[];
   accent: string;
+  /** Date unique de la prochaine session (AAAA-MM-JJ), saisie dans l'admin. */
+  nextSessionDate: string | null;
   updatedAt: string;
 };
 

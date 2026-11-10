@@ -5,6 +5,8 @@ import Link from "next/link";
 import { useMemo, useRef, useState } from "react";
 import { Icon } from "@/components/Icon";
 import { site } from "@/lib/site";
+import { useI18n } from "@/lib/i18n/client";
+import type { Dictionary } from "@/lib/i18n/dictionaries";
 
 export type QuizFormation = {
   slug: string;
@@ -45,7 +47,7 @@ const QUESTIONS: Question[] = [
       { value: "coach-pro", label: "Coach en activité", hint: "Je veux me spécialiser", keywords: ["perfectionnement", "specialis", "avance", "experience", "professionnel"] },
       { value: "jeune-diplome", label: "Jeune diplômé", hint: "Sciences du sport, STAPS…", keywords: ["diplome", "certifi", "carriere", "insertion"] },
       { value: "etudiant", label: "Étudiant", hint: "Je prépare mon avenir", keywords: ["debutant", "etudiant", "bases", "fondamentaux"] },
-      { value: "reconversion", label: "En reconversion", hint: "Je veux devenir coach", keywords: ["reconversion", "debutant", "tous niveaux", "devenir", "fondamentaux"] },
+      { value: "sportif", label: "Sportif", hint: "Plus de 2 ans d'expérience", keywords: ["sportif", "experience", "terrain", "pratique", "joueur"] },
     ],
   },
   {
@@ -79,13 +81,30 @@ const normalize = (s: string) => s.toLowerCase().normalize("NFD").replace(/\p{Di
 
 type Result = { formation: QuizFormation; score: number; reasons: string[] };
 
-function rank(formations: QuizFormation[], answers: Record<string, string>): Result[] {
+/** Questions dans la langue du visiteur (les mots-clés, eux, restent en français : ils analysent le contenu de l'admin). */
+function localizeQuestions(q: Dictionary["pages"]["quiz"]): Question[] {
+  return QUESTIONS.map((question) => {
+    const tr = q.questions[question.id];
+    if (!tr) return question;
+    return {
+      ...question,
+      title: tr.title,
+      reason: tr.reason,
+      options: question.options.map((o) => {
+        const [label, hint] = tr.options[o.value] ?? [o.label, o.hint];
+        return { ...o, label, hint };
+      }),
+    };
+  });
+}
+
+function rank(questions: Question[], formations: QuizFormation[], answers: Record<string, string>): Result[] {
   return formations
     .map((formation) => {
       const text = normalize(formation.text);
       let score = 0;
       const reasons: string[] = [];
-      for (const q of QUESTIONS) {
+      for (const q of questions) {
         const option = q.options.find((o) => o.value === answers[q.id]);
         if (!option) continue;
         const hits = Math.min(3, option.keywords.filter((k) => text.includes(k)).length);
@@ -101,11 +120,14 @@ function rank(formations: QuizFormation[], answers: Record<string, string>): Res
 }
 
 export function FormationQuiz({ formations }: { formations: QuizFormation[] }) {
+  const { t } = useI18n();
+  const q = t.pages.quiz;
+  const QUESTIONS = useMemo(() => localizeQuestions(q), [q]);
   const [step, setStep] = useState(0);
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const titleRef = useRef<HTMLHeadingElement>(null);
   const done = step >= QUESTIONS.length;
-  const results = useMemo(() => (done ? rank(formations, answers) : []), [done, formations, answers]);
+  const results = useMemo(() => (done ? rank(QUESTIONS, formations, answers) : []), [done, QUESTIONS, formations, answers]);
 
   const choose = (questionId: string, value: string) => {
     setAnswers((a) => ({ ...a, [questionId]: value }));
@@ -123,9 +145,9 @@ export function FormationQuiz({ formations }: { formations: QuizFormation[] }) {
   if (formations.length === 0) {
     return (
       <div className="border border-line bg-ink-2 p-10 text-center">
-        <h2 className="font-display text-2xl uppercase">Nouvelles sessions en préparation</h2>
-        <p className="mx-auto mt-3 max-w-md text-mist">Aucune formation n&apos;est ouverte pour le moment. Contactez-nous pour être informé des prochaines dates.</p>
-        <Link href="/contact" className="btn btn-primary mt-6">Nous contacter</Link>
+        <h2 className="font-display text-2xl uppercase">{t.pages.formationsList.emptyTitle}</h2>
+        <p className="mx-auto mt-3 max-w-md text-mist">{t.pages.formationsList.emptyText}</p>
+        <Link href="/contact" className="btn btn-primary mt-6">{t.home.contactUs}</Link>
       </div>
     );
   }
@@ -136,10 +158,10 @@ export function FormationQuiz({ formations }: { formations: QuizFormation[] }) {
     <div className="mx-auto max-w-5xl">
       <div className="mb-10">
         <div className="mb-3 flex justify-between text-xs tracking-[0.18em] text-mist uppercase">
-          <span>{done ? "Vos résultats" : `Question ${step + 1} sur ${QUESTIONS.length}`}</span>
+          <span>{done ? q.results : q.questionOf(step + 1, QUESTIONS.length)}</span>
           <span>{progress} %</span>
         </div>
-        <div className="h-1 bg-line" role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={progress} aria-label="Progression du questionnaire">
+        <div className="h-1 bg-line" role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={progress} aria-label={q.progress}>
           <div className="h-full bg-gold transition-all duration-500" style={{ width: `${progress}%` }} />
         </div>
       </div>
@@ -151,16 +173,17 @@ export function FormationQuiz({ formations }: { formations: QuizFormation[] }) {
           selected={answers[QUESTIONS[step].id]}
           onChoose={(v) => choose(QUESTIONS[step].id, v)}
           onBack={step > 0 ? () => setStep((s) => s - 1) : undefined}
+          backLabel={q.back}
           titleRef={titleRef}
         />
       ) : (
-        <Results results={results} answers={answers} onRestart={restart} titleRef={titleRef} />
+        <Results questions={QUESTIONS} results={results} answers={answers} onRestart={restart} titleRef={titleRef} />
       )}
     </div>
   );
 }
 
-function QuestionStep({ question, selected, onChoose, onBack, titleRef }: { question: Question; selected?: string; onChoose: (value: string) => void; onBack?: () => void; titleRef: React.RefObject<HTMLHeadingElement | null> }) {
+function QuestionStep({ question, selected, onChoose, onBack, backLabel, titleRef }: { question: Question; selected?: string; onChoose: (value: string) => void; onBack?: () => void; backLabel: string; titleRef: React.RefObject<HTMLHeadingElement | null> }) {
   return (
     <div className="animate-[fade-in_0.4s_ease]">
       <h2 ref={titleRef} tabIndex={-1} className="heading-lg outline-none">{question.title}</h2>
@@ -173,7 +196,7 @@ function QuestionStep({ question, selected, onChoose, onBack, titleRef }: { ques
               type="button"
               aria-pressed={active}
               onClick={() => onChoose(o.value)}
-              className={`group flex items-start gap-4 border p-6 text-left transition duration-300 hover:-translate-y-1 hover:border-gold ${active ? "border-gold bg-gold/10" : "border-line bg-ink-2"}`}
+              className={`group flex items-start gap-4 border p-6 text-start transition duration-300 hover:-translate-y-1 hover:border-gold ${active ? "border-gold bg-gold/10" : "border-line bg-ink-2"}`}
             >
               <span className={`mt-1 grid size-6 shrink-0 place-items-center rounded-full border transition-colors ${active ? "border-gold bg-gold text-ink" : "border-line text-transparent group-hover:border-gold"}`}>
                 <Icon name="check" width={14} height={14} />
@@ -188,7 +211,7 @@ function QuestionStep({ question, selected, onChoose, onBack, titleRef }: { ques
       </div>
       {onBack && (
         <button type="button" onClick={onBack} className="mt-8 text-xs tracking-[0.18em] text-mist uppercase hover:text-gold">
-          ← Question précédente
+          {backLabel}
         </button>
       )}
     </div>
@@ -204,27 +227,28 @@ function Cover({ f, sizes, priority }: { f: QuizFormation; sizes: string; priori
   );
 }
 
-function Results({ results, answers, onRestart, titleRef }: { results: Result[]; answers: Record<string, string>; onRestart: () => void; titleRef: React.RefObject<HTMLHeadingElement | null> }) {
+function Results({ questions, results, answers, onRestart, titleRef }: { questions: Question[]; results: Result[]; answers: Record<string, string>; onRestart: () => void; titleRef: React.RefObject<HTMLHeadingElement | null> }) {
+  const q = useI18n().t.pages.quiz;
   const matched = results[0]?.score > 0;
   const [best, ...others] = results;
-  const summary = QUESTIONS.map((q) => q.options.find((o) => o.value === answers[q.id])?.label).filter(Boolean).join(", ");
-  const whatsapp = `${site.whatsapp.href}?text=${encodeURIComponent(`Bonjour, j'ai fait le quiz « Trouver ma formation » (${summary}). ${matched ? `La formation ${best.formation.name} m'a été recommandée. ` : ""}Pouvez-vous me conseiller ?`)}`;
+  const summary = questions.map((question) => question.options.find((o) => o.value === answers[question.id])?.label).filter(Boolean).join(", ");
+  const whatsapp = `${site.whatsapp.href}?text=${encodeURIComponent(q.whatsapp(summary, matched ? best.formation.name : null))}`;
 
   return (
     <div className="animate-[fade-in_0.4s_ease]" aria-live="polite">
-      <p className="eyebrow mb-3">{matched ? "Notre recommandation" : "Toutes nos formations"}</p>
+      <p className="eyebrow mb-3">{matched ? q.recommendation : q.allFormations}</p>
       <h2 ref={titleRef} tabIndex={-1} className="heading-lg outline-none">
-        {matched ? <>La formation faite pour vous : <span className={best.formation.accentText}>{best.formation.name}</span></> : "Parlons-en ensemble"}
+        {matched ? <>{q.madeForYou} <span className={best.formation.accentText}>{best.formation.name}</span></> : q.letsTalk}
       </h2>
-      {!matched && <p className="mt-4 max-w-2xl text-mist">Vos réponses correspondent à plusieurs parcours. Découvrez nos formations ou échangez avec un conseiller pour être orienté.</p>}
+      {!matched && <p className="mt-4 max-w-2xl text-mist">{q.noMatch}</p>}
 
       {matched && (
         <article className="group relative mt-8 grid overflow-hidden border border-gold/50 bg-ink-2 lg:grid-cols-[1.1fr_1fr]">
           <div className="relative min-h-72 overflow-hidden">
             <Cover f={best.formation} sizes="(min-width: 1024px) 50vw, 100vw" priority />
             <div className="absolute inset-0 bg-gradient-to-t from-ink-2 via-transparent to-transparent lg:bg-gradient-to-r" />
-            <span className="absolute top-5 left-5 inline-flex items-center gap-2 bg-gold px-3 py-1.5 font-display text-xs tracking-[0.18em] text-ink uppercase">
-              <Icon name="star" width={14} height={14} /> Meilleur choix
+            <span className="absolute top-5 start-5 inline-flex items-center gap-2 bg-gold px-3 py-1.5 font-display text-xs tracking-[0.18em] text-ink uppercase">
+              <Icon name="star" width={14} height={14} /> {q.best}
             </span>
           </div>
           <div className="p-8 lg:p-10">
@@ -235,15 +259,15 @@ function Results({ results, answers, onRestart, titleRef }: { results: Result[];
             <ul className="mt-6 space-y-2">
               {best.reasons.map((r) => (
                 <li key={r} className="flex items-center gap-3 text-sm text-bone">
-                  <Icon name="check" width={16} height={16} className="text-gold" /> Correspond à {r}
+                  <Icon name="check" width={16} height={16} className="text-gold" /> {q.matches(r)}
                 </li>
               ))}
             </ul>
             <div className="mt-8 flex flex-wrap gap-3">
               <Link href={`/contact?formation=${encodeURIComponent(best.formation.slug)}`} className="btn btn-primary">
-                M&apos;inscrire <Icon name="arrow" />
+                {q.register} <Icon name="arrow" className="rtl:-scale-x-100" />
               </Link>
-              <Link href={`/formations/${best.formation.slug}`} className="btn btn-ghost">Voir le programme</Link>
+              <Link href={`/formations/${best.formation.slug}`} className="btn btn-ghost">{q.seeProgramme}</Link>
             </div>
           </div>
         </article>
@@ -251,7 +275,7 @@ function Results({ results, answers, onRestart, titleRef }: { results: Result[];
 
       {(matched ? others : results).length > 0 && (
         <>
-          <h3 className="mt-14 mb-6 font-display text-xl tracking-wide uppercase text-mist">{matched ? "Vous pourriez aussi aimer" : "Nos formations"}</h3>
+          <h3 className="mt-14 mb-6 font-display text-xl tracking-wide uppercase text-mist">{matched ? q.alsoLike : q.ourFormations}</h3>
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {(matched ? others : results).map(({ formation: f }) => (
               <Link key={f.slug} href={`/formations/${f.slug}`} className="group relative block aspect-[4/3] overflow-hidden border border-line bg-ink">
@@ -269,11 +293,11 @@ function Results({ results, answers, onRestart, titleRef }: { results: Result[];
       )}
 
       <div className="mt-14 flex flex-wrap items-center justify-between gap-6 border border-line bg-ink-2 p-8">
-        <p className="max-w-xl text-mist">Une question avant de vous lancer ? Un conseiller vous répond directement sur WhatsApp, avec vos réponses déjà transmises.</p>
+        <p className="max-w-xl text-mist">{q.question}</p>
         <div className="flex flex-wrap gap-3">
-          <button type="button" onClick={onRestart} className="btn btn-ghost">Recommencer</button>
+          <button type="button" onClick={onRestart} className="btn btn-ghost">{q.restart}</button>
           <a href={whatsapp} target="_blank" rel="noreferrer" className="btn btn-primary">
-            <Icon name="phone" /> Parler à un conseiller
+            <Icon name="phone" /> {q.advisor}
           </a>
         </div>
       </div>

@@ -2,10 +2,15 @@ import Image from "next/image";
 import Link from "next/link";
 import { visualFor } from "@/lib/formation-visuals";
 import { formatPrice, type Formation } from "@/lib/formations";
+import { localizeFormation } from "@/lib/formation-i18n";
+import { getDictionary } from "@/lib/i18n/server";
+import { accentClassFor } from "@/lib/formation-visuals";
 import { Icon } from "./Icon";
 
 /** Carte d'une formation (accueil, liste des formations). */
-export function FormationCard({ f, priority = false }: { f: Formation; priority?: boolean }) {
+export async function FormationCard({ f: source, priority = false }: { f: Formation; priority?: boolean }) {
+  const { locale, t } = await getDictionary();
+  const f = localizeFormation(source, locale);
   const { accent, cover } = visualFor(f.slug);
   const details = [f.durationLabel, f.levelLabel, formatPrice(f.priceTnd)].filter(Boolean).join(" · ");
   const imageClass = "object-cover opacity-80 transition duration-700 group-hover:scale-105 group-hover:opacity-60";
@@ -13,7 +18,7 @@ export function FormationCard({ f, priority = false }: { f: Formation; priority?
   return (
     <Link
       href={`/formations/${f.slug}`}
-      className="group relative block aspect-[4/5] overflow-hidden bg-ink transition duration-500 hover:-translate-y-2 hover:shadow-[0_24px_60px_rgba(201,162,39,0.16)]"
+      className={`${accentClassFor(f.slug)} group relative block aspect-[4/5] overflow-hidden bg-ink transition duration-500 hover:-translate-y-2 hover:shadow-[0_24px_60px_rgba(205,180,140,0.16)]`}
     >
       {f.coverUrl ? (
         <Image src={f.coverUrl} alt="" fill unoptimized preload={priority} className={imageClass} />
@@ -31,7 +36,7 @@ export function FormationCard({ f, priority = false }: { f: Formation; priority?
           </p>
         )}
         <span className="mt-5 inline-flex items-center gap-2 font-display text-sm tracking-[0.15em] uppercase">
-          Découvrir la formation <Icon name="arrow" className="transition-transform group-hover:translate-x-1" />
+          {t.pages.formation.discover} <Icon name="arrow" className="transition-transform group-hover:translate-x-1 rtl:-scale-x-100" />
         </span>
       </div>
     </Link>

@@ -1,38 +1,35 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { PageIntro } from "@/components/PageIntro";
+import { getDictionary } from "@/lib/i18n/server";
 import { getSiteSettings } from "@/lib/settings";
 
-export const metadata: Metadata = {
-  title: "Cookies",
-  description: "Informations sur l'utilisation éventuelle des cookies sur le site Defenders Fitness Academy.",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const { t } = await getDictionary();
+  return { title: t.pages.legal.cookies.title, description: t.pages.legal.cookies.description };
+}
 
 export default async function CookiesPage() {
-  const settings = await getSiteSettings();
-  const text = typeof settings.cookies === "string" && settings.cookies ? settings.cookies : "";
+  const [settings, { locale, t }] = await Promise.all([getSiteSettings(), getDictionary()]);
+  const L = t.pages.legal;
+  // Le texte personnalisé dans l'admin est rédigé en français : il n'est affiché qu'en français.
+  const text = locale === "fr" && typeof settings.cookies === "string" && settings.cookies ? settings.cookies : "";
   return (
     <>
-      <PageIntro eyebrow="Informations légales" title="Cookies" />
+      <PageIntro eyebrow={L.eyebrow} title={L.cookies.title} />
       <section className="py-16 lg:py-20">
         <article className="container-site max-w-4xl space-y-8 text-sm leading-7 text-mist">
           {text ? <p className="whitespace-pre-line">{text}</p> : (
             <>
-          <section>
-            <h2 className="mb-3 font-display text-xl uppercase text-bone">Cookies strictement nécessaires</h2>
-            <p>À ce jour, le site ne présente pas de bandeau publicitaire ni de traçage marketing. Le fonctionnement technique peut utiliser des mécanismes essentiels au chargement des pages.</p>
-          </section>
-          <section>
-            <h2 className="mb-3 font-display text-xl uppercase text-bone">Services tiers</h2>
-            <p>La carte intégrée et les liens vers les réseaux sociaux peuvent être soumis aux politiques de confidentialité de leurs propres fournisseurs. Ces services peuvent lire des informations techniques lorsqu&apos;ils sont utilisés.</p>
-          </section>
-          <section>
-            <h2 className="mb-3 font-display text-xl uppercase text-bone">Gestion du navigateur</h2>
-            <p>Vous pouvez supprimer ou bloquer les cookies depuis les paramètres de votre navigateur. Certaines fonctionnalités externes peuvent alors ne plus fonctionner normalement.</p>
-            <Link href="/politique-de-confidentialite" className="mt-5 inline-flex text-gold hover:text-bone">
-              Consulter la politique de confidentialité
-            </Link>
-          </section>
+              {L.cookies.sections.map(([title, body]) => (
+                <section key={title}>
+                  <h2 className="mb-3 font-display text-xl uppercase text-bone">{title}</h2>
+                  <p>{body}</p>
+                </section>
+              ))}
+              <Link href="/politique-de-confidentialite" className="inline-flex text-gold hover:text-bone">
+                {L.cookies.link}
+              </Link>
             </>
           )}
         </article>

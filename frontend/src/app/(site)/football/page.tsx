@@ -3,10 +3,16 @@ import { DisciplinePage } from "@/components/DisciplinePage";
 import { disciplines } from "@/lib/disciplines";
 import { mergeFormationContent, type FormationContent } from "@/lib/formation-content";
 import { apiFetch } from "@/lib/session";
+import { localizeFormation } from "@/lib/formation-i18n";
+import { getDictionary } from "@/lib/i18n/server";
 
 const d = disciplines.football;
 
-export const metadata: Metadata = { title: `Formation ${d.name}`, description: d.summary };
+export async function generateMetadata(): Promise<Metadata> {
+  const { locale, t } = await getDictionary();
+  const shown = localizeFormation(d, locale);
+  return { title: t.pages.formation.imageAlt(shown.name), description: shown.summary };
+}
 
 export default async function Page() {
   const fallback = disciplines.football;

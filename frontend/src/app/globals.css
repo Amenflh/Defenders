@@ -1,7 +1,11 @@
 @import "tailwindcss";
 
 /* ------------------------------------------------------------------
-   Charte Defenders : noir profond, blanc os, accent or (écusson).
+   Charte Defenders Academy : noir, blanc et beige.
+   Chaque activité a sa couleur : football = rouge, fitness = jaune,
+   personal trainer = vert militaire. Le jeton « gold » porte l'accent
+   courant (beige) ; les pages d'une activité le remplacent par sa couleur
+   (classes .accent-football, .accent-pilates, .accent-personal).
    ------------------------------------------------------------------ */
 @theme {
   --color-ink: #0b0b0c;
@@ -11,12 +15,16 @@
   --color-bone: #f4f2ee;
   --color-bone-2: #e8e5df;
   --color-mist: #a1a1a8;
-  --color-gold: #c9a227;
-  --color-gold-soft: #e3c766;
+  --color-gold: #cdb48c;
+  --color-gold-soft: #e4d4b6;
+  --color-beige: #cdb48c;
 
-  --color-pilates: #d8b9a0;
-  --color-football: #5fbf7f;
-  --color-personal: #c9a227;
+  /* Fitness / Pilates : jaune */
+  --color-pilates: #f2c230;
+  /* Football : rouge */
+  --color-football: #d93a3a;
+  /* Personal trainer : vert militaire (éclairci pour rester lisible sur fond noir) */
+  --color-personal: #7d8f4e;
 
   --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
   --font-display: var(--font-oswald), "Arial Narrow", ui-sans-serif, sans-serif;
@@ -52,6 +60,53 @@
     outline-offset: 3px;
   }
 }
+
+/* ------------------------------------------------------------------
+   Version claire (bouton soleil / lune) : fond blanc cassé, texte noir,
+   accent beige foncé pour rester lisible sur fond clair.
+   Les jetons gardent leur nom : « ink » = fond, « bone » = texte.
+   ------------------------------------------------------------------ */
+:root[data-theme="light"] {
+  color-scheme: light;
+  --color-ink: #f8f5ef;
+  --color-ink-2: #efe9df;
+  --color-ink-3: #e5ddd0;
+  --color-line: #d6ccbc;
+  --color-bone: #141416;
+  --color-bone-2: #2a2a2e;
+  --color-mist: #5c5a56;
+  --color-gold: #a3824f;
+  --color-gold-soft: #8a6b3d;
+  --color-beige: #cdb48c;
+  --color-pilates: #c99700;
+  --color-football: #c62828;
+  --color-personal: #556b2f;
+}
+:root[data-theme="dark"] { color-scheme: dark; }
+:root[data-theme="light"] :is(.border-white\/20, .border-white\/15) { border-color: rgb(20 20 22 / 0.18); }
+:root[data-theme="light"] .ring-white\/15 { --tw-ring-color: rgb(20 20 22 / 0.15); }
+/* Sur les aplats de couleur (boutons, pastilles), le texte reste noir dans les deux thèmes. */
+:root[data-theme="light"] :is(.bg-gold, .bg-beige, .btn-primary),
+:root[data-theme="light"] :is(.bg-gold, .bg-beige, .btn-primary) .text-ink {
+  color: #0b0b0c;
+}
+:root[data-theme="light"] .accent-football { --color-gold-soft: #9f1d1d; }
+:root[data-theme="light"] .accent-pilates { --color-gold-soft: #9c7600; }
+:root[data-theme="light"] .accent-personal { --color-gold-soft: #3f5222; }
+
+/* Arabe : police adaptée, sans espacement des lettres (qui casse les liaisons). */
+html[lang="ar"] {
+  --font-sans: var(--font-cairo), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-cairo), ui-sans-serif, sans-serif;
+}
+html[lang="ar"] body * {
+  letter-spacing: 0 !important;
+}
+
+/* Accent d'une activité : remplace le beige sur toute la section concernée. */
+.accent-football { --color-gold: var(--color-football); --color-gold-soft: #ef6a6a; }
+.accent-pilates { --color-gold: var(--color-pilates); --color-gold-soft: #f7d766; }
+.accent-personal { --color-gold: var(--color-personal); --color-gold-soft: #9aae66; }
 
 @layer components {
   /* Champ de formulaire (espace admin) */
@@ -179,6 +234,17 @@
 @keyframes fade-in {
   from { opacity: 0; transform: translateY(12px); }
   to { opacity: 1; transform: none; }
+}
+
+@keyframes register-pulse {
+  0% { box-shadow: 0 0 0 0 color-mix(in oklab, var(--color-beige) 60%, transparent); }
+  70% { box-shadow: 0 0 0 18px color-mix(in oklab, var(--color-beige) 0%, transparent); }
+  100% { box-shadow: 0 0 0 0 color-mix(in oklab, var(--color-beige) 0%, transparent); }
+}
+
+@keyframes register-shine {
+  0%, 60% { transform: translateX(-120%) skewX(-20deg); }
+  100% { transform: translateX(220%) skewX(-20deg); }
 }
 
 @keyframes fab-pulse {

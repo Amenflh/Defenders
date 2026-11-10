@@ -13,7 +13,7 @@ export const slugSchema = z
 /** URL déjà prises par des pages du site : une formation à ce slug serait inaccessible. */
 export const RESERVED_SLUGS = new Set([
   "admin", "api", "contact", "cookies", "formations", "login", "logout", "mentions-legales", "mon-espace",
-  "planning", "politique-de-confidentialite", "register", "securite", "trouver-ma-formation", "uploads",
+  "historique", "planning", "politique-de-confidentialite", "register", "securite", "trouver-ma-formation", "uploads",
   "sitemap.xml", "robots.txt",
 ]);
 
@@ -55,6 +55,8 @@ const formationFields = {
   coverUrl: mediaUrl.or(z.literal("")).nullable(),
   galleryUrls: z.array(mediaUrl).max(30, "30 images maximum"),
   accent: z.enum(["gold", "pilates", "football", "personal"]),
+  /** Date unique de la prochaine session (AAAA-MM-JJ), ou null si elle n'est pas encore fixée. */
+  nextSessionDate: z.iso.date("Date invalide (AAAA-MM-JJ)").transform((v) => new Date(`${v}T00:00:00Z`)).nullable(),
 };
 
 const base = z.object(formationFields);

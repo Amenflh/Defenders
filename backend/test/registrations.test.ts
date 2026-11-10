@@ -19,7 +19,7 @@ describe("formulaire d'inscription (POST /api/contact)", () => {
   it("enregistre une demande d'information sans formation", async () => {
     const res = await api("/api/contact", {
       method: "POST",
-      body: validRegistration({ profile: "demande-info", trainings: [], availability: "non-precisee", message: "Quels tarifs ?" }),
+      body: validRegistration({ profile: "demande-info", trainings: [], message: "Quels tarifs ?" }),
     });
     assert.equal(res.status, 201);
   });
@@ -27,14 +27,14 @@ describe("formulaire d'inscription (POST /api/contact)", () => {
   it("refuse une demande d'information sans message", async () => {
     const res = await api("/api/contact", {
       method: "POST",
-      body: validRegistration({ profile: "demande-info", trainings: [], availability: "non-precisee" }),
+      body: validRegistration({ profile: "demande-info", trainings: [] }),
     });
     assert.equal(res.status, 422);
     assert.ok(res.body.details?.message ?? JSON.stringify(res.body).includes("message"), "erreur rattachée au champ message");
   });
 
-  it("refuse (422) une inscription sans formation, sans consentement, ou avec un e-mail / téléphone invalide", async () => {
-    for (const overrides of [{ trainings: [] }, { consent: false }, { email: "nope" }, { phone: "abc" }]) {
+  it("refuse (422) une inscription sans formation, sans consentement, sans règlement accepté, ou avec un e-mail / téléphone invalide", async () => {
+    for (const overrides of [{ trainings: [] }, { consent: false }, { rulesAccepted: false }, { email: "nope" }, { phone: "abc" }]) {
       const res = await api("/api/contact", { method: "POST", body: validRegistration(overrides) });
       assert.equal(res.status, 422, JSON.stringify(overrides));
     }

@@ -8,23 +8,27 @@ import { cookies } from "next/headers";
 import { REFERRAL_CODE, REFERRAL_COOKIE } from "@/lib/program";
 import { apiFetch, getContactDefaults } from "@/lib/session";
 import { site } from "@/lib/site";
+import { getDictionary } from "@/lib/i18n/server";
+import { localizeFormation } from "@/lib/formation-i18n";
 import { ContactForm, type ContactDefaults } from "./ContactForm";
 import { ContactPopup } from "./ContactPopup";
 
-export const metadata: Metadata = {
-  title: "Contact & inscription",
-  description: "Demandez votre inscription à une formation Pilates, football ou personal training.",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const { t } = await getDictionary();
+  return { title: t.contact.title, description: t.contact.intro };
+}
 
 export default async function ContactPage({ searchParams }: PageProps<"/contact">) {
   const params = await searchParams;
+  const { locale, t } = await getDictionary();
+  const L = t.contact.labels;
   const formation = typeof params.formation === "string" ? params.formation : undefined;
   const popup = typeof params.popup === "string" ? params.popup : undefined;
   const formationsRes = await apiFetch("/api/formations");
   const formations = formationsRes.ok
     ? ((await formationsRes.json()) as { formations: { slug: string; name: string; accent?: string }[] }).formations
     : [];
-  const availableTrainings = formations.length ? trainingOptions(formations) : undefined;
+  const availableTrainings = formations.length ? trainingOptions(formations.map((f) => localizeFormation(f, locale))) : undefined;
   const preselected = formations.some((item) => item.slug === formation) ? formation : undefined;
   const popupMode = popup === "1";
 
@@ -40,21 +44,21 @@ export default async function ContactPage({ searchParams }: PageProps<"/contact"
     : null;
 
   const contacts = [
-    { icon: "pin" as const, label: "Adresse", value: site.address.lines.join(", "), href: site.address.href, external: true },
-    { icon: "phone" as const, label: "Téléphone", value: site.phone.label, href: site.phone.href },
-    { icon: "phone" as const, label: "Téléphone 2", value: site.phone2.label, href: site.phone2.href },
-    { icon: "mail" as const, label: "E-mail", value: site.email.label, href: site.email.href },
-    { icon: "phone" as const, label: "WhatsApp", value: site.phone2.label, href: site.whatsapp.href, external: true },
-    { icon: "mail" as const, label: "E-mail Security Protection", value: site.securityEmail.label, href: site.securityEmail.href },
-    { icon: "facebook" as const, label: "Facebook", value: site.facebook.label, href: site.facebook.href, external: true },
-    { icon: "instagram" as const, label: "Instagram", value: site.instagram.label, href: site.instagram.href, external: true },
+    { icon: "pin" as const, label: L.address, value: site.address.lines.join(", "), href: site.address.href, external: true },
+    { icon: "phone" as const, label: L.phone, value: site.phone.label, href: site.phone.href },
+    { icon: "phone" as const, label: L.phone2, value: site.phone2.label, href: site.phone2.href },
+    { icon: "mail" as const, label: L.email, value: site.email.label, href: site.email.href },
+    { icon: "phone" as const, label: L.whatsapp, value: site.phone2.label, href: site.whatsapp.href, external: true },
+    { icon: "chat" as const, label: L.messenger, value: site.facebook.label, href: site.messenger.href, external: true },
+    { icon: "mail" as const, label: L.securityEmail, value: site.securityEmail.label, href: site.securityEmail.href },
+    { icon: "facebook" as const, label: L.facebook, value: site.facebook.label, href: site.facebook.href, external: true },
+    { icon: "instagram" as const, label: L.instagram, value: site.instagram.label, href: site.instagram.href, external: true },
   ];
 
   return (
     <>
-      <PageIntro eyebrow="Contact" title="Rejoignez la prochaine promotion">
-        Coach professionnel ou jeune diplômé, dites-nous qui vous êtes et quelle formation vous intéresse : nous vous
-        recontactons pour vous orienter et vous communiquer les prochaines dates.
+      <PageIntro eyebrow={t.contact.eyebrow} title={t.contact.title}>
+        {t.contact.intro}
       </PageIntro>
 
       {popupMode && <ContactPopup preselected={preselected} defaults={defaults} availableTrainings={availableTrainings} />}
@@ -63,7 +67,7 @@ export default async function ContactPage({ searchParams }: PageProps<"/contact"
         <div className="container-site pt-10">
           <p role="status" className="flex items-center gap-3 border border-gold/50 bg-gold/10 px-5 py-4 text-sm text-bone">
             <Icon name="star" width={18} height={18} className="shrink-0 text-gold" />
-            <span><strong>{referrer}</strong> vous recommande Defenders Fitness Academy : remplissez le formulaire, l&apos;équipe vous recontacte rapidement.</span>
+            <span>{t.contact.referral(referrer)}</span>
           </p>
         </div>
       )}
@@ -74,7 +78,7 @@ export default async function ContactPage({ searchParams }: PageProps<"/contact"
 
           <aside className="space-y-6 lg:sticky lg:top-28 lg:self-start">
             <div className="border border-line bg-ink-2 p-7">
-              <h2 className="eyebrow mb-6">Nous joindre</h2>
+              <h2 className="eyebrow mb-6">{t.contact.reachUs}</h2>
               <ul className="space-y-5">
                 {contacts.map((c) => (
                   <li key={c.label}>

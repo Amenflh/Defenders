@@ -1,7 +1,8 @@
 import { z } from "zod";
 import { emailSchema, phoneSchema } from "../auth/auth.schemas.js";
 
-export const PROFILES = ["coach-pro", "jeune-diplome", "etudiant", "reconversion"] as const;
+/** « sportif » remplace « reconversion » (sportif avec plus de 2 ans d'expérience). */
+export const PROFILES = ["coach-pro", "jeune-diplome", "etudiant", "sportif"] as const;
 export const AVAILABILITIES = ["semaine", "week-end", "soir", "intensif"] as const;
 export const ATTACHMENT_TYPES = ["application/pdf", "image/jpeg", "image/png"] as const;
 export const STATUSES = ["nouveau", "contacte", "inscrit", "archive"] as const;
@@ -25,9 +26,12 @@ export const createRegistrationSchema = z.object({
   trainings: z
     .array(z.string().regex(/^[a-z0-9-]{1,60}$/), { error: "Choisissez au moins une formation" })
     .transform((list) => [...new Set(list)]),
-  availability: z.enum([...AVAILABILITIES, "non-precisee"], { error: "Veuillez choisir une disponibilité" }),
+  /** La disponibilité n'est plus demandée dans le formulaire : conservée pour les anciennes demandes. */
+  availability: z.enum([...AVAILABILITIES, "non-precisee"]).optional().default("non-precisee"),
   message: z.string().trim().max(2000, "Message trop long (2000 caractères max)").optional().default(""),
   consent: z.literal(true, { error: "Vous devez accepter d'être recontacté" }),
+  /** Lecture du règlement intérieur confirmée (obligatoire pour une inscription). */
+  rulesAccepted: z.boolean().optional().default(false),
   /** Code de parrainage (lien /r/CODE) ; un code inconnu est ignoré sans bloquer la demande. */
   referralCode: z.string().trim().max(16).optional(),
   /** Pièce jointe facultative (CV, diplôme…), transmise par e-mail uniquement, jamais stockée. */
@@ -44,9 +48,6 @@ export const createRegistrationSchema = z.object({
     if (input.trainings.length > 0) {
       context.addIssue({ code: "custom", path: ["trainings"], message: "Une demande d'information ne doit pas inclure de formation" });
     }
-    if (input.availability !== "non-precisee") {
-      context.addIssue({ code: "custom", path: ["availability"], message: "Cette demande ne nécessite pas de disponibilité" });
-    }
     if (!input.message) {
       context.addIssue({ code: "custom", path: ["message"], message: "Veuillez saisir votre message" });
     }
@@ -54,8 +55,8 @@ export const createRegistrationSchema = z.object({
     if (input.trainings.length === 0) {
       context.addIssue({ code: "custom", path: ["trainings"], message: "Choisissez au moins une formation" });
     }
-    if (input.availability === "non-precisee") {
-      context.addIssue({ code: "custom", path: ["availability"], message: "Veuillez choisir une disponibilité" });
+    if (!input.rulesAccepted) {
+      context.addIssue({ code: "custom", path: ["rulesAccepted"], message: "Veuillez lire et accepter le règlement intérieur" });
     }
   }
 });

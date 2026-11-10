@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useId, useLayoutEffect, useRef, useState } from "react";
 import { Icon } from "@/components/Icon";
+import { useI18n } from "@/lib/i18n/client";
 import { MAX_CHAT_MESSAGE, type ChatMessage, type ChatSender, type SendResult, type ThreadResult } from "@/lib/chat";
 
 const timeFmt = new Intl.DateTimeFormat("fr-FR", { hour: "2-digit", minute: "2-digit", timeZone: "Africa/Tunis" });
@@ -36,7 +37,8 @@ type Props = {
  * Fil de discussion avec rafraîchissement périodique (pas de WebSocket : un simple appel toutes les
  * quelques secondes suffit au volume d'une académie, et passe par n'importe quel hébergement).
  */
-export function ChatThread({ load, send, viewer, pollMs = 4000, empty, placeholder = "Votre message…", onActivity, autoFocus, className = "" }: Props) {
+export function ChatThread({ load, send, viewer, pollMs = 4000, empty, placeholder, onActivity, autoFocus, className = "" }: Props) {
+  const c = useI18n().t.pages.chat;
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [readAt, setReadAt] = useState<string | null>(null);
   const [status, setStatus] = useState<"loading" | "ready" | "error">("loading");
@@ -97,7 +99,7 @@ export function ChatThread({ load, send, viewer, pollMs = 4000, empty, placehold
     if (!body || sending) return;
     setSending(true);
     setError("");
-    const result = await send(body).catch(() => ({ ok: false as const, error: "Message non envoyé. Réessayez." }));
+    const result = await send(body).catch(() => ({ ok: false as const, error: c.sendError }));
     setSending(false);
     if (!result.ok) {
       setError(result.error);
@@ -128,8 +130,8 @@ export function ChatThread({ load, send, viewer, pollMs = 4000, empty, placehold
         className="min-h-0 flex-1 space-y-2 overflow-y-auto overscroll-contain px-4 py-5"
       >
         {status === "loading" && <p className="py-10 text-center text-sm text-mist">Chargement…</p>}
-        {status === "error" && <p className="py-10 text-center text-sm text-red-300">Impossible de charger la discussion pour le moment.</p>}
-        {status === "ready" && messages.length === 0 && <div className="py-8 text-center text-sm text-mist">{empty ?? "Aucun message pour l'instant."}</div>}
+        {status === "error" && <p className="py-10 text-center text-sm text-red-300">{c.loadError}</p>}
+        {status === "ready" && messages.length === 0 && <div className="py-8 text-center text-sm text-mist">{empty ?? c.noMessages}</div>}
         {messages.map((m, i) => {
           const own = m.sender === viewer;
           const newDay = i === 0 || dayKey(messages[i - 1].createdAt) !== dayKey(m.createdAt);
@@ -161,7 +163,7 @@ export function ChatThread({ load, send, viewer, pollMs = 4000, empty, placehold
       >
         {error && <p role="alert" className="mb-2 text-xs text-red-300">{error}</p>}
         <div className="flex items-end gap-2">
-          <label htmlFor={inputId} className="sr-only">Votre message</label>
+          <label htmlFor={inputId} className="sr-only">{c.yourMessage}</label>
           <textarea
             id={inputId}
             ref={textarea}
@@ -176,14 +178,14 @@ export function ChatThread({ load, send, viewer, pollMs = 4000, empty, placehold
             }}
             rows={1}
             maxLength={MAX_CHAT_MESSAGE}
-            placeholder={placeholder}
+            placeholder={placeholder ?? `${c.yourMessage}…`}
             disabled={status !== "ready"}
             className="max-h-32 min-h-11 flex-1 resize-none border border-line bg-ink px-3 py-2.5 text-sm text-bone [field-sizing:content] placeholder:text-mist/60 focus:border-gold focus:outline-none disabled:opacity-50"
           />
           <button
             type="submit"
             disabled={!draft.trim() || sending || status !== "ready"}
-            aria-label="Envoyer le message"
+            aria-label={c.send}
             className="grid size-11 shrink-0 place-items-center bg-gold text-ink transition-opacity disabled:opacity-40"
           >
             <Icon name="arrow" width={18} height={18} />

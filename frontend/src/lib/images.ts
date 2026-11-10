@@ -15,11 +15,16 @@ import pilates1 from "../../public/pics/Pilates_images/acc_images.jpg";
 import pilates2 from "../../public/pics/Pilates_images/acc_images1.jpg";
 import pilates3 from "../../public/pics/Pilates_images/acc_images2.jpg";
 
-import footballTeam from "../../public/pics/football_images/2.jpeg";
-import footballPoster from "../../public/pics/football_images/acc_images.jpg";
+// Photos football et personal trainer : banque d'images libre de droits (Unsplash).
+import footballStaff from "../../public/pics/football_images/staff-technique.jpg";
+import footballTeam from "../../public/pics/football_images/seance-equipe.jpg";
+import footballDrill from "../../public/pics/football_images/exercice-plots.jpg";
+import footballCoach from "../../public/pics/football_images/coach-terrain.jpg";
 
-import ptPoster1 from "../../public/pics/personal_trainers/acc_images.jpg";
-import ptPoster2 from "../../public/pics/personal_trainers/acc_images1.jpeg";
+import ptTechnique from "../../public/pics/personal_trainers/coaching-technique.jpg";
+import ptLifting from "../../public/pics/personal_trainers/coaching-halterophilie.jpg";
+import ptFollowUp from "../../public/pics/personal_trainers/suivi-client.jpg";
+import ptBalance from "../../public/pics/personal_trainers/coaching-equilibre.jpg";
 
 import type { StaticImageData } from "next/image";
 
@@ -46,11 +51,15 @@ export const pilatesPhotos: Photo[] = [
 ];
 
 export const footballPhotos: Photo[] = [
-  { src: footballPoster, alt: "Affiche de la formation d'entraîneur de football — 4 jours, hébergement inclus" },
-  { src: footballTeam, alt: "Équipe de jeunes footballeurs et encadrement sur le terrain" },
+  { src: footballStaff, alt: "Staff technique préparant une séance d'entraînement au bord du terrain" },
+  { src: footballTeam, alt: "Équipe à l'échauffement pendant une séance d'entraînement" },
+  { src: footballDrill, alt: "Joueur réalisant un exercice technique entre les plots" },
+  { src: footballCoach, alt: "Entraîneur donnant des consignes à une joueuse sur le terrain" },
 ];
 
 export const personalPhotos: Photo[] = [
-  { src: ptPoster2, alt: "Affiche Personal Fitness Trainer Certification" },
-  { src: ptPoster1, alt: "Affiche de la certification Personal Fitness Trainer — 7 certificats" },
+  { src: ptTechnique, alt: "Coach personnel corrigeant la technique d'une cliente en salle" },
+  { src: ptLifting, alt: "Coach supervisant un soulevé de terre en salle de musculation" },
+  { src: ptFollowUp, alt: "Coach faisant le point avec sa cliente sur une tablette" },
+  { src: ptBalance, alt: "Coach accompagnant un exercice d'équilibre" },
 ];

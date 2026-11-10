@@ -1,19 +1,18 @@
 import type { Metadata } from "next";
 import { FloatingActions } from "@/components/FloatingActions";
+import { FloatingRegister } from "@/components/FloatingRegister";
 import { Footer } from "@/components/Footer";
 import { Header } from "@/components/Header";
 import { getCurrentUser } from "@/lib/session";
-import { getSiteSettings } from "@/lib/settings";
+import { getDictionary } from "@/lib/i18n/server";
+import { brandIdentity, getSiteSettings } from "@/lib/settings";
 
 export async function generateMetadata(): Promise<Metadata> {
-  const settings = await getSiteSettings();
-  const brandName = typeof settings.brandName === "string" && settings.brandName ? settings.brandName : "Defenders";
-  const brandDescriptor = typeof settings.brandDescriptor === "string" && settings.brandDescriptor ? settings.brandDescriptor : "Fitness Academy";
-  const siteName = `${brandName} ${brandDescriptor}`.trim();
-  const description = typeof settings.heroDescription === "string" && settings.heroDescription
+  const [settings, { locale, t }] = await Promise.all([getSiteSettings(), getDictionary()]);
+  const { siteName, logoUrl = "/pics/logo.jpg" } = brandIdentity(settings);
+  const description = locale === "fr" && typeof settings.heroDescription === "string" && settings.heroDescription
     ? settings.heroDescription
-    : "Des formations certifiantes pour les coachs et les professionnels du sport.";
-  const logoUrl = typeof settings.logoUrl === "string" && settings.logoUrl ? settings.logoUrl : "/pics/logo.jpg";
+    : t.home.heroDescription;
 
   return {
     title: { default: `${siteName} — Formations certifiantes`, template: `%s | ${siteName}` },
@@ -25,11 +24,8 @@ export async function generateMetadata(): Promise<Metadata> {
 /** Site marketing public. Les layouts enfants protégent les espaces client et administrateur. */
 export default async function SiteLayout({ children }: { children: React.ReactNode }) {
   const [user, settings] = await Promise.all([getCurrentUser(), getSiteSettings()]);
-  const identity = {
-    logoUrl: typeof settings.logoUrl === "string" && settings.logoUrl ? settings.logoUrl : undefined,
-    brandName: typeof settings.brandName === "string" && settings.brandName ? settings.brandName : undefined,
-    brandDescriptor: typeof settings.brandDescriptor === "string" && settings.brandDescriptor ? settings.brandDescriptor : undefined,
-  };
+  const { logoUrl, brandName, brandDescriptor } = brandIdentity(settings);
+  const identity = { logoUrl, brandName, brandDescriptor };
 
   return (
     <>
@@ -38,6 +34,7 @@ export default async function SiteLayout({ children }: { children: React.ReactNo
         {children}
       </main>
       <Footer />
+      {!(user && user !== "unavailable" && user.role === "admin") && <FloatingRegister />}
       <FloatingActions
         viewer={
           user && user !== "unavailable"

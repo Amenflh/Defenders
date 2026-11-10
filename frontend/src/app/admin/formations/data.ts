@@ -44,6 +44,7 @@ export function toFormValues(f?: Formation): FormationFormValues {
     priceTnd: f?.priceTnd == null ? "" : String(f.priceTnd),
     position: String(f?.position ?? 0),
     coverUrl: f?.coverUrl ?? "",
+    nextSessionDate: f?.nextSessionDate ?? "",
     intro: (f?.intro ?? []).join("\n\n"),
     objectives: (f?.objectives ?? []).join("\n"),
     prerequisites: (f?.prerequisites ?? []).join("\n"),

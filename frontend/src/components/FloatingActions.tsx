@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { getMyUnreadAction } from "@/app/(site)/chat-actions";
+import { useI18n } from "@/lib/i18n/client";
 import { site } from "@/lib/site";
 import { ClientChatPanel, OPEN_CHAT_EVENT, type ChatViewer } from "./chat/ClientChatPanel";
 import { Icon } from "./Icon";
@@ -17,6 +18,15 @@ function WhatsAppIcon({ className = "size-6" }: { className?: string }) {
   );
 }
 
+/** Logo Messenger (pictogramme simplifié). */
+function MessengerIcon({ className = "size-5" }: { className?: string }) {
+  return (
+    <svg aria-hidden="true" viewBox="0 0 24 24" fill="currentColor" className={className}>
+      <path d="M12 2C6.36 2 2 6.13 2 11.7c0 2.91 1.19 5.44 3.14 7.17.16.15.26.35.27.57l.05 1.78a.8.8 0 0 0 1.12.71l1.99-.88c.17-.07.36-.09.53-.04.91.25 1.89.39 2.9.39 5.64 0 10-4.13 10-9.7S17.64 2 12 2zm6 7.46-2.94 4.66a1.5 1.5 0 0 1-2.17.4l-2.34-1.75a.6.6 0 0 0-.72 0l-3.16 2.4c-.42.32-.97-.18-.69-.63l2.94-4.66a1.5 1.5 0 0 1 2.17-.4l2.34 1.75a.6.6 0 0 0 .72 0l3.16-2.4c.42-.32.97.18.69.63z" />
+    </svg>
+  );
+}
+
 /** Rafraîchissement du badge « messages non lus » (le fil ouvert, lui, se rafraîchit toutes les 4 s). */
 const UNREAD_POLL_MS = 30_000;
 
@@ -26,6 +36,7 @@ const UNREAD_POLL_MS = 30_000;
  */
 export function FloatingActions({ viewer = { role: "guest" } }: { viewer?: ChatViewer }) {
   const pathname = usePathname();
+  const { t } = useI18n();
   // Le menu est lié à la page où il a été ouvert : changer de page le referme.
   const [openedOn, setOpenedOn] = useState<string | null>(null);
   const open = openedOn === pathname;
@@ -85,22 +96,24 @@ export function FloatingActions({ viewer = { role: "guest" } }: { viewer?: ChatV
     return () => window.removeEventListener("keydown", onKey);
   }, [open]);
 
-  const message = encodeURIComponent("Bonjour, je souhaite avoir des informations sur vos formations.");
+  const message = encodeURIComponent(t.floating.whatsappMessage);
   const actions = [
-    { label: unread ? `Discuter avec l'équipe (${unread} nouveau${unread > 1 ? "x" : ""})` : "Discuter avec l'équipe", onClick: openChatPanel, icon: <Icon name="chat" width={18} height={18} /> },
-    { href: `${site.whatsapp.href}?text=${message}`, label: "Écrire sur WhatsApp", external: true, icon: <WhatsAppIcon className="size-5" /> },
-    { href: site.phone.href, label: `Appeler ${site.phone.label}`, icon: <Icon name="phone" width={18} height={18} /> },
-    ...(pathname === "/trouver-ma-formation" ? [] : [{ href: "/trouver-ma-formation", label: "Trouver ma formation", internal: true, icon: <Icon name="star" width={18} height={18} /> }]),
+    { label: unread ? `${t.floating.chat} (${t.floating.unread(unread)})` : t.floating.chat, onClick: openChatPanel, icon: <Icon name="chat" width={18} height={18} /> },
+    { href: `${site.whatsapp.href}?text=${message}`, label: t.floating.whatsapp, external: true, icon: <WhatsAppIcon className="size-5" /> },
+    // Messenger : même boîte de réception que les conversations ouvertes depuis les publicités Meta.
+    { href: site.messenger.href, label: t.floating.messenger, external: true, icon: <MessengerIcon className="size-5" /> },
+    { href: site.phone.href, label: `${t.floating.call} ${site.phone.label}`, icon: <Icon name="phone" width={18} height={18} /> },
+    ...(pathname === "/trouver-ma-formation" ? [] : [{ href: "/trouver-ma-formation", label: t.floating.quiz, internal: true, icon: <Icon name="star" width={18} height={18} /> }]),
   ];
 
   return (
     <>
     {chatOpen && <ClientChatPanel viewer={viewer} onClose={closeChat} onActivity={markRead} />}
-    <div className={`fixed right-4 bottom-4 z-30 flex flex-col items-end gap-3 transition-all duration-500 sm:right-6 sm:bottom-6 ${visible || open || chatOpen || unread > 0 ? "translate-y-0 opacity-100" : "pointer-events-none translate-y-6 opacity-0"}`}>
+    <div className={`fixed end-4 bottom-4 z-30 flex flex-col items-end gap-3 transition-all duration-500 sm:end-6 sm:bottom-6 ${visible || open || chatOpen || unread > 0 ? "translate-y-0 opacity-100" : "pointer-events-none translate-y-6 opacity-0"}`}>
       {open && (
         <ul id="floating-actions" className="flex flex-col items-end gap-2 animate-[fade-in_0.25s_ease]">
           {actions.map((a) => {
-            const className = "flex items-center gap-3 border border-line bg-ink-2/95 py-2.5 pr-3 pl-4 text-sm text-bone shadow-2xl backdrop-blur-md transition-colors hover:border-gold hover:text-gold";
+            const className = "flex items-center gap-3 border border-line bg-ink-2/95 py-2.5 pe-3 ps-4 text-sm text-bone shadow-2xl backdrop-blur-md transition-colors hover:border-gold hover:text-gold";
             const content = <><span>{a.label}</span><span className="grid size-8 place-items-center bg-ink text-gold">{a.icon}</span></>;
             return (
               <li key={a.label}>
@@ -121,12 +134,12 @@ export function FloatingActions({ viewer = { role: "guest" } }: { viewer?: ChatV
         onClick={() => (chatOpen ? setChatOpen(false) : setOpen(!open))}
         aria-expanded={open || chatOpen}
         aria-controls="floating-actions"
-        aria-label={chatOpen ? "Fermer la discussion" : open ? "Fermer le menu de contact" : `Nous contacter rapidement${unread ? ` (${unread} message${unread > 1 ? "s" : ""} non lu${unread > 1 ? "s" : ""})` : ""}`}
+        aria-label={chatOpen ? t.floating.closeChat : open ? t.floating.closeMenu : `${t.floating.menu}${unread ? ` (${t.floating.unread(unread)})` : ""}`}
         className={`fab-pulse relative grid size-14 place-items-center rounded-full text-white shadow-[0_12px_32px_rgba(0,0,0,0.45)] transition-transform hover:scale-105 ${open || chatOpen ? "bg-ink-3" : "bg-[#1fa855] animate-[fab-pulse_2.4s_ease-out_infinite]"}`}
       >
         {open || chatOpen ? <Icon name="close" width={22} height={22} /> : <WhatsAppIcon className="size-7" />}
         {unread > 0 && !open && !chatOpen && (
-          <span aria-hidden="true" className="absolute -top-1 -right-1 grid min-h-6 min-w-6 place-items-center rounded-full border-2 border-ink bg-gold px-1 text-[11px] font-bold text-ink">{unread}</span>
+          <span aria-hidden="true" className="absolute -top-1 -end-1 grid min-h-6 min-w-6 place-items-center rounded-full border-2 border-ink bg-gold px-1 text-[11px] font-bold text-ink">{unread}</span>
         )}
       </button>
     </div>

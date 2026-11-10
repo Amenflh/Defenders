@@ -2,26 +2,15 @@
 
 import { useActionState, useEffect, useRef } from "react";
 import { Icon } from "@/components/Icon";
+import { PhoneField } from "@/components/PhoneField";
+import { RulesAgreement } from "@/components/RulesAgreement";
+import { useI18n } from "@/lib/i18n/client";
 import { submitContact, type ContactFields, type ContactState } from "./actions";
-
-const PROFILES = [
-  { value: "coach-pro", label: "Coach professionnel", hint: "J'exerce déjà comme coach / entraîneur" },
-  { value: "jeune-diplome", label: "Jeune diplômé", hint: "Diplômé récemment en sciences du sport" },
-  { value: "etudiant", label: "Étudiant", hint: "En cours de formation (STAPS, etc.)" },
-  { value: "reconversion", label: "Reconversion", hint: "Je souhaite devenir coach" },
-];
 
 const DEFAULT_TRAININGS: { value: string; label: string; dot: string }[] = [
   { value: "pilates", label: "Pilates", dot: "bg-pilates" },
   { value: "football", label: "Football", dot: "bg-football" },
   { value: "personal-training", label: "Personal Training", dot: "bg-personal" },
-];
-
-const AVAILABILITIES = [
-  { value: "intensif", label: "Session intensive (4 jours)" },
-  { value: "semaine", label: "En semaine" },
-  { value: "week-end", label: "Le week-end" },
-  { value: "soir", label: "En soirée" },
 ];
 
 const initialState: ContactState = { status: "idle", attempt: 0 };
@@ -56,6 +45,8 @@ export function ContactForm({
   inquiryCopy?: ContactInquiryCopy;
 }) {
   const [state, action, pending] = useActionState(submitContact, initialState);
+  const { t } = useI18n();
+  const f = t.form;
   const statusRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -81,7 +72,7 @@ export function ContactForm({
         <span className="mx-auto grid size-16 place-items-center rounded-full bg-gold text-ink">
           <Icon name="check" width={32} height={32} />
         </span>
-        <h2 className="mt-6 font-display text-3xl tracking-wide uppercase">{variant === "inquiry" ? "Message envoyé" : "Demande envoyée"}</h2>
+        <h2 className="mt-6 font-display text-3xl tracking-wide uppercase">{f.sent}</h2>
         <p className="mx-auto mt-3 max-w-md text-mist">{state.message}</p>
       </div>
     );
@@ -106,34 +97,33 @@ export function ContactForm({
       {variant === "inquiry" ? (
         <>
           <div className="grid gap-5 sm:grid-cols-2">
-            <Field label={inquiryCopy.firstNameLabel || "Prénom"} name="firstName" autoComplete="given-name" required defaultValue={val("firstName")} error={err("firstName")} />
-            <Field label={inquiryCopy.lastNameLabel || "Nom"} name="lastName" autoComplete="family-name" required defaultValue={val("lastName")} error={err("lastName")} />
-            <Field label={inquiryCopy.emailLabel || "E-mail"} name="email" type="email" autoComplete="email" required defaultValue={val("email")} error={err("email")} />
-            <Field label={inquiryCopy.phoneLabel || "Téléphone"} name="phone" type="tel" autoComplete="tel" required placeholder="+216 ..." defaultValue={val("phone")} error={err("phone")} />
+            <Field label={inquiryCopy.firstNameLabel || f.firstName} name="firstName" autoComplete="given-name" required defaultValue={val("firstName")} error={err("firstName")} />
+            <Field label={inquiryCopy.lastNameLabel || f.lastName} name="lastName" autoComplete="family-name" required defaultValue={val("lastName")} error={err("lastName")} />
+            <Field label={inquiryCopy.emailLabel || f.email} name="email" type="email" autoComplete="email" required defaultValue={val("email")} error={err("email")} />
+            <PhoneField label={inquiryCopy.phoneLabel || f.phone} name="phone" required defaultValue={val("phone")} error={err("phone")} />
           </div>
           <input type="hidden" name="profile" value="demande-info" />
-          <input type="hidden" name="availability" value="non-precisee" />
-          <Fieldset legend={inquiryCopy.messageLabel || "Votre message"}>
-            <label htmlFor="message" className="sr-only">Message</label>
-            <textarea id="message" name="message" rows={5} maxLength={2000} required defaultValue={val("message")} placeholder={inquiryCopy.messagePlaceholder || "Comment pouvons-nous vous aider ?"} className="w-full border border-line bg-ink px-4 py-3 text-bone placeholder:text-mist/50 focus:border-gold focus:outline-none" />
+          <Fieldset legend={inquiryCopy.messageLabel || f.step4.replace(/^\d+\.\s*/, "")}>
+            <label htmlFor="message" className="sr-only">{f.message}</label>
+            <textarea id="message" name="message" rows={5} maxLength={2000} required defaultValue={val("message")} placeholder={inquiryCopy.messagePlaceholder || f.messagePlaceholder} className="w-full border border-line bg-ink px-4 py-3 text-bone placeholder:text-mist/50 focus:border-gold focus:outline-none" />
             {err("message") && <p className="mt-2 text-sm text-red-300">{err("message")}</p>}
           </Fieldset>
         </>
       ) : (
         <>
-          <Fieldset legend="1. Vos coordonnées">
+          <Fieldset legend={f.step1}>
             <div className="grid gap-5 sm:grid-cols-2">
-              <Field label="Prénom" name="firstName" autoComplete="given-name" required defaultValue={val("firstName")} error={err("firstName")} />
-              <Field label="Nom" name="lastName" autoComplete="family-name" required defaultValue={val("lastName")} error={err("lastName")} />
-              <Field label="E-mail" name="email" type="email" autoComplete="email" required defaultValue={val("email")} error={err("email")} />
-              <Field label="Téléphone" name="phone" type="tel" autoComplete="tel" required placeholder="+216 ..." defaultValue={val("phone")} error={err("phone")} />
-              <Field label="Ville" name="city" autoComplete="address-level2" defaultValue={val("city")} error={err("city")} className="sm:col-span-2" />
+              <Field label={f.firstName} name="firstName" autoComplete="given-name" required defaultValue={val("firstName")} error={err("firstName")} />
+              <Field label={f.lastName} name="lastName" autoComplete="family-name" required defaultValue={val("lastName")} error={err("lastName")} />
+              <Field label={f.email} name="email" type="email" autoComplete="email" required defaultValue={val("email")} error={err("email")} />
+              <PhoneField label={f.phone} name="phone" required defaultValue={val("phone")} error={err("phone")} />
+              <Field label={f.city} name="city" autoComplete="address-level2" defaultValue={val("city")} error={err("city")} className="sm:col-span-2" />
             </div>
           </Fieldset>
 
-          <Fieldset legend="2. Votre profil" error={err("profile")}>
+          <Fieldset legend={f.step2} error={err("profile")}>
             <div className="grid gap-3 sm:grid-cols-2">
-              {PROFILES.map((p) => (
+              {f.profiles.map((p) => (
                 <ChoiceCard key={p.value} type="radio" name="profile" value={p.value} defaultChecked={val("profile") === p.value}>
                   <span className="block font-medium">{p.label}</span>
                   <span className="mt-0.5 block text-xs text-mist">{p.hint}</span>
@@ -142,7 +132,7 @@ export function ContactForm({
             </div>
           </Fieldset>
 
-          <Fieldset legend="3. Formation souhaitée" hint="Plusieurs choix possibles" error={err("trainings")}>
+          <Fieldset legend={f.step3} hint={f.step3Hint} error={err("trainings")}>
             <div className="grid gap-3 sm:grid-cols-3">
               {availableTrainings.map((t) => (
                 <ChoiceCard key={t.value} type="checkbox" name="trainings" value={t.value} defaultChecked={trainings.includes(t.value)}>
@@ -154,44 +144,38 @@ export function ContactForm({
             </div>
           </Fieldset>
 
-          <Fieldset legend="4. Disponibilité" error={err("availability")}>
-            <div className="grid gap-3 sm:grid-cols-2">
-              {AVAILABILITIES.map((a) => (
-                <ChoiceCard key={a.value} type="radio" name="availability" value={a.value} defaultChecked={val("availability") === a.value}>
-                  <span className="font-medium">{a.label}</span>
-                </ChoiceCard>
-              ))}
-            </div>
-          </Fieldset>
-
           {variant !== "quick" && (
           <>
-          <Fieldset legend="5. Votre message" hint="Facultatif">
-            <label htmlFor="message" className="sr-only">Message</label>
-            <textarea id="message" name="message" rows={5} maxLength={2000} defaultValue={val("message")} placeholder="Vos questions, votre expérience, vos objectifs…" className="w-full border border-line bg-ink px-4 py-3 text-bone placeholder:text-mist/50 focus:border-gold focus:outline-none" />
+          <Fieldset legend={f.step4} hint={f.optional}>
+            <label htmlFor="message" className="sr-only">{f.message}</label>
+            <textarea id="message" name="message" rows={5} maxLength={2000} defaultValue={val("message")} placeholder={f.messagePlaceholder} className="w-full border border-line bg-ink px-4 py-3 text-bone placeholder:text-mist/50 focus:border-gold focus:outline-none" />
             {err("message") && <p className="mt-2 text-sm text-red-300">{err("message")}</p>}
           </Fieldset>
 
-          <Fieldset legend="6. Pièce jointe" hint="PDF, JPG ou PNG — 5 Mo max">
-            <label htmlFor="attachment" className="sr-only">Pièce jointe</label>
+          <Fieldset legend={f.step5} hint={f.attachmentHint}>
+            <label htmlFor="attachment" className="sr-only">{f.step5.replace(/^\d+\.\s*/, "")}</label>
             <input id="attachment" name="attachment" type="file" accept=".pdf,.jpg,.jpeg,.png,application/pdf,image/jpeg,image/png" className="block w-full border border-line bg-ink px-4 py-3 text-sm text-mist file:mr-4 file:border-0 file:bg-gold file:px-4 file:py-2 file:font-display file:text-xs file:uppercase file:text-ink" />
           </Fieldset>
           </>
           )}
+
+          <Fieldset legend={variant === "quick" ? f.step6.replace(/^\d+\./, "4.") : f.step6}>
+            <RulesAgreement defaultAccepted={val("rulesAccepted") === "on"} error={err("rulesAccepted")} />
+          </Fieldset>
         </>
       )}
 
       <div>
         <label className="flex items-start gap-3 text-sm text-mist">
           <input type="checkbox" name="consent" defaultChecked={val("consent") === "on"} className="mt-1 size-4 accent-[var(--color-gold)]" />
-          {variant === "inquiry" ? inquiryCopy.consentText || "J'accepte que Defenders Fitness Academy utilise ces informations pour me recontacter au sujet de ma demande." : "J'accepte que Defenders Fitness Academy utilise ces informations pour me recontacter au sujet de ma demande de formation."}
+          {variant === "inquiry" ? inquiryCopy.consentText || f.consent : f.consent}
         </label>
         {err("consent") && <p className="mt-2 text-sm text-red-300">{err("consent")}</p>}
       </div>
 
       <button type="submit" disabled={pending} className="btn btn-primary w-full disabled:cursor-wait disabled:opacity-60 sm:w-auto">
-        {pending ? "Envoi en cours…" : variant === "inquiry" ? inquiryCopy.submitLabel || "Envoyer mon message" : variant === "quick" ? "Je m'inscris" : "Envoyer ma demande"}
-        {!pending && <Icon name="arrow" />}
+        {pending ? f.sending : variant === "inquiry" ? inquiryCopy.submitLabel || f.submit : variant === "quick" ? f.submitQuick : f.submit}
+        {!pending && <Icon name="arrow" className="rtl:-scale-x-100" />}
       </button>
     </form>
   );

@@ -41,3 +41,14 @@ const fallback: FormationVisual = { accent: gold, photos: bannerPhotos.slice(0, 
 export function visualFor(slug: string): FormationVisual {
   return VISUALS[slug] ?? fallback;
 }
+
+/**
+ * Classe CSS qui applique la couleur d'une activité à toute une section (voir globals.css) :
+ * football = rouge, fitness / Pilates = jaune, personal trainer = vert militaire. Sinon : beige.
+ */
+export function accentClassFor(slugOrAccent: string): string {
+  if (/football/.test(slugOrAccent)) return "accent-football";
+  if (/pilates|fitness/.test(slugOrAccent)) return "accent-pilates";
+  if (/personal/.test(slugOrAccent)) return "accent-personal";
+  return "";
+}

@@ -6,7 +6,7 @@ import { saveFormation, type FormationFormState } from "./actions";
 
 export type FormationFormValues = Record<
   | "name" | "slug" | "headline" | "summary" | "status" | "level" | "durationLabel" | "priceTnd" | "position" | "coverUrl"
-  | "intro" | "objectives" | "prerequisites" | "audience" | "careers" | "modules" | "facts",
+  | "nextSessionDate" | "intro" | "objectives" | "prerequisites" | "audience" | "careers" | "modules" | "facts",
   string
 >;
 
@@ -119,6 +119,9 @@ export function FormationForm({
           </Field>
           <Field label="Durée" name="durationLabel" error={err("durationLabel")} hint="Ex. 4 jours intensifs">
             <input id="durationLabel" name="durationLabel" defaultValue={values.durationLabel} maxLength={60} className="input" />
+          </Field>
+          <Field label="Date de la session" name="nextSessionDate" error={err("nextSessionDate")} hint="Date unique affichée dans le planning">
+            <input id="nextSessionDate" name="nextSessionDate" type="date" defaultValue={values.nextSessionDate} className="input" />
           </Field>
           <Field label="Tarif (DT)" name="priceTnd" error={err("priceTnd")} hint="Vide : « Nous consulter »">
             <input id="priceTnd" name="priceTnd" inputMode="decimal" defaultValue={values.priceTnd} className="input" />

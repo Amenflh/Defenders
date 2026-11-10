@@ -4,9 +4,11 @@ import { useActionState } from "react";
 import { Icon } from "@/components/Icon";
 import { loginAction, type LoginState } from "../actions";
 import { inputClass } from "../fields";
+import { useI18n } from "@/lib/i18n/client";
 
 export function LoginForm({ next }: { next?: string }) {
   const [state, action, pending] = useActionState<LoginState, FormData>(loginAction, {});
+  const A = useI18n().t.pages.auth;
 
   return (
     <form action={action} className="space-y-5">
@@ -17,16 +19,16 @@ export function LoginForm({ next }: { next?: string }) {
       )}
       {next && <input type="hidden" name="next" value={next} />}
       <div>
-        <label htmlFor="email" className="mb-1.5 block text-sm text-mist">E-mail</label>
+        <label htmlFor="email" className="mb-1.5 block text-sm text-mist">{A.email}</label>
         <input id="email" name="email" type="email" autoComplete="username" required defaultValue={state.email} className={inputClass(false)} />
       </div>
       <div>
-        <label htmlFor="password" className="mb-1.5 block text-sm text-mist">Mot de passe</label>
+        <label htmlFor="password" className="mb-1.5 block text-sm text-mist">{A.password}</label>
         <input id="password" name="password" type="password" autoComplete="current-password" required className={inputClass(false)} />
       </div>
       <button type="submit" disabled={pending} className="btn btn-primary w-full disabled:cursor-wait disabled:opacity-60">
-        {pending ? "Connexion…" : "Se connecter"}
-        {!pending && <Icon name="arrow" />}
+        {pending ? A.loggingIn : A.login}
+        {!pending && <Icon name="arrow" className="rtl:-scale-x-100" />}
       </button>
     </form>
   );

@@ -1,46 +1,34 @@
 import type { Metadata } from "next";
 import { PageIntro } from "@/components/PageIntro";
-import { site } from "@/lib/site";
+import { getDictionary } from "@/lib/i18n/server";
 import { getSiteSettings } from "@/lib/settings";
+import { site } from "@/lib/site";
 
-export const metadata: Metadata = {
-  title: "Politique de confidentialité",
-  description: "Informations sur la collecte et l'utilisation des données transmises à Defenders Fitness Academy.",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const { t } = await getDictionary();
+  return { title: t.pages.legal.privacy.title, description: t.pages.legal.privacy.description };
+}
 
 export default async function PrivacyPage() {
-  const settings = await getSiteSettings();
-  const text = typeof settings.privacy === "string" && settings.privacy ? settings.privacy : "";
+  const [settings, { locale, t }] = await Promise.all([getSiteSettings(), getDictionary()]);
+  const L = t.pages.legal;
+  // Le texte personnalisé dans l'admin est rédigé en français : il n'est affiché qu'en français.
+  const text = locale === "fr" && typeof settings.privacy === "string" && settings.privacy ? settings.privacy : "";
   return (
     <>
-      <PageIntro eyebrow="Informations légales" title="Politique de confidentialité">
-        Cette page explique quelles informations peuvent être collectées lors de l&apos;utilisation du site.
+      <PageIntro eyebrow={L.eyebrow} title={L.privacy.title}>
+        {L.privacy.intro}
       </PageIntro>
       <section className="py-16 lg:py-20">
         <article className="container-site max-w-4xl space-y-8 text-sm leading-7 text-mist">
           {text ? <p className="whitespace-pre-line">{text}</p> : (
             <>
-          <Section title="Responsable du traitement">
-            <p>{site.name} peut collecter les informations envoyées volontairement depuis le formulaire de contact ou d&apos;inscription.</p>
-          </Section>
-          <Section title="Données collectées">
-            <p>Le formulaire peut collecter le prénom, le nom, l&apos;e-mail, le téléphone, la ville, le profil, les formations souhaitées, la disponibilité, le message et une éventuelle pièce jointe.</p>
-          </Section>
-          <Section title="Finalités">
-            <p>Ces données sont utilisées pour répondre à une demande, fournir des informations sur les formations, organiser le suivi des inscriptions et transmettre les informations demandées.</p>
-          </Section>
-          <Section title="Base juridique et conservation">
-            <p>Les données sont traitées sur la base du consentement et de la relation de demande d&apos;information. Elles ne sont conservées que pendant la durée nécessaire au traitement et au suivi de la demande.</p>
-          </Section>
-          <Section title="Destinataires">
-            <p>Les informations peuvent être consultées par les personnes habilitées de l&apos;académie et transmises par e-mail aux destinataires internes responsables du suivi.</p>
-          </Section>
-          <Section title="Sécurité">
-            <p>Des mesures techniques limitent les accès et protègent les transmissions. Une pièce jointe doit respecter les formats PDF, JPG/JPEG ou PNG et la limite annoncée par le formulaire.</p>
-          </Section>
-          <Section title="Vos droits">
-            <p>Vous pouvez demander l&apos;accès, la rectification ou la suppression des données vous concernant en écrivant à <a href={site.email.href} className="text-gold hover:text-bone">{site.email.label}</a>.</p>
-          </Section>
+              {L.privacy.sections.map(([title, body]) => (
+                <Section key={title} title={title}><p>{body}</p></Section>
+              ))}
+              <Section title={L.privacy.rightsTitle}>
+                <p>{L.privacy.rights} <a href={site.email.href} className="text-gold hover:text-bone">{site.email.label}</a>.</p>
+              </Section>
             </>
           )}
         </article>

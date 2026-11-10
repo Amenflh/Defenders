@@ -3,7 +3,10 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
+import { useI18n } from "@/lib/i18n/client";
 import { mainNav } from "@/lib/site";
+import { LanguageSwitcher } from "./LanguageSwitcher";
+import { ThemeToggle } from "./ThemeToggle";
 import { Icon } from "./Icon";
 import { Logo, type BrandIdentity } from "./Logo";
 import { Sidebar } from "./Sidebar";
@@ -12,6 +15,7 @@ export type HeaderUser = { name: string; email: string; role: "admin" | "client"
 
 export function Header({ user, identity = {} }: { user: HeaderUser | null; identity?: BrandIdentity }) {
   const pathname = usePathname();
+  const { t } = useI18n();
   const [scrolled, setScrolled] = useState(false);
   const [progress, setProgress] = useState(0);
   const [menuOpen, setMenuOpen] = useState(false);
@@ -30,8 +34,8 @@ export function Header({ user, identity = {} }: { user: HeaderUser | null; ident
 
   return (
     <>
-      <a href="#contenu" className="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-[60] focus:bg-gold focus:px-4 focus:py-2 focus:text-ink">
-        Aller au contenu
+      <a href="#contenu" className="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:start-3 focus:z-[60] focus:bg-gold focus:px-4 focus:py-2 focus:text-ink">
+        {t.common.skip}
       </a>
       <header
         className={`fixed inset-x-0 top-0 z-40 transition-[background-color,border-color,backdrop-filter] duration-500 ${
@@ -42,7 +46,7 @@ export function Header({ user, identity = {} }: { user: HeaderUser | null; ident
           <span className="sm:hidden"><Logo compact {...identity} /></span>
           <span className="hidden sm:inline-flex"><Logo {...identity} /></span>
 
-          <nav aria-label="Navigation principale" className="hidden lg:block">
+          <nav aria-label={t.common.mainNav} className="hidden lg:block">
             <ul className="flex items-center gap-1">
               {mainNav.map((item) => {
                 const route = item.href.split("#")[0] || "/";
@@ -56,7 +60,7 @@ export function Header({ user, identity = {} }: { user: HeaderUser | null; ident
                         active ? "text-bone after:scale-x-100" : "text-mist after:scale-x-0 hover:text-bone hover:after:scale-x-100"
                       }`}
                     >
-                      {item.label}
+                      {t.nav[item.key]}
                     </Link>
                   </li>
                 );
@@ -64,38 +68,39 @@ export function Header({ user, identity = {} }: { user: HeaderUser | null; ident
             </ul>
           </nav>
 
-          <nav aria-label="Liens rapides" className="hidden items-center gap-2 sm:flex lg:hidden">
+          <nav aria-label={t.common.quickLinks} className="hidden items-center gap-2 sm:flex lg:hidden">
             <Link href="/formations" className="whitespace-nowrap font-display text-xs uppercase text-bone hover:text-gold">
-              Formations
+              {t.common.formations}
             </Link>
             <Link href="/#galerie" className="whitespace-nowrap font-display text-xs uppercase text-mist hover:text-gold">
-              Galerie
+              {t.nav.gallery}
             </Link>
           </nav>
 
           <div className="flex shrink-0 items-center gap-2 sm:gap-3">
+            <LanguageSwitcher className="hidden md:flex" />
+            <ThemeToggle className="hidden sm:grid" />
             {user?.role !== "admin" && (
               <Link href="/contact" className="btn btn-primary !py-2 !px-2.5 !text-[0.62rem] sm:!py-2.5 sm:!px-3 sm:!text-xs xl:!px-4">
-                <span className="sm:hidden">Inscription</span>
-                <span className="hidden sm:inline">Réserver ma place</span>
+                {t.common.register}
               </Link>
             )}
             {user && (
               <Link
                 href={user.role === "admin" ? "/admin" : "/mon-espace"}
-                title={user.role === "admin" ? "Espace admin" : "Mon espace"}
+                title={user.role === "admin" ? t.common.admin : t.common.mySpace}
                 className="hidden items-center gap-2.5 rounded-full border border-white/20 py-1 pr-4 pl-1 transition-colors hover:border-gold xl:flex"
               >
                 <span className="grid size-8 place-items-center rounded-full bg-gold font-display text-sm text-ink uppercase">
                   {user.name.trim().charAt(0)}
                 </span>
-                <span className="max-w-32 truncate text-sm">{user.role === "admin" ? "Admin" : user.name.split(" ")[0]}</span>
+                <span className="max-w-32 truncate text-sm">{user.role === "admin" ? t.common.admin : user.name.split(" ")[0]}</span>
               </Link>
             )}
             <button
               onClick={() => setMenuOpen(true)}
               className="grid size-10 place-items-center rounded-full border border-white/20 transition-colors hover:border-bone sm:size-11"
-              aria-label="Ouvrir le menu"
+              aria-label={t.common.openMenu}
               aria-expanded={menuOpen}
               aria-controls="site-sidebar"
             >
@@ -103,7 +108,7 @@ export function Header({ user, identity = {} }: { user: HeaderUser | null; ident
             </button>
           </div>
         </div>
-        <div className="h-px origin-left bg-gold" style={{ transform: `scaleX(${progress})` }} aria-hidden="true" />
+        <div className="h-px origin-left bg-gold rtl:origin-right" style={{ transform: `scaleX(${progress})` }} aria-hidden="true" />
       </header>
 
       <Sidebar open={menuOpen} onClose={closeMenu} pathname={pathname} user={user} identity={identity} />

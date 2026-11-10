@@ -14,7 +14,8 @@ export type ContactFields =
   | "trainings"
   | "availability"
   | "message"
-  | "consent";
+  | "consent"
+  | "rulesAccepted";
 
 export type ContactState = {
   status: "idle" | "success" | "error";
@@ -58,9 +59,10 @@ export async function submitContact(prev: ContactState, formData: FormData): Pro
     city: str("city"),
     profile: str("profile") || undefined,
     trainings: formData.getAll("trainings").filter((v): v is string => typeof v === "string"),
-    availability: str("availability") || undefined,
     message: str("message"),
     consent: formData.get("consent") === "on",
+    // Lecture du règlement intérieur confirmée (obligatoire pour une inscription, ignorée pour une simple question).
+    rulesAccepted: formData.get("rulesAccepted") === "on",
     website: str("website"),
     attachment: attachmentPayload,
     // Lien de parrainage suivi dans les 30 derniers jours (code vérifié par l'API, ignoré s'il est invalide).
@@ -76,8 +78,8 @@ export async function submitContact(prev: ContactState, formData: FormData): Pro
     trainings: payload.trainings,
     message: payload.message,
     profile: payload.profile ?? "",
-    availability: payload.availability ?? "",
     consent: payload.consent ? "on" : "",
+    rulesAccepted: payload.rulesAccepted ? "on" : "",
   };
   const attempt = prev.attempt + 1;
 

@@ -37,6 +37,27 @@ const paths = {
   ),
   star: <path d="M12 3l2.6 5.6 6 .7-4.5 4.1 1.2 6L12 16.4 6.7 19.4l1.2-6L3.4 9.3l6-.7L12 3z" />,
   chat: <path d="M4 5h16v11H9l-5 4V5zM8 9.5h8M8 12.5h5" />,
+  medical: <path d="M9 3h6v6h6v6h-6v6H9v-6H3V9h6V3z" />,
+  award: (
+    <>
+      <circle cx="12" cy="9" r="6" />
+      <path d="M8.5 13.9L7 21l5-3 5 3-1.5-7.1" />
+    </>
+  ),
+  play: <path d="M7 4.5v15l12-7.5-12-7.5z" />,
+  sun: (
+    <>
+      <circle cx="12" cy="12" r="4" />
+      <path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4" />
+    </>
+  ),
+  moon: <path d="M20 14.5A8 8 0 019.5 4 8 8 0 1020 14.5z" />,
+  user: (
+    <>
+      <circle cx="12" cy="8" r="4" />
+      <path d="M4 21a8 8 0 0116 0" />
+    </>
+  ),
   lock: (
     <>
       <rect x="5" y="10.5" width="14" height="10" rx="1.5" />

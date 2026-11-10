@@ -5,7 +5,7 @@ import { site } from "@/lib/site";
 
 export type BrandIdentity = { logoUrl?: string | StaticImageData; brandName?: string; brandDescriptor?: string };
 
-export function Logo({ compact = false, logoUrl = brand.logo, brandName = site.shortName, brandDescriptor = "Fitness Academy" }: BrandIdentity & { compact?: boolean }) {
+export function Logo({ compact = false, logoUrl = brand.logo, brandName = site.shortName, brandDescriptor = site.descriptor }: BrandIdentity & { compact?: boolean }) {
   return (
     <Link href="/" className="group flex items-center gap-3" aria-label={`${brandName} ${brandDescriptor} — accueil`}>
       <Image

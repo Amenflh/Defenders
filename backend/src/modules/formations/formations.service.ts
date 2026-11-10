@@ -28,14 +28,17 @@ const formationSelect = {
   coverUrl: true,
   galleryUrls: true,
   accent: true,
+  nextSessionDate: true,
   updatedAt: true,
 } satisfies Prisma.FormationSelect;
 
 type Row = Prisma.FormationGetPayload<{ select: typeof formationSelect }>;
 
 /** Forme renvoyée par l'API : prix en nombre, niveau avec son libellé. */
-export type FormationDto = Omit<Row, "priceTnd" | "modules" | "facts" | "galleryUrls"> & {
+export type FormationDto = Omit<Row, "priceTnd" | "modules" | "facts" | "galleryUrls" | "nextSessionDate"> & {
   priceTnd: number | null;
+  /** Date de la prochaine session au format AAAA-MM-JJ. */
+  nextSessionDate: string | null;
   levelLabel: string | null;
   modules: Module[];
   facts: Fact[];
@@ -50,6 +53,7 @@ function toDto(row: Row): FormationDto {
     modules: (row.modules as Module[] | null) ?? [],
     facts: (row.facts as Fact[] | null) ?? [],
     galleryUrls: (row.galleryUrls as string[] | null) ?? [],
+    nextSessionDate: row.nextSessionDate ? row.nextSessionDate.toISOString().slice(0, 10) : null,
   };
 }
 

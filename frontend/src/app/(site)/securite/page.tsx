@@ -1,52 +1,38 @@
 import type { Metadata } from "next";
+import { FormationHighlights, FormationHistoryLink } from "@/components/FormationExtras";
 import { Icon } from "@/components/Icon";
 import { PageIntro } from "@/components/PageIntro";
 import { Reveal } from "@/components/Reveal";
 import { site } from "@/lib/site";
+import { getDictionary } from "@/lib/i18n/server";
 
-export const metadata: Metadata = {
-  title: "Defenders Security Protection",
-  description:
-    "Formations, gardiennage, protection rapprochée, intervention incendie et secourisme avec Defenders Security Protection.",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const { t } = await getDictionary();
+  return { title: "Defenders Security Protection", description: t.pages.security.metaDescription };
+}
 
-const services = [
-  {
-    title: "Sécurité renforcée",
-    text: "Interventions face aux incidents terroristes et criminels, avec des procédures adaptées et des équipes qualifiées.",
-  },
-  {
-    title: "Personnel qualifié",
-    text: "Agents formés aux premières interventions en cas d'incendie, à l'évacuation et au secourisme.",
-  },
-  {
-    title: "Gardiennage",
-    text: "Surveillance, contrôle d'accès, rondes et sécurisation des sites selon les besoins du client.",
-  },
-  {
-    title: "Protection rapprochée",
-    text: "Accompagnement sécurisé, analyse des risques et mise en place de dispositifs de protection personnalisés.",
-  },
-];
-
-export default function SecurityPage() {
+export default async function SecurityPage() {
+  const { t } = await getDictionary();
+  const S = t.pages.security;
   return (
     <>
       <PageIntro
         eyebrow="Defenders Security Protection"
-        title="Sécurité, protection & formation professionnelle"
+        title={S.title}
       >
-        Une offre dédiée aux besoins de sécurité, au gardiennage, aux premières interventions et à la formation des professionnels.
+        {S.intro}
       </PageIntro>
+
+      <FormationHighlights slug="securite" />
 
       <section className="py-20 lg:py-28">
         <div className="container-site">
           <Reveal className="mb-12 max-w-3xl">
-            <p className="eyebrow mb-3">Nos services</p>
-            <h2 className="heading-lg">Une réponse professionnelle à chaque situation</h2>
+            <p className="eyebrow mb-3">{S.servicesEyebrow}</p>
+            <h2 className="heading-lg">{S.servicesTitle}</h2>
           </Reveal>
           <div className="grid gap-5 md:grid-cols-2">
-            {services.map((service, index) => (
+            {S.services.map((service, index) => (
               <Reveal key={service.title} delay={index * 80}>
                 <article className="h-full border border-line bg-ink-2 p-7 sm:p-8">
                   <Icon name="shield" width={28} height={28} className="text-gold" />
@@ -62,24 +48,22 @@ export default function SecurityPage() {
       <section className="border-y border-line bg-ink-2 py-20 lg:py-24">
         <div className="container-site grid gap-10 lg:grid-cols-[1fr_1fr] lg:items-start">
           <Reveal>
-            <p className="eyebrow mb-3">Programme de formation</p>
-            <h2 className="heading-lg">Consultez notre programme</h2>
-            <p className="mt-5 max-w-xl text-mist">
-              Téléchargez le programme officiel pour découvrir les spécialités, les contenus et les informations pratiques disponibles.
-            </p>
+            <p className="eyebrow mb-3">{S.programmeEyebrow}</p>
+            <h2 className="heading-lg">{S.programmeTitle}</h2>
+            <p className="mt-5 max-w-xl text-mist">{S.programmeText}</p>
             <a
               href="https://acrobat.adobe.com/id/urn:aaid:sc:EU:42ab2b8c-bc1a-4c97-8286-b7da59f35486"
               target="_blank"
               rel="noreferrer"
               className="btn btn-primary mt-7"
             >
-              Télécharger le programme <Icon name="arrow" />
+              {S.download} <Icon name="arrow" className="rtl:-scale-x-100" />
             </a>
           </Reveal>
 
           <Reveal delay={120}>
             <div className="border border-line bg-ink p-7 sm:p-8">
-              <h3 className="font-display text-2xl uppercase text-bone">Demander des informations</h3>
+              <h3 className="font-display text-2xl uppercase text-bone">{S.infoTitle}</h3>
               <div className="mt-6 space-y-5">
                 <a href={site.phone2.href} className="flex items-center gap-4 text-mist hover:text-bone">
                   <Icon name="phone" className="text-gold" />
@@ -113,22 +97,22 @@ export default function SecurityPage() {
       <section className="py-20 lg:py-24">
         <div className="container-site grid gap-8 lg:grid-cols-[1fr_1fr]">
           <Reveal>
-            <p className="eyebrow mb-3">Adresse</p>
-            <h2 className="heading-lg">Rond-point Le Sultan</h2>
-            <p className="mt-5 text-mist">Avenue Abou Dhabi, Hammamet Nord, Tunisie</p>
+            <p className="eyebrow mb-3">{S.addressEyebrow}</p>
+            <h2 className="heading-lg">{S.addressTitle}</h2>
+            <p className="mt-5 text-mist">{S.address}</p>
             <a
               href="https://www.google.com/maps/search/?api=1&query=Rond-point+Le+Sultan+Avenue+Abou+Dhabi+Hammamet+Tunisie"
               target="_blank"
               rel="noreferrer"
               className="btn btn-primary mt-7"
             >
-              <Icon name="pin" /> Voir l&apos;itinéraire
+              <Icon name="pin" /> {S.directions}
             </a>
           </Reveal>
           <Reveal delay={120} className="overflow-hidden border border-line bg-ink-2">
             <iframe
               src="https://maps.google.com/maps?q=Rond-point%20Le%20Sultan%20Hammamet%20Tunisie&output=embed"
-              title="Localisation Defenders Security Protection"
+              title={S.mapTitle}
               loading="lazy"
               referrerPolicy="no-referrer-when-downgrade"
               className="h-full min-h-[320px] w-full"
@@ -136,6 +120,8 @@ export default function SecurityPage() {
           </Reveal>
         </div>
       </section>
+
+      <FormationHistoryLink slug="securite" />
     </>
   );
 }

@@ -109,8 +109,8 @@ export const validRegistration = (overrides: Record<string, unknown> = {}) => ({
   city: "Hammamet",
   profile: "coach-pro",
   trainings: ["pilates"],
-  availability: "semaine",
   message: "",
   consent: true,
+  rulesAccepted: true,
   ...overrides,
 });

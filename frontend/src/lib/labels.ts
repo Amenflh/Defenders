@@ -18,6 +18,7 @@ export const PROFILE_LABELS: Record<string, string> = {
   "jeune-diplome": "Jeune diplômé",
   etudiant: "Étudiant",
   reconversion: "Reconversion",
+  sportif: "Sportif (+2 ans d'expérience)",
   "demande-info": "Demande générale",
 };
 

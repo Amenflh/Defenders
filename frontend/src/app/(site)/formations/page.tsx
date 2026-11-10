@@ -7,35 +7,34 @@ import { PageIntro } from "@/components/PageIntro";
 import { Reveal } from "@/components/Reveal";
 import { Unavailable } from "@/components/Unavailable";
 import { getFormations } from "@/lib/formations";
+import { getDictionary } from "@/lib/i18n/server";
 
-export const metadata: Metadata = {
-  title: "Nos formations",
-  description: "Toutes les formations certifiantes de Defenders Fitness Academy : programme, durée, niveau et inscription.",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const { t } = await getDictionary();
+  return { title: t.pages.formationsList.title, description: t.pages.formationsList.metaDescription };
+}
 
 /** Liste des formations publiées (#16). */
 export default async function FormationsPage() {
   await connection();
-  const formations = await getFormations();
+  const [formations, { t }] = await Promise.all([getFormations(), getDictionary()]);
+  const L = t.pages.formationsList;
 
   return (
     <>
-      <PageIntro eyebrow="Catalogue" title="Nos formations">
-        Des formations certifiantes, intensives et encadrées par des professionnels du terrain. Choisissez votre spécialité
-        et découvrez le programme détaillé.
+      <PageIntro eyebrow={L.eyebrow} title={L.title}>
+        {L.intro}
       </PageIntro>
 
       {formations === null ? (
-        <Unavailable what="la liste des formations" />
+        <Unavailable />
       ) : formations.length === 0 ? (
         <section className="py-20">
           <div className="container-site border border-line bg-ink-2 p-10 text-center">
-            <h2 className="font-display text-2xl tracking-wide uppercase">Nouvelles sessions en préparation</h2>
-            <p className="mx-auto mt-3 max-w-md text-mist">
-              Aucune formation n&apos;est ouverte pour le moment. Contactez-nous pour être informé des prochaines dates.
-            </p>
+            <h2 className="font-display text-2xl tracking-wide uppercase">{L.emptyTitle}</h2>
+            <p className="mx-auto mt-3 max-w-md text-mist">{L.emptyText}</p>
             <Link href="/contact" className="btn btn-primary mt-6">
-              Nous contacter
+              {t.home.contactUs}
             </Link>
           </div>
         </section>
@@ -50,18 +49,16 @@ export default async function FormationsPage() {
               ))}
             </div>
             <Reveal className="mt-14 flex flex-wrap items-center justify-between gap-6 border border-line bg-ink-2 p-8">
-              <p className="max-w-xl text-mist">
-                Vous hésitez entre plusieurs formations ? Faites notre quiz d&apos;orientation en 4 questions, ou laissez notre équipe vous conseiller.
-              </p>
+              <p className="max-w-xl text-mist">{L.hesitate}</p>
               <div className="flex flex-wrap gap-3">
                 <Link href="/trouver-ma-formation" className="btn btn-ghost">
-                  <Icon name="star" /> Faire le quiz
+                  <Icon name="star" /> {L.quiz}
                 </Link>
                 <Link href="/planning" className="btn btn-ghost">
-                  <Icon name="calendar" /> Planning
+                  <Icon name="calendar" /> {t.nav.planning}
                 </Link>
                 <Link href="/contact" className="btn btn-primary">
-                  Être conseillé <Icon name="arrow" />
+                  {L.advice} <Icon name="arrow" className="rtl:-scale-x-100" />
                 </Link>
               </div>
             </Reveal>

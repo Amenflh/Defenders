@@ -17,6 +17,8 @@ const nextConfig: NextConfig = {
   output: "standalone",
   poweredByHeader: false,
   allowedDevOrigins: localIPv4s,
+  // Masque le bouton « N » de Next.js en dev (il chevauchait le bouton d'inscription flottant).
+  devIndicators: false,
   // Compile Tailwind CSS v4 dans les fichiers .css via le loader Turbopack officiel.
   turbopack: {
     rules: {

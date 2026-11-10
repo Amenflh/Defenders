@@ -26,3 +26,16 @@ export function settingText(settings: SiteSettings, key: string, fallback = ""):
   const value = settings[key];
   return typeof value === "string" && value.trim() ? value : fallback;
 }
+
+/**
+ * Nom affiché du site : « Defenders Academy » par défaut.
+ * L'ancien complément « Fitness Academy » (valeur par défaut de l'admin avant le passage à Defenders Academy)
+ * est considéré comme non personnalisé, pour que le nouveau titre global s'affiche partout.
+ */
+export function brandIdentity(settings: SiteSettings) {
+  const brandName = settingText(settings, "brandName", "Defenders");
+  const savedDescriptor = settingText(settings, "brandDescriptor", "Academy");
+  const brandDescriptor = savedDescriptor === "Fitness Academy" ? "Academy" : savedDescriptor;
+  const logoUrl = settingText(settings, "logoUrl") || undefined;
+  return { brandName, brandDescriptor, logoUrl, siteName: `${brandName} ${brandDescriptor}`.trim() };
+}

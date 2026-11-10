@@ -15,7 +15,7 @@ export type FormationFormState = {
 };
 
 const FIELDS = [
-  "name", "slug", "headline", "summary", "status", "level", "durationLabel", "priceTnd", "position", "coverUrl",
+  "name", "slug", "headline", "summary", "status", "level", "durationLabel", "priceTnd", "position", "coverUrl", "nextSessionDate",
   "intro", "objectives", "prerequisites", "audience", "careers", "modules", "facts",
 ] as const;
 
@@ -42,6 +42,7 @@ function toPayload(v: Record<string, string>) {
     priceTnd: price === "" ? null : Number(price),
     position: Number(v.position || 0),
     coverUrl: v.coverUrl || null,
+    nextSessionDate: v.nextSessionDate.trim() || null,
     // Introduction : paragraphes séparés par une ligne vide.
     intro: v.intro.split(/\r?\n\s*\r?\n/).map((p) => p.replace(/\s*\r?\n\s*/g, " ").trim()).filter(Boolean),
     objectives: lines(v.objectives),

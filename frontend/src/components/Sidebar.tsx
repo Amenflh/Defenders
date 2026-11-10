@@ -3,7 +3,10 @@
 import Link from "next/link";
 import { useEffect, useRef } from "react";
 import { logoutAction } from "@/app/(auth)/actions";
+import { useI18n } from "@/lib/i18n/client";
 import { mainNav, site } from "@/lib/site";
+import { LanguageSwitcher } from "./LanguageSwitcher";
+import { ThemeToggle } from "./ThemeToggle";
 import type { HeaderUser } from "./Header";
 import { Icon } from "./Icon";
 import { Logo, type BrandIdentity } from "./Logo";
@@ -13,6 +16,7 @@ type Props = { open: boolean; onClose: () => void; pathname: string; user: Heade
 /** Panneau latéral : compte, navigation complète, coordonnées et appel à l'action. */
 export function Sidebar({ open, onClose, pathname, user, identity = {} }: Props) {
   const closeRef = useRef<HTMLButtonElement>(null);
+  const { t } = useI18n();
 
   useEffect(() => {
     if (!open) return;
@@ -36,9 +40,9 @@ export function Sidebar({ open, onClose, pathname, user, identity = {} }: Props)
         id="site-sidebar"
         role="dialog"
         aria-modal="true"
-        aria-label="Menu principal"
+        aria-label={t.common.mainMenu}
         inert={!open}
-        className={`absolute top-0 right-0 flex h-full w-full max-w-md flex-col border-l border-line bg-ink-2 transition-transform duration-500 ease-[cubic-bezier(0.2,0.7,0.2,1)] ${open ? "translate-x-0" : "translate-x-full"}`}
+        className={`absolute top-0 end-0 flex h-full w-full max-w-md flex-col border-s border-line bg-ink-2 transition-transform duration-500 ease-[cubic-bezier(0.2,0.7,0.2,1)] ${open ? "translate-x-0" : "translate-x-full rtl:-translate-x-full"}`}
       >
         <div className="flex items-center justify-between border-b border-line px-6 py-5">
           <Logo {...identity} />
@@ -46,7 +50,7 @@ export function Sidebar({ open, onClose, pathname, user, identity = {} }: Props)
             ref={closeRef}
             onClick={onClose}
             className="grid size-11 place-items-center rounded-full border border-line hover:border-bone"
-            aria-label="Fermer le menu"
+            aria-label={t.common.closeMenu}
           >
             <Icon name="close" />
           </button>
@@ -59,19 +63,23 @@ export function Sidebar({ open, onClose, pathname, user, identity = {} }: Props)
             </span>
             <div className="min-w-0 flex-1">
               <p className="truncate font-medium">{user.name}</p>
-              <p className="truncate text-xs text-mist">{user.role === "admin" ? "Administrateur" : user.email}</p>
+              <p className="truncate text-xs text-mist">{user.role === "admin" ? t.common.administrator : user.email}</p>
             </div>
             <Link
               href={user.role === "admin" ? "/admin" : "/mon-espace"}
               onClick={onClose}
               className="shrink-0 border border-line px-3 py-1.5 text-xs tracking-widest uppercase hover:border-gold hover:text-gold"
             >
-              {user.role === "admin" ? "Admin" : "Mon espace"}
+              {user.role === "admin" ? t.common.admin : t.common.mySpace}
             </Link>
           </div>
         )}
 
-        <nav className="flex-1 overflow-y-auto px-6 py-6" aria-label="Navigation principale">
+        <nav className="flex-1 overflow-y-auto px-6 py-6" aria-label={t.common.mainNav}>
+          <div className="mb-6 flex items-center gap-3">
+            <LanguageSwitcher />
+            <ThemeToggle />
+          </div>
           <ol className="space-y-1">
             {mainNav.map((item, i) => {
               const active = item.href === "/" ? pathname === "/" : pathname.startsWith(item.href);
@@ -88,7 +96,7 @@ export function Sidebar({ open, onClose, pathname, user, identity = {} }: Props)
                     className={`group flex items-baseline gap-4 py-2.5 font-display text-3xl uppercase tracking-wide transition-colors ${active ? "text-gold" : "text-bone hover:text-gold"}`}
                   >
                     <span className="w-7 text-xs tracking-widest text-mist">0{i + 1}</span>
-                    {item.label}
+                    {t.nav[item.key]}
                   </Link>
                 </li>
               );
@@ -114,13 +122,13 @@ export function Sidebar({ open, onClose, pathname, user, identity = {} }: Props)
           </a>
           {user?.role !== "admin" && (
             <Link href="/contact" onClick={onClose} className="btn btn-primary mt-2 w-full">
-              Réserver ma place <Icon name="arrow" />
+              {t.common.register} <Icon name="arrow" className="rtl:-scale-x-100" />
             </Link>
           )}
           {user && (
             <form action={logoutAction}>
               <button type="submit" className="btn btn-ghost w-full">
-                Se déconnecter
+                {t.common.logout}
               </button>
             </form>
           )}

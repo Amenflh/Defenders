@@ -4,9 +4,11 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Dialog, DialogClose, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { ContactForm, type ContactDefaults, type ContactInquiryCopy } from "./ContactForm";
+import { useI18n } from "@/lib/i18n/client";
 
 export function ContactPopup({ preselected, defaults, availableTrainings, mode = "reservation", open = true, onOpenChange, title, inquiryCopy }: { preselected?: string; defaults?: ContactDefaults; availableTrainings?: { value: string; label: string; dot?: string }[]; mode?: "reservation" | "inquiry"; open?: boolean; onOpenChange?: (open: boolean) => void; title?: string; inquiryCopy?: ContactInquiryCopy }) {
   const router = useRouter();
+  const pp = useI18n().t.pages.popup;
   const redirectTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [successMessage, setSuccessMessage] = useState("");
 
@@ -32,11 +34,11 @@ export function ContactPopup({ preselected, defaults, availableTrainings, mode =
       >
         <div className="sticky top-0 z-10 flex items-center justify-between border-b border-line bg-ink-2 px-5 py-4 sm:px-7">
           <DialogTitle className="font-display text-lg uppercase tracking-[0.08em] text-bone">
-            {mode === "inquiry" ? title || "Nous contacter" : "Demande d'inscription"}
+            {mode === "inquiry" ? title || pp.contact : pp.reservation}
           </DialogTitle>
           <div className="flex items-center gap-3">
-            {mode === "reservation" && <span className="border border-line px-3 py-1.5 text-[0.65rem] tracking-[0.16em] text-mist uppercase">À compléter</span>}
-            {onOpenChange && <DialogClose aria-label="Fermer le formulaire" className="grid size-9 place-items-center border border-line text-xl text-mist hover:border-gold hover:text-bone">×</DialogClose>}
+            {mode === "reservation" && <span className="border border-line px-3 py-1.5 text-[0.65rem] tracking-[0.16em] text-mist uppercase">{pp.toComplete}</span>}
+            {onOpenChange && <DialogClose aria-label={pp.close} className="grid size-9 place-items-center border border-line text-xl text-mist hover:border-gold hover:text-bone">×</DialogClose>}
           </div>
         </div>
         <div className="px-5 py-6 sm:px-7 sm:py-8">
