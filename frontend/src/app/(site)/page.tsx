@@ -242,7 +242,7 @@ export default async function HomePage({ searchParams }: PageProps<"/">) {
               <h2 className="heading-lg">{t.home.formationsTitle(formationsCms.length)}</h2>
             </div>
             <div className="flex flex-wrap gap-3 self-start">
-              <Link href="/formations/catalogue" className="btn btn-dark">
+              <Link href="/formations" className="btn btn-dark">
                 {t.home.allFormations} <Icon name="arrow" className="rtl:-scale-x-100" />
               </Link>
               <Link href="/planning" className="btn btn-dark">

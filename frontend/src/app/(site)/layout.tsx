@@ -30,7 +30,7 @@ export default async function SiteLayout({ children }: { children: React.ReactNo
   return (
     <>
       <Header user={user === "unavailable" ? null : user} identity={identity} />
-      <main id="contenu" className={`flex-1 ${user && user !== "unavailable" && user.role === "admin" ? "" : "pt-10"}`}>
+      <main id="contenu" className={`flex-1 ${user && user !== "unavailable" && user.role === "admin" ? "" : "pt-14"}`}>
         {children}
       </main>
       <Footer />

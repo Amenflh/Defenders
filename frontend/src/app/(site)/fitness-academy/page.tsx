@@ -3,14 +3,18 @@ import Image from "next/image";
 import Link from "next/link";
 import { connection } from "next/server";
 import { ContactForm } from "../contact/ContactForm";
-import { FacebookVideoEmbed } from "@/components/FacebookVideoEmbed";
+import { AcademyCourseCard } from "@/components/AcademyCourseCard";
+import { AcademyVideoHero } from "@/components/AcademyVideoHero";
 import { Icon } from "@/components/Icon";
-import { PageIntro } from "@/components/PageIntro";
 import { Reveal } from "@/components/Reveal";
 import { divisionCopy } from "@/lib/division-copy";
+import { bannerPhotos } from "@/lib/images";
+import { accentClassFor } from "@/lib/formation-visuals";
+import { visualFor } from "@/lib/formation-visuals";
 import { getFormations, trainingOptions } from "@/lib/formations";
 import { localizeFormation } from "@/lib/formation-i18n";
 import { getDictionary } from "@/lib/i18n/server";
+import { getHomeHeroVideo } from "@/lib/home-page-data";
 import { pilatesPhotos } from "@/lib/images";
 import { site } from "@/lib/site";
 
@@ -24,25 +28,33 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export default async function FitnessAcademyPage() {
   await connection();
-  const [formations, { locale, t }] = await Promise.all([getFormations(), getDictionary()]);
+  const [formations, { locale, t }, heroVideo] = await Promise.all([getFormations(), getDictionary(), getHomeHeroVideo()]);
   const S = t.pages.fitnessAcademy;
   const experience = divisionCopy[locale].fitness;
   const availableTrainings = formations?.length
     ? trainingOptions(formations.map((formation) => localizeFormation(formation, locale)))
     : undefined;
   const courseVideos = {
-    pilates: { urls: site.facebook.pilatesVideos, embedUrls: site.facebook.pilatesVideoEmbeds },
-    "personal-training": { urls: site.facebook.personalTrainingVideos, embedUrls: site.facebook.personalTrainingVideoEmbeds },
-    football: { urls: site.facebook.footballVideos, embedUrls: site.facebook.footballVideoEmbeds },
+    pilates: { embedUrls: site.facebook.pilatesVideoEmbeds },
+    "personal-training": { embedUrls: site.facebook.personalTrainingVideoEmbeds },
+    football: { embedUrls: site.facebook.footballVideoEmbeds },
   };
   const isCourseSlug = (slug: string): slug is keyof typeof courseVideos =>
     Object.prototype.hasOwnProperty.call(courseVideos, slug);
 
   return (
-    <div className="branch-theme-fitness">
-      <PageIntro eyebrow="Defenders Fitness Academy · Hammamet" title={S.title}>
-        {S.intro}
-      </PageIntro>
+    <div className="branch-theme">
+      <AcademyVideoHero
+        eyebrow=""
+        title={S.title}
+        intro={S.intro}
+        videoSrc={heroVideo}
+        poster={bannerPhotos[0].src}
+        logo="/pics/logo.jpg"
+        logoAlt="Defenders Fitness Academy"
+        coursesLabel={S.programsTitle}
+        showLogo={false}
+      />
 
       <section className="py-16 lg:py-24">
         <div className="container-site grid gap-10 lg:grid-cols-[1.05fr_0.95fr] lg:items-center">
@@ -85,7 +97,7 @@ export default async function FitnessAcademyPage() {
               <Icon name="facebook" /> {S.profile}
             </a>
           </Reveal>
-          <div className="space-y-5">
+          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {S.programs.map((program, index) => {
               if (!isCourseSlug(program.slug)) {
                 throw new Error(`Unknown Fitness Academy course: ${program.slug}`);
@@ -93,27 +105,16 @@ export default async function FitnessAcademyPage() {
               const media = courseVideos[program.slug];
               const detailsHref = program.slug === "personal-training" ? "/personal-training" : `/formations/${program.slug}`;
               return (
-                <Reveal key={program.slug} delay={index * 70} className="border border-line bg-ink-2 p-6 sm:p-8">
-                  <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)]">
-                    <div>
-                      <span aria-hidden="true" className="font-display text-xs tracking-[0.14em] text-gold">0{index + 1}</span>
-                      <h3 className="mt-4 font-display text-2xl uppercase text-bone">{program.title}</h3>
-                      <p className="mt-4 text-sm leading-relaxed text-mist">{program.text}</p>
-                      <Link href={detailsHref} className="mt-5 inline-flex items-center gap-2 font-display text-xs tracking-[0.12em] text-gold uppercase hover:text-bone">
-                        {S.courseDetailsLink} <Icon name="arrow" className="rtl:-scale-x-100" />
-                      </Link>
-                    </div>
-                    <ul className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-                      {media.urls.map((url, videoIndex) => (
-                        <li key={url} className="overflow-hidden border border-line bg-ink">
-                          <FacebookVideoEmbed url={media.embedUrls[videoIndex]} title={`${program.title} · ${videoIndex + 1}`} />
-                          <a href={url} target="_blank" rel="noreferrer" className="flex items-center gap-2 p-3 text-xs text-gold transition-colors hover:text-gold-soft">
-                            <Icon name="facebook" width={16} height={16} /> {S.videoSource}
-                          </a>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
+                <Reveal key={program.slug} delay={index * 70} className={`flex flex-col gap-3 ${accentClassFor(program.slug)}`}>
+                  <AcademyCourseCard
+                    title={program.title}
+                    text={program.text}
+                    href={detailsHref}
+                    action={S.courseDetailsLink}
+                    poster={visualFor(program.slug).cover.src}
+                    videoEmbedUrl={media.embedUrls[0]}
+                    accentClassName={accentClassFor(program.slug)}
+                  />
                 </Reveal>
               );
             })}
@@ -172,6 +173,18 @@ export default async function FitnessAcademyPage() {
           <Reveal delay={100} className="border border-line bg-ink p-7 sm:p-9">
             <p className="leading-relaxed text-mist">{experience.reviewsEmpty}</p>
           </Reveal>
+        </div>
+      </section>
+
+      <section id="historique" className="border-b border-line py-12">
+        <div className="container-site flex flex-wrap items-center justify-between gap-5">
+          <div>
+            <p className="eyebrow mb-2">{t.nav.history}</p>
+            <h2 className="font-display text-2xl uppercase">{t.history.title}</h2>
+          </div>
+          <Link href="/historique?academy=fitness" className="btn btn-ghost">
+            {t.history.seeAll} <Icon name="arrow" className="rtl:-scale-x-100" />
+          </Link>
         </div>
       </section>
 

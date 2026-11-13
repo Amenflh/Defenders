@@ -106,8 +106,8 @@ export async function ensureSeedData(): Promise<void> {
     {
       slug: "pilates",
       name: "Pilates",
-      headline: "Devenez instructeur Pilates Mat & Reformer",
-      summary: "Maîtrisez la méthode Pilates, au sol comme sur Reformer, et apprenez à construire des séances sûres, progressives et adaptées à chaque client.",
+      headline: "Pilates Mat & Reformer : formation d'instructeur",
+      summary: "Maîtrisez les fondamentaux du Pilates au sol et sur Reformer. Apprenez à guider les mouvements, adapter les exercices et structurer des séances progressives selon les besoins de chaque public.",
       intro: ["Le Pilates est l'une des pratiques les plus demandées en studio et en coaching privé. Notre formation allie compréhension scientifique du mouvement et maîtrise pédagogique.", "Vous travaillez sur tapis et sur Reformer, avec un accent sur le placement, la respiration, le contrôle du centre et l'adaptation des exercices aux différents profils."],
       facts: [{ label: "Supports", value: "Mat & Reformer" }, { label: "Approche", value: "Théorie + pratique" }, { label: "Validation", value: "Certificat" }],
       objectives: ["Comprendre les principes fondamentaux de la méthode Pilates", "Analyser la posture et le mouvement grâce à l'anatomie fonctionnelle", "Enseigner le répertoire Mat et Reformer en toute sécurité", "Adapter les exercices aux débutants, sportifs et publics spécifiques", "Concevoir et animer des séances individuelles et collectives"],
@@ -121,8 +121,8 @@ export async function ensureSeedData(): Promise<void> {
     {
       slug: "football",
       name: "Football",
-      headline: "Formation d'entraîneur de football",
-      summary: "Une formation intensive pour encadrer, préparer et faire progresser des joueurs, des jeunes catégories jusqu'aux seniors.",
+      headline: "Formation en entraînement et coaching de football",
+      summary: "Concevez des séances, développez les qualités physiques et transmettez des principes de jeu adaptés à l'âge, au niveau et aux objectifs des joueurs.",
       intro: ["Entraîner, c'est transmettre une méthode. Notre formation couvre la planification, la préparation physique, la tactique et le management.", "Le programme alterne apports théoriques et mises en situation, avec des séances prêtes à l'emploi."],
       facts: [{ label: "Durée", value: "4 jours intensifs" }, { label: "Hébergement", value: "Inclus" }, { label: "Validation", value: "Certificat accrédité" }],
       objectives: ["Planifier une saison, un cycle et une séance", "Développer les qualités physiques spécifiques au football", "Transmettre des principes de jeu et une organisation tactique", "Encadrer les jeunes catégories", "Gérer un groupe, la communication et la motivation"],
@@ -136,8 +136,8 @@ export async function ensureSeedData(): Promise<void> {
     {
       slug: "personal-training",
       name: "Personal Training",
-      headline: "Personal Fitness Trainer Certification",
-      summary: "Devenez coach personnel : évaluation, programmation, musculation, nutrition et accompagnement client, validés par plusieurs certificats.",
+      headline: "Formation de coach sportif personnel",
+      summary: "Apprenez à évaluer les objectifs d'un client, planifier son entraînement et l'accompagner avec des méthodes sûres de musculation, de conditionnement physique et de conseils nutritionnels.",
       intro: ["Le coaching privé exige une expertise solide et une vraie relation client. La certification vous donne les outils scientifiques et pratiques pour concevoir des programmes efficaces et sûrs.", "Formation intensive, encadrée par des formateurs expérimentés, avec accompagnement vers l'emploi grâce à notre réseau de partenaires."],
       facts: [{ label: "Durée", value: "4 jours consécutifs" }, { label: "Certificats", value: "7 certificats" }, { label: "Hébergement", value: "Inclus" }],
       objectives: ["Évaluer la condition physique et les objectifs d'un client", "Programmer l'entraînement : force, hypertrophie, perte de poids, performance", "Maîtriser la technique et la sécurité en musculation", "Donner des conseils nutritionnels fondés sur les sciences du sport", "Développer son activité de coach privé"],

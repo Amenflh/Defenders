@@ -22,7 +22,7 @@ export function BranchesSection({ t }: { t: Dictionary }) {
           return (
             <Reveal key={branch.name} delay={i * 100} className="h-full">
               <Link href={branch.href} className="group relative flex h-full min-h-[26rem] flex-col overflow-hidden border border-line bg-ink-2 transition-[border-color,background-color,transform] duration-300 hover:-translate-y-1 hover:border-gold hover:bg-ink-3">
-                <div className={`relative flex h-52 items-center justify-center overflow-hidden border-b border-line ${isFitness ? "bg-ink" : branch.key === "tsa" ? "bg-[#f3f0e8]" : "bg-gradient-to-br from-ink-3 to-ink"}`}>
+                <div className="relative flex h-52 items-center justify-center overflow-hidden border-b border-line bg-ink">
                   {isFitness ? (
                     <Image
                       src={pilatesPhotos[0].src}

@@ -6,7 +6,16 @@ import { site } from "./site";
 export const HISTORY_PROVISIONAL = true;
 
 export type HistoryActivity = "football" | "pilates" | "personal-training" | "securite" | "tsa";
+export type HistoryAcademy = "fitness" | "security" | "tsa";
 type Localized = Record<Locale, string>;
+
+export const HISTORY_ACADEMY_FOR_ACTIVITY: Record<HistoryActivity, HistoryAcademy> = {
+  football: "fitness",
+  pilates: "fitness",
+  "personal-training": "fitness",
+  securite: "security",
+  tsa: "tsa",
+};
 
 export type HistoryEntry = {
   id: string;

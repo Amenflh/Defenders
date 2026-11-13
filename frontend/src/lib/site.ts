@@ -6,9 +6,9 @@ export const site = {
   group: "Defenders Academy",
   /** Les trois filières de Defenders Academy. */
   branches: [
-    { key: "security", name: "Defenders Security Protection", href: "/securite", logo: "/pics/partners/DSP-logo.jpg", mark: "DSP", comingSoon: false },
-    { key: "fitness", name: "Defenders Fitness Academy", href: "/fitness-academy", logo: "/pics/logo.jpg", mark: "DFA", comingSoon: false },
-    { key: "tsa", name: "A.K Tunisian Security Academy", href: "/ak-tunisian-security-academy", logo: "/pics/partners/TSA-logo.jpg", mark: "TSA", comingSoon: false },
+    { key: "security", name: "Defenders Security Protection", headerName: "Defenders Security", headerDescriptor: "Protection", href: "/securite", logo: "/pics/partners/DSP-logo.jpg", mark: "DSP", comingSoon: false },
+    { key: "fitness", name: "Defenders Fitness Academy", headerName: "Defenders", headerDescriptor: "Fitness Academy", href: "/fitness-academy", logo: "/pics/logo.jpg", mark: "DFA", comingSoon: false },
+    { key: "tsa", name: "A.K Tunisian Security Academy", headerName: "A.K Tunisian Security", headerDescriptor: "Academy", href: "/ak-tunisian-security-academy", logo: "/pics/partners/TSA-logo.jpg", mark: "TSA", comingSoon: false },
   ],
   approval: "Agrément n° 21-340-24",
   phone: { label: "+216 92 204 005", href: "tel:+21692204005" },
@@ -30,7 +30,12 @@ export const site = {
     videos: "https://www.facebook.com/100077382387038/videos/",
     firstResponseVideo: "https://www.facebook.com/share/v/19iShpsQa8/",
     firstResponseVideoEmbed: "https://www.facebook.com/reel/1591488295804767/",
+    closeProtectionVideo: "https://www.facebook.com/share/r/1D4ZZCjZku/",
     k9TrainingPost: "https://www.facebook.com/share/p/1E7x6Xconw/",
+    k9TrainingVideos: [
+      "https://www.facebook.com/share/v/19vDPzycfW/",
+      "https://www.facebook.com/share/v/1YiT9YW884/",
+    ],
     k9Contact: { label: "+216 24 076 368", href: "tel:+21624076368" },
     phone: { label: "+216 29 039 493", href: "tel:+21629039493" },
     trainingPhone: { label: "+216 92 204 005", href: "tel:+21692204005" },
@@ -121,10 +126,11 @@ export type NavItem = { href: string; key: NavKey };
 /** Navigation principale : les libellés viennent du dictionnaire de la langue active (t.nav[key]). */
 export const mainNav: NavItem[] = [
   { href: "/", key: "home" },
-  { href: "/fitness-academy", key: "fitnessAcademy" },
-  { href: "/#galerie", key: "gallery" },
   { href: "/securite", key: "security" },
+  { href: "/fitness-academy", key: "fitnessAcademy" },
   { href: "/ak-tunisian-security-academy", key: "akAcademy" },
+  { href: "/formations", key: "formations" },
+  { href: "/#galerie", key: "gallery" },
   { href: "/planning", key: "planning" },
   { href: "/historique", key: "history" },
   { href: "/contact", key: "contact" },
@@ -132,5 +138,5 @@ export const mainNav: NavItem[] = [
 
 /** Navigation du header : garde les liens qui mènent à des pages et sections utiles. */
 export const headerNav = mainNav.filter(
-  (item) => item.key !== "home" && item.key !== "gallery",
+  (item) => item.key !== "home" && item.key !== "gallery" && item.key !== "planning" && item.key !== "contact",
 );

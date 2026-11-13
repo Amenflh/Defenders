@@ -23,11 +23,11 @@ export async function FormationPage({ f: source, others: sourceOthers }: { f: Fo
   const galleryUrls = f.galleryUrls.filter((url) => url !== f.coverUrl);
   const videos = f.media.filter((m) => m.type === "video");
   const socialVideos = f.slug === "pilates"
-    ? { title: p.pilatesVideosTitle, urls: site.facebook.pilatesVideos, embedUrls: site.facebook.pilatesVideoEmbeds, labels: [p.pilatesVideo1, p.pilatesVideo2] }
+    ? { title: p.pilatesVideosTitle, embedUrls: site.facebook.pilatesVideoEmbeds, labels: [p.pilatesVideo1, p.pilatesVideo2] }
     : f.slug === "personal-training"
-      ? { title: p.personalTrainingVideosTitle, urls: site.facebook.personalTrainingVideos, embedUrls: site.facebook.personalTrainingVideoEmbeds, labels: [p.personalTrainingVideo1, p.personalTrainingVideo2, p.personalTrainingVideo3] }
+      ? { title: p.personalTrainingVideosTitle, embedUrls: site.facebook.personalTrainingVideoEmbeds, labels: [p.personalTrainingVideo1, p.personalTrainingVideo2, p.personalTrainingVideo3] }
       : f.slug === "football"
-      ? { title: p.footballVideosTitle, urls: site.facebook.footballVideos, embedUrls: site.facebook.footballVideoEmbeds, labels: [p.footballVideo1] }
+      ? { title: p.footballVideosTitle, embedUrls: site.facebook.footballVideoEmbeds, labels: [p.footballVideo1] }
       : null;
   const socialDetails = f.slug === "pilates"
     ? p.pilatesVideoDetails
@@ -91,13 +91,10 @@ export async function FormationPage({ f: source, others: sourceOthers }: { f: Fo
 
           <Reveal from="right" delay={150} className="relative">
             {socialVideos ? (
-              <ul className={`grid items-start gap-3 ${socialVideos.urls.length > 1 ? "sm:grid-cols-2" : ""} ${socialVideos.urls.length > 2 ? "xl:grid-cols-3" : ""}`}>
-                {socialVideos.urls.map((url, index) => (
+              <ul className={`grid items-start gap-3 ${socialVideos.embedUrls.length > 1 ? "sm:grid-cols-2" : ""}`}>
+                {socialVideos.embedUrls.map((url, index) => (
                   <li key={url} className="overflow-hidden border border-line bg-ink-2">
-                    <FacebookVideoEmbed url={socialVideos.embedUrls[index]} title={socialVideos.labels[index]} />
-                    <a href={url} target="_blank" rel="noreferrer" className="flex items-center gap-2 p-3 text-xs text-gold transition-colors hover:text-gold-soft">
-                      <Icon name="facebook" width={16} height={16} /> {socialVideos.labels[index]}
-                    </a>
+                    <FacebookVideoEmbed url={url} title={socialVideos.labels[index]} />
                   </li>
                 ))}
               </ul>
@@ -265,7 +262,7 @@ export async function FormationPage({ f: source, others: sourceOthers }: { f: Fo
               <div className="grid gap-6 sm:grid-cols-2">
                 {videos.map((v) => (
                   <figure key={v.id} className="overflow-hidden border border-line bg-ink-2">
-                    <video src={v.url} controls preload="metadata" playsInline className="aspect-video w-full bg-black" />
+                    <video src={v.url} controls preload="metadata" playsInline className="mx-auto block max-h-[70svh] w-full bg-black object-contain" />
                     {v.title && <figcaption className="px-4 py-3 text-sm text-mist">{v.title}</figcaption>}
                   </figure>
                 ))}

@@ -1,9 +1,14 @@
 import type { Metadata } from "next";
 import Image from "next/image";
+import Link from "next/link";
+import { AcademyCourseCard } from "@/components/AcademyCourseCard";
+import { AcademyVideoHero } from "@/components/AcademyVideoHero";
+import { FacebookVideoEmbed } from "@/components/FacebookVideoEmbed";
 import { Icon } from "@/components/Icon";
-import { PageIntro } from "@/components/PageIntro";
 import { Reveal } from "@/components/Reveal";
 import { divisionCopy } from "@/lib/division-copy";
+import { getHomeHeroVideo } from "@/lib/home-page-data";
+import { bannerPhotos } from "@/lib/images";
 import { site } from "@/lib/site";
 import { getDictionary } from "@/lib/i18n/server";
 import { SecurityQuoteForm } from "./SecurityQuoteForm";
@@ -14,17 +19,22 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function SecurityPage() {
-  const { locale, t } = await getDictionary();
+  const [{ locale, t }, heroVideo] = await Promise.all([getDictionary(), getHomeHeroVideo()]);
   const S = t.pages.security;
   const experience = divisionCopy[locale].security;
   return (
-    <div className="branch-theme-security">
-      <PageIntro
-        eyebrow="Defenders Security Protection · Hammamet"
+    <div className="branch-theme">
+      <AcademyVideoHero
+        eyebrow=""
         title={S.title}
-      >
-        {S.intro}
-      </PageIntro>
+        intro={S.intro}
+        videoSrc={heroVideo}
+        poster={bannerPhotos[0].src}
+        logo="/pics/partners/DSP-logo.jpg"
+        logoAlt="Defenders Security Protection"
+        coursesLabel={S.programmeTitle}
+        showLogo={false}
+      />
 
       <section className="py-16 lg:py-24">
         <div className="container-site grid gap-8 lg:grid-cols-[0.72fr_1.28fr] lg:items-stretch">
@@ -53,63 +63,73 @@ export default async function SecurityPage() {
         </div>
       </section>
 
-      <section id="security-quote" className="scroll-mt-24 border-y border-line py-20 lg:py-24">
-        <div className="container-site grid gap-8 lg:grid-cols-[0.8fr_1.2fr] lg:items-start">
+      <section className="border-y border-line bg-ink-2 py-16 lg:py-20">
+        <div className="container-site grid items-center gap-8 lg:grid-cols-[0.8fr_1.2fr]">
           <Reveal>
             <p className="eyebrow mb-3">{S.servicesEyebrow}</p>
-            <h2 className="heading-lg">{S.quoteForm.title}</h2>
-            <p className="mt-5 max-w-xl leading-relaxed text-mist">{S.quoteForm.description}</p>
-            <p className="mt-5 border-s-2 border-gold ps-4 text-sm leading-relaxed text-mist">{S.servicesNote}</p>
+            <h2 className="heading-lg">{S.closeProtectionTitle}</h2>
+            <p className="mt-5 leading-relaxed text-mist">{S.closeProtectionText}</p>
+            <Link href="/ak-tunisian-security-academy/formations/protection-rapprochee" className="btn btn-primary mt-7">
+              {t.pages.akAcademy.courseDetailsLink} <Icon name="arrow" className="rtl:-scale-x-100" />
+            </Link>
           </Reveal>
-          <Reveal delay={120}>
-            <SecurityQuoteForm copy={S.quoteForm} />
+          <Reveal delay={100} className="mx-auto w-full max-w-[360px] overflow-hidden border border-line bg-black">
+            <FacebookVideoEmbed url={site.tunisianSecurityAcademy.closeProtectionVideo} title={S.closeProtectionTitle} />
           </Reveal>
         </div>
       </section>
 
-      <section className="border-y border-line bg-ink-2 py-20 lg:py-24">
-        <div className="container-site grid gap-10 lg:grid-cols-[1fr_1fr] lg:items-start">
+      <section id="programmes" className="scroll-mt-24 border-y border-line bg-ink-2 py-16 lg:py-24">
+        <div className="container-site grid gap-8 lg:grid-cols-[1fr_0.7fr] lg:items-start">
           <Reveal>
-            <p className="eyebrow mb-3">{S.programmeEyebrow}</p>
-            <h2 className="heading-lg">{S.programmeTitle}</h2>
-            <p className="mt-5 max-w-xl text-mist">{S.programmeText}</p>
-            <a
+            <AcademyCourseCard
+              title={S.programmeTitle}
+              text={S.programmeText}
+              detail={S.programmeEyebrow}
+              poster={bannerPhotos[0].src}
               href="https://acrobat.adobe.com/id/urn:aaid:sc:EU:42ab2b8c-bc1a-4c97-8286-b7da59f35486"
-              target="_blank"
-              rel="noreferrer"
-              className="btn btn-primary mt-7"
-            >
-              {S.download} <Icon name="arrow" className="rtl:-scale-x-100" />
-            </a>
+              action={S.download}
+              external
+            />
           </Reveal>
 
-          <Reveal delay={120}>
-            <div className="border border-line bg-ink p-7 sm:p-8">
-              <h3 className="font-display text-2xl uppercase text-bone">{S.infoTitle}</h3>
-              <div className="mt-6 space-y-5">
-                <a href={site.phone2.href} className="flex items-center gap-4 text-mist hover:text-bone">
-                  <Icon name="phone" className="text-gold" />
-                  {site.phone2.label}
-                </a>
-                <a href={site.phone.href} className="flex items-center gap-4 text-mist hover:text-bone">
-                  <Icon name="phone" className="text-gold" />
-                  {site.phone.label}
-                </a>
-                <a href={site.whatsapp.href} target="_blank" rel="noreferrer" className="flex items-center gap-4 text-mist hover:text-bone">
-                  <Icon name="phone" className="text-gold" />
-                  WhatsApp · {site.phone2.label}
-                </a>
-                <a href={site.email.href} className="flex items-center gap-4 break-all text-mist hover:text-bone">
-                  <Icon name="mail" className="text-gold" />
-                  {site.email.label}
-                </a>
-              </div>
-              <div className="mt-7 flex flex-wrap gap-3">
-                <a href={site.securityPortal} target="_blank" rel="noreferrer" className="btn btn-ghost !px-4">
-                  <Icon name="arrow" className="rtl:-scale-x-100" /> {S.portal}
-                </a>
-              </div>
+          <Reveal delay={120} className="border border-line bg-ink p-7 sm:p-8">
+            <h3 className="font-display text-2xl uppercase text-bone">{S.infoTitle}</h3>
+            <div className="mt-6 space-y-5">
+              <a href={site.phone2.href} className="flex items-center gap-4 text-mist hover:text-bone">
+                <Icon name="phone" className="text-gold" />
+                {site.phone2.label}
+              </a>
+              <a href={site.phone.href} className="flex items-center gap-4 text-mist hover:text-bone">
+                <Icon name="phone" className="text-gold" />
+                {site.phone.label}
+              </a>
+              <a href={site.whatsapp.href} target="_blank" rel="noreferrer" className="flex items-center gap-4 text-mist hover:text-bone">
+                <Icon name="phone" className="text-gold" />
+                WhatsApp · {site.phone2.label}
+              </a>
+              <a href={site.email.href} className="flex items-center gap-4 break-all text-mist hover:text-bone">
+                <Icon name="mail" className="text-gold" />
+                {site.email.label}
+              </a>
             </div>
+            <div className="mt-7 flex flex-wrap gap-3">
+              <a href={site.securityPortal} target="_blank" rel="noreferrer" className="btn btn-ghost !px-4">
+                <Icon name="arrow" className="rtl:-scale-x-100" /> {S.portal}
+              </a>
+            </div>
+          </Reveal>
+        </div>
+      </section>
+
+      <section id="equipe" className="border-y border-line bg-ink-2 py-16 lg:py-20">
+        <div className="container-site grid gap-8 lg:grid-cols-[0.8fr_1.2fr] lg:items-center">
+          <Reveal>
+            <p className="eyebrow mb-3">{S.trainersEyebrow}</p>
+            <h2 className="heading-lg">{S.trainersTitle}</h2>
+          </Reveal>
+          <Reveal delay={100} className="border border-line bg-ink p-7 sm:p-9">
+            <p className="leading-relaxed text-mist">{S.trainersText}</p>
           </Reveal>
         </div>
       </section>
@@ -141,6 +161,40 @@ export default async function SecurityPage() {
           <Reveal delay={100} className="border border-line bg-ink p-7 sm:p-9">
             <p className="leading-relaxed text-mist">{experience.reviewsEmpty}</p>
           </Reveal>
+        </div>
+      </section>
+
+      <section id="historique" className="border-b border-line py-12">
+        <div className="container-site flex flex-wrap items-center justify-between gap-5">
+          <div>
+            <p className="eyebrow mb-2">{t.nav.history}</p>
+            <h2 className="font-display text-2xl uppercase">{t.history.title}</h2>
+          </div>
+          <Link href="/historique?academy=security" className="btn btn-ghost">
+            {t.history.seeAll} <Icon name="arrow" className="rtl:-scale-x-100" />
+          </Link>
+        </div>
+      </section>
+
+      <section id="inscription" className="scroll-mt-24 border-y border-line py-16 lg:py-24">
+        <div className="container-site grid gap-8 lg:grid-cols-[0.8fr_1.2fr] lg:items-start">
+          <Reveal>
+            <p className="eyebrow mb-3">{S.servicesEyebrow}</p>
+            <h2 className="heading-lg">{S.quoteForm.title}</h2>
+            <p className="mt-5 max-w-xl leading-relaxed text-mist">{S.quoteForm.description}</p>
+            <p className="mt-5 border-s-2 border-gold ps-4 text-sm leading-relaxed text-mist">{S.servicesNote}</p>
+          </Reveal>
+          <Reveal delay={120}>
+            <SecurityQuoteForm copy={S.quoteForm} />
+          </Reveal>
+        </div>
+      </section>
+
+      <section className="border-y border-line bg-ink-2 py-10">
+        <div className="container-site">
+          <Link href="/#filieres" className="inline-flex items-center gap-2 font-display text-sm tracking-[0.12em] text-gold uppercase hover:text-bone">
+            <Icon name="arrow" className="rtl:-scale-x-100" /> {S.backToGroup}
+          </Link>
         </div>
       </section>
     </div>

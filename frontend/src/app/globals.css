@@ -25,6 +25,10 @@
   --color-football: #d93a3a;
   /* Personal trainer : vert militaire (éclairci pour rester lisible sur fond noir) */
   --color-personal: #7d8f4e;
+  /* Identités des parcours de sécurité TSA. */
+  --color-k9: #53a9a4;
+  --color-intervention: #e49a52;
+  --color-protection: #a68bd1;
 
   --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
   --font-display: var(--font-oswald), "Arial Narrow", ui-sans-serif, sans-serif;
@@ -81,6 +85,9 @@
   --color-pilates: #c99700;
   --color-football: #c62828;
   --color-personal: #556b2f;
+  --color-k9: #197a75;
+  --color-intervention: #a85b10;
+  --color-protection: #70509b;
 }
 :root[data-theme="dark"] { color-scheme: dark; }
 :root[data-theme="light"] :is(.border-white\/20, .border-white\/15) { border-color: rgb(20 20 22 / 0.18); }
@@ -93,38 +100,14 @@
 :root[data-theme="light"] .accent-football { --color-gold-soft: #9f1d1d; }
 :root[data-theme="light"] .accent-pilates { --color-gold-soft: #9c7600; }
 :root[data-theme="light"] .accent-personal { --color-gold-soft: #3f5222; }
+:root[data-theme="light"] .accent-k9 { --color-gold-soft: #176a66; }
+:root[data-theme="light"] .accent-intervention { --color-gold-soft: #8b4b0d; }
+:root[data-theme="light"] .accent-protection { --color-gold-soft: #604187; }
 
-/* Identités propres aux filières, sans modifier l'en-tête ni le pied de page partagés. */
+/* Les pages des trois académies conservent la charte commune du site. */
 .branch-theme {
   background: var(--color-ink);
   color: var(--color-bone);
-}
-.branch-theme-fitness {
-  --color-ink: #f5f2e9;
-  --color-ink-2: #fffdf7;
-  --color-ink-3: #e9e4d8;
-  --color-line: #d8d3c7;
-  --color-bone: #293128;
-  --color-bone-2: #41483d;
-  --color-mist: #5e665a;
-  --color-gold: #687a52;
-  --color-gold-soft: #87976f;
-  --color-beige: #d8cbb2;
-  --color-pilates: #71845d;
-  --color-football: #a63d37;
-  --color-personal: #65764b;
-}
-.branch-theme-tsa {
-  --color-ink: #111a25;
-  --color-ink-2: #1a2735;
-  --color-ink-3: #263545;
-  --color-line: #3a4b5c;
-  --color-bone: #f1f0eb;
-  --color-bone-2: #e2e2dc;
-  --color-mist: #b7c0c8;
-  --color-gold: #b9aa89;
-  --color-gold-soft: #d2c7af;
-  --color-beige: #cfc3a9;
 }
 
 /* Arabe : police adaptée, sans espacement des lettres (qui casse les liaisons). */
@@ -140,6 +123,9 @@ html[lang="ar"] body * {
 .accent-football { --color-gold: var(--color-football); --color-gold-soft: #ef6a6a; }
 .accent-pilates { --color-gold: var(--color-pilates); --color-gold-soft: #f7d766; }
 .accent-personal { --color-gold: var(--color-personal); --color-gold-soft: #9aae66; }
+.accent-k9 { --color-gold: var(--color-k9); --color-gold-soft: #83d2cd; }
+.accent-intervention { --color-gold: var(--color-intervention); --color-gold-soft: #f0b77e; }
+.accent-protection { --color-gold: var(--color-protection); --color-gold-soft: #c5b0e8; }
 
 @layer components {
   /* Champ de formulaire (espace admin) */

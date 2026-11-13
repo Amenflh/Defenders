@@ -3,7 +3,15 @@
 import Image from "next/image";
 import { useMemo, useState } from "react";
 import { accentClassFor } from "@/lib/formation-visuals";
-import { ACTIVITY_LABELS, HISTORY_PROVISIONAL, HISTORY_STATUS_LABELS, type HistoryActivity, type HistoryEntry } from "@/lib/history";
+import {
+  ACTIVITY_LABELS,
+  HISTORY_ACADEMY_FOR_ACTIVITY,
+  HISTORY_PROVISIONAL,
+  HISTORY_STATUS_LABELS,
+  type HistoryAcademy,
+  type HistoryActivity,
+  type HistoryEntry,
+} from "@/lib/history";
 import { intlLocale } from "@/lib/i18n/config";
 import { useI18n } from "@/lib/i18n/client";
 import { FacebookVideoEmbed } from "./FacebookVideoEmbed";
@@ -14,12 +22,33 @@ import { Icon } from "./Icon";
  * Archives de formation : frise chronologique avec les détails et médias des programmes référencés.
  * Avec `showFilters`, des onglets permettent de n'afficher qu'une activité.
  */
-export function HistoryTimeline({ entries, showFilters = false, initialFilter = "all" }: { entries: HistoryEntry[]; showFilters?: boolean; initialFilter?: HistoryActivity | "all" }) {
+export function HistoryTimeline({
+  entries,
+  showFilters = false,
+  initialFilter = "all",
+  initialAcademy = "all",
+}: {
+  entries: HistoryEntry[];
+  showFilters?: boolean;
+  initialFilter?: HistoryActivity | "all";
+  initialAcademy?: HistoryAcademy | "all";
+}) {
   const { locale, t } = useI18n();
   const [filter, setFilter] = useState<HistoryActivity | "all">(initialFilter);
+  const [academy, setAcademy] = useState<HistoryAcademy | "all">(initialAcademy);
   const activities = useMemo(() => Array.from(new Set(entries.map((e) => e.activity))), [entries]);
-  const visible = filter === "all" ? entries : entries.filter((e) => e.activity === filter);
+  const academyActivities = activities.filter((activity) => academy === "all" || HISTORY_ACADEMY_FOR_ACTIVITY[activity] === academy);
+  const visible = entries.filter((entry) =>
+    (academy === "all" || HISTORY_ACADEMY_FOR_ACTIVITY[entry.activity] === academy) &&
+    (filter === "all" || entry.activity === filter),
+  );
   const dateFmt = new Intl.DateTimeFormat(intlLocale[locale], { day: "numeric", month: "long", year: "numeric", timeZone: "UTC" });
+  const academyFilters: { value: HistoryAcademy | "all"; label: string }[] = [
+    { value: "all", label: t.history.allAcademies },
+    { value: "fitness", label: t.nav.fitnessAcademy },
+    { value: "security", label: t.nav.security },
+    { value: "tsa", label: t.nav.akAcademy },
+  ];
 
   return (
     <div>
@@ -29,25 +58,48 @@ export function HistoryTimeline({ entries, showFilters = false, initialFilter = 
         </p>
       )}
 
-      {showFilters && activities.length > 1 && (
-        <div role="group" aria-label={t.history.title} className="mb-10 flex flex-wrap gap-2">
-          {(["all", ...activities] as const).map((value) => {
-            const active = value === filter;
-            return (
-              <button
-                key={value}
-                type="button"
-                onClick={() => setFilter(value)}
-                aria-pressed={active}
-                className={`${value === "all" ? "" : accentClassFor(value)} flex items-center gap-2 border px-4 py-2 font-display text-xs tracking-[0.12em] uppercase transition-colors ${
-                  active ? "border-gold bg-gold text-ink" : "border-line text-mist hover:border-bone/50 hover:text-bone"
-                }`}
-              >
-                {value !== "all" && <span className={`size-2 rounded-full ${active ? "bg-ink" : "bg-gold"}`} />}
-                {value === "all" ? t.history.filterAll : ACTIVITY_LABELS[value][locale]}
-              </button>
-            );
-          })}
+      {showFilters && (
+        <div className="mb-10 space-y-5">
+          <div role="group" aria-label={t.history.filterAcademy} className="flex flex-wrap gap-2">
+            {academyFilters.map(({ value, label }) => {
+              const active = value === academy;
+              return (
+                <button
+                  key={value}
+                  type="button"
+                  onClick={() => {
+                    setAcademy(value);
+                    setFilter("all");
+                  }}
+                  aria-pressed={active}
+                  className={`border px-4 py-2 font-display text-xs tracking-[0.12em] uppercase transition-colors ${
+                    active ? "border-gold bg-gold text-ink" : "border-line text-mist hover:border-bone/50 hover:text-bone"
+                  }`}
+                >
+                  {label}
+                </button>
+              );
+            })}
+          </div>
+          <div role="group" aria-label={t.history.filterActivity} className="flex flex-wrap gap-2">
+            {(["all", ...academyActivities] as const).map((value) => {
+              const active = value === filter;
+              return (
+                <button
+                  key={value}
+                  type="button"
+                  onClick={() => setFilter(value)}
+                  aria-pressed={active}
+                  className={`${value === "all" ? "" : accentClassFor(value)} flex items-center gap-2 border px-4 py-2 font-display text-xs tracking-[0.12em] uppercase transition-colors ${
+                    active ? "border-gold bg-gold text-ink" : "border-line text-mist hover:border-bone/50 hover:text-bone"
+                  }`}
+                >
+                  {value !== "all" && <span className={`size-2 rounded-full ${active ? "bg-ink" : "bg-gold"}`} />}
+                  {value === "all" ? t.history.filterAll : ACTIVITY_LABELS[value][locale]}
+                </button>
+              );
+            })}
+          </div>
         </div>
       )}
 
@@ -121,7 +173,7 @@ export function HistoryTimeline({ entries, showFilters = false, initialFilter = 
                           preload="metadata"
                           playsInline
                           aria-label={`${t.history.video} — ${entry.title[locale]}`}
-                          className={`aspect-[4/3] w-full bg-ink object-cover ${(entry.photos?.length ?? 0) % 2 === 0 ? "col-span-2 aspect-video" : ""}`}
+                          className={`max-h-[70svh] w-full bg-ink object-contain ${(entry.photos?.length ?? 0) % 2 === 0 ? "col-span-2" : ""}`}
                         />
                       )}
                     </div>

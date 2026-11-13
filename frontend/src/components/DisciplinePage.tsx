@@ -19,7 +19,6 @@ export async function DisciplinePage({ d: source }: { d: Discipline }) {
   const d = localizeFormation(source, locale);
   const personalTrainingVideos = d.slug === "personal-training"
     ? {
-        urls: site.facebook.personalTrainingVideos,
         embedUrls: site.facebook.personalTrainingVideoEmbeds,
         titles: [p.personalTrainingVideo1, p.personalTrainingVideo2, p.personalTrainingVideo3],
       }
@@ -79,13 +78,10 @@ export async function DisciplinePage({ d: source }: { d: Discipline }) {
 
           <Reveal from="right" delay={150} className="relative">
             {personalTrainingVideos ? (
-              <ul className="grid items-start gap-3 sm:grid-cols-2 xl:grid-cols-3">
-                {personalTrainingVideos.urls.map((url, index) => (
+              <ul className="grid items-start gap-3 sm:grid-cols-2">
+                {personalTrainingVideos.embedUrls.map((url, index) => (
                   <li key={url} className="overflow-hidden border border-line bg-ink-2">
-                    <FacebookVideoEmbed url={personalTrainingVideos.embedUrls[index]} title={personalTrainingVideos.titles[index]} />
-                    <a href={url} target="_blank" rel="noreferrer" className="flex items-center gap-2 p-3 text-xs text-gold transition-colors hover:text-gold-soft">
-                      <Icon name="facebook" width={16} height={16} /> {p.socialVideoSource}
-                    </a>
+                    <FacebookVideoEmbed url={url} title={personalTrainingVideos.titles[index]} />
                   </li>
                 ))}
               </ul>

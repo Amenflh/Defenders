@@ -117,6 +117,23 @@ export async function getHomePageData() {
   };
 }
 
+export async function getHomeHeroVideo(): Promise<string | undefined> {
+  const fallback = "/videos/1-Video by defenders_fitness_academy.mp4";
+  let response: Response;
+  try {
+    response = await apiFetch("/api/media?type=video");
+  } catch (error) {
+    console.error("[academy] hero video request failed; using the local video", error);
+    return fallback;
+  }
+  if (!response.ok) {
+    console.error(`[academy] hero video request returned ${response.status}; using the local video`);
+    return fallback;
+  }
+  const { media } = (await response.json()) as { media: { type: string; url: string }[] };
+  return media.find((item) => item.type === "video")?.url ?? fallback;
+}
+
 export function videoTitleFallback(locale: "fr" | "en" | "ar"): string {
   return videoTitles["Une équipe, une formation"][locale];
 }
