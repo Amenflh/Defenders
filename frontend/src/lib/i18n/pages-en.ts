@@ -5,6 +5,7 @@ export const pagesEn: Dictionary["pages"] = {
     breadcrumb: "Breadcrumb",
     theFormation: "The course",
     whatYouLearn: "What you will learn",
+    videoGalleryTitle: "Course videos",
     objectives: "Objectives",
     programme: "Programme",
     modules: "The modules",

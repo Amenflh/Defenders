@@ -78,7 +78,8 @@ export default async function AkTunisianSecurityAcademyPage() {
                 text={S.courseText}
                 detail={S.courseDuration}
                 poster={bannerPhotos[0].src}
-                videoEmbedUrl={contact.firstResponseVideoEmbed}
+                videoEmbedUrl={contact.firstResponseVideos[0].embedUrl}
+                videoLayout={contact.firstResponseVideos[0].layout}
                 accentClassName="accent-intervention"
                 href="/ak-tunisian-security-academy/formations/intervention-initiale"
                 action={S.courseDetailsLink}
@@ -90,7 +91,6 @@ export default async function AkTunisianSecurityAcademyPage() {
                 text={S.k9CourseText}
                 detail={S.k9CourseDuration}
                 poster="/pics/partners/TSA-logo.jpg"
-                videoEmbedUrl={contact.k9TrainingVideos[0]}
                 accentClassName="accent-k9"
                 href="/ak-tunisian-security-academy/formations/k9"
                 action={S.courseDetailsLink}
@@ -102,7 +102,8 @@ export default async function AkTunisianSecurityAcademyPage() {
                 text={S.closeProtectionText}
                 detail={S.durationToConfirm}
                 poster="/pics/partners/TSA-logo.jpg"
-                videoEmbedUrl={contact.closeProtectionVideo}
+                videoEmbedUrl={contact.closeProtectionVideos[0].embedUrl}
+                videoLayout={contact.closeProtectionVideos[0].layout}
                 accentClassName="accent-protection"
                 href="/ak-tunisian-security-academy/formations/protection-rapprochee"
                 action={S.courseDetailsLink}

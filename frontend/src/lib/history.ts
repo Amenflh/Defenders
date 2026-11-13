@@ -1,6 +1,7 @@
 import type { Locale } from "./i18n/config";
 import type { Photo } from "./images";
 import { site } from "./site";
+import type { FacebookVideoLayout } from "@/components/FacebookVideoEmbed";
 
 /** Source-backed course records do not imply that a session took place. */
 export const HISTORY_PROVISIONAL = true;
@@ -29,7 +30,7 @@ export type HistoryEntry = {
   medicalFollowUp?: boolean;
   photos?: Photo[];
   video?: string;
-  embeddedVideos?: { url: string; title: Localized; platform?: "facebook" | "instagram" }[];
+  embeddedVideos?: { url: string; title: Localized; platform?: "facebook" | "instagram"; layout?: FacebookVideoLayout }[];
   sourceUrl: string;
   sourceLabel?: Localized;
   additionalSources?: { url: string; label: Localized }[];
@@ -220,12 +221,13 @@ export const history: HistoryEntry[] = [
     },
     embeddedVideos: [
       {
-        url: site.tunisianSecurityAcademy.firstResponseVideoEmbed,
+        url: site.tunisianSecurityAcademy.firstResponseVideos[1].embedUrl,
         title: { fr: "Intervention initiale et sécurité", en: "Initial response and security", ar: "التدخل الأولي والأمن" },
         platform: "facebook",
+        layout: site.tunisianSecurityAcademy.firstResponseVideos[1].layout,
       },
     ],
-    sourceUrl: site.tunisianSecurityAcademy.firstResponseVideo,
+    sourceUrl: site.tunisianSecurityAcademy.firstResponseVideos[1].sourceUrl,
   },
   {
     id: "tsa-cfa-la-marsa-announcement-2026-10-23",
@@ -242,7 +244,15 @@ export const history: HistoryEntry[] = [
       en: "The academy post describes a collaboration with CFA La Marsa to train future first responders. Session details and completion have not been established.",
       ar: "يصف منشور الأكاديمية تعاونًا مع CFA La Marsa لتكوين مستجيبين أوائل. لم يتم التثبت من تفاصيل الدورة أو إنجازها.",
     },
-    sourceUrl: site.tunisianSecurityAcademy.facebook,
+    embeddedVideos: [
+      {
+        url: site.tunisianSecurityAcademy.firstResponseVideos[0].embedUrl,
+        title: { fr: "Formation des futurs intervenants", en: "Future first-responder training", ar: "تكوين المستجيبين الأوائل" },
+        platform: "facebook",
+        layout: site.tunisianSecurityAcademy.firstResponseVideos[0].layout,
+      },
+    ],
+    sourceUrl: site.tunisianSecurityAcademy.firstResponseVideos[0].sourceUrl,
   },
 ];
 

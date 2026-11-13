@@ -4,6 +4,7 @@ export const pagesFr = {
     breadcrumb: "Fil d'Ariane",
     theFormation: "La formation",
     whatYouLearn: "Ce que vous allez apprendre",
+    videoGalleryTitle: "Vidéos de la formation",
     objectives: "Objectifs",
     programme: "Programme",
     modules: "Les modules",

@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import type { StaticImageData } from "next/image";
 import { HomeHeroVideo } from "@/components/HomeHeroVideo";
+import { FacebookVideoEmbed } from "@/components/FacebookVideoEmbed";
 import { Icon } from "./Icon";
 
 export function AcademyVideoHero({
@@ -9,6 +10,7 @@ export function AcademyVideoHero({
   title,
   intro,
   videoSrc,
+  facebookVideoUrl,
   poster,
   logo,
   logoAlt,
@@ -19,6 +21,7 @@ export function AcademyVideoHero({
   title: string;
   intro: string;
   videoSrc?: string;
+  facebookVideoUrl?: string;
   poster: string | StaticImageData;
   logo: string;
   logoAlt: string;
@@ -27,7 +30,11 @@ export function AcademyVideoHero({
 }) {
   return (
     <section className="relative isolate flex min-h-[68svh] items-center overflow-hidden border-b border-line">
-      <HomeHeroVideo src={videoSrc} poster={typeof poster === "string" ? poster : poster.src} />
+      {facebookVideoUrl ? (
+        <FacebookVideoEmbed url={facebookVideoUrl} title={title} layout="landscape" loop background />
+      ) : (
+        <HomeHeroVideo src={videoSrc} poster={typeof poster === "string" ? poster : poster.src} />
+      )}
       <div className="absolute inset-0 -z-10 bg-ink/60" />
       <div className="absolute inset-0 -z-10 bg-gradient-to-b from-ink/50 via-ink/45 to-ink" />
       <div className="container-site py-20 sm:py-24">

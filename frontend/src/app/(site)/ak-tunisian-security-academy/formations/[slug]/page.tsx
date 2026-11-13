@@ -21,7 +21,6 @@ function programFor(slug: ProgramSlug, copy: Awaited<ReturnType<typeof getDictio
       topics: copy.k9CourseTopics,
       practical: copy.k9CoursePractical,
       poster: "/pics/partners/TSA-logo.jpg",
-      videoEmbedUrls: site.tunisianSecurityAcademy.k9TrainingVideos,
       contactHref: site.tunisianSecurityAcademy.k9Contact.href,
       contactLabel: `${copy.k9CourseContact}: ${site.tunisianSecurityAcademy.k9Contact.label}`,
     };
@@ -37,7 +36,7 @@ function programFor(slug: ProgramSlug, copy: Awaited<ReturnType<typeof getDictio
       topics: [],
       practical: copy.closeProtectionPractical,
       poster: "/pics/partners/TSA-logo.jpg",
-      videoEmbedUrls: [site.tunisianSecurityAcademy.closeProtectionVideo],
+      videoEmbeds: site.tunisianSecurityAcademy.closeProtectionVideos.map(({ embedUrl, layout }) => ({ url: embedUrl, layout })),
     };
   }
 
@@ -50,7 +49,7 @@ function programFor(slug: ProgramSlug, copy: Awaited<ReturnType<typeof getDictio
     topics: copy.courseTopics,
     practical: copy.coursePractical,
     poster: "/pics/partners/TSA-logo.jpg",
-    videoEmbedUrls: [site.tunisianSecurityAcademy.firstResponseVideoEmbed],
+    videoEmbeds: site.tunisianSecurityAcademy.firstResponseVideos.map(({ embedUrl, layout }) => ({ url: embedUrl, layout })),
   };
 }
 

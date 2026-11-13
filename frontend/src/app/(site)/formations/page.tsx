@@ -188,7 +188,8 @@ export default async function FormationsPage({ searchParams }: PageProps<"/forma
               text={tsaCopy.courseText}
               detail={tsaCopy.courseDuration}
               poster="/pics/partners/TSA-logo.jpg"
-              videoEmbedUrl={site.tunisianSecurityAcademy.firstResponseVideoEmbed}
+              videoEmbedUrl={site.tunisianSecurityAcademy.firstResponseVideos[0].embedUrl}
+              videoLayout={site.tunisianSecurityAcademy.firstResponseVideos[0].layout}
               accentClassName="accent-intervention"
               href="/ak-tunisian-security-academy/formations/intervention-initiale"
               action={copy.details}
@@ -198,7 +199,6 @@ export default async function FormationsPage({ searchParams }: PageProps<"/forma
               text={tsaCopy.k9CourseText}
               detail={tsaCopy.k9CourseDuration}
               poster="/pics/partners/TSA-logo.jpg"
-              videoEmbedUrl={site.tunisianSecurityAcademy.k9TrainingVideos[0]}
               accentClassName="accent-k9"
               href="/ak-tunisian-security-academy/formations/k9"
               action={copy.details}
@@ -208,7 +208,8 @@ export default async function FormationsPage({ searchParams }: PageProps<"/forma
               text={tsaCopy.closeProtectionText}
               detail={tsaCopy.durationToConfirm}
               poster="/pics/partners/TSA-logo.jpg"
-              videoEmbedUrl={site.tunisianSecurityAcademy.closeProtectionVideo}
+              videoEmbedUrl={site.tunisianSecurityAcademy.closeProtectionVideos[0].embedUrl}
+              videoLayout={site.tunisianSecurityAcademy.closeProtectionVideos[0].layout}
               accentClassName="accent-protection"
               href="/ak-tunisian-security-academy/formations/protection-rapprochee"
               action={copy.details}

@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import type { StaticImageData } from "next/image";
 import { FacebookVideoEmbed } from "./FacebookVideoEmbed";
+import type { FacebookVideoLayout } from "./FacebookVideoEmbed";
 import { HomeHeroVideo } from "./HomeHeroVideo";
 import { Icon } from "./Icon";
 
@@ -26,7 +27,7 @@ export function AcademyCourseCard({
   poster: string | StaticImageData;
   videoSrc?: string;
   videoEmbedUrl?: string;
-  videoLayout?: "portrait" | "landscape";
+  videoLayout?: FacebookVideoLayout;
   detail?: string;
   external?: boolean;
   accentClassName?: string;

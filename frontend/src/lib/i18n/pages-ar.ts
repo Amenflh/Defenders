@@ -5,6 +5,7 @@ export const pagesAr: Dictionary["pages"] = {
     breadcrumb: "مسار التصفح",
     theFormation: "التكوين",
     whatYouLearn: "ما ستتعلمه",
+    videoGalleryTitle: "فيديوهات التكوين",
     objectives: "الأهداف",
     programme: "البرنامج",
     modules: "المحاور",

@@ -25,17 +25,35 @@ export const site = {
     exclusivityPost: "https://www.facebook.com/story.php?story_fbid=122176704962936428&id=61578092844519",
   },
   securityPortal: "https://taplink.cc/defenderssecurityprotection",
+  securityHeroVideo: "https://www.facebook.com/reel/1082973183535260/?start=1",
   tunisianSecurityAcademy: {
     facebook: "https://www.facebook.com/profile.php?id=100077382387038",
     videos: "https://www.facebook.com/100077382387038/videos/",
-    firstResponseVideo: "https://www.facebook.com/share/v/19iShpsQa8/",
-    firstResponseVideoEmbed: "https://www.facebook.com/reel/1591488295804767/",
-    closeProtectionVideo: "https://www.facebook.com/share/r/1D4ZZCjZku/",
-    k9TrainingPost: "https://www.facebook.com/share/p/1E7x6Xconw/",
-    k9TrainingVideos: [
-      "https://www.facebook.com/share/v/19vDPzycfW/",
-      "https://www.facebook.com/share/v/1YiT9YW884/",
+    firstResponseVideos: [
+      {
+        sourceUrl: "https://www.facebook.com/share/r/1D4ZZCjZku/",
+        embedUrl: "https://www.facebook.com/reel/1747595872982498/",
+        layout: "portrait",
+      },
+      {
+        sourceUrl: "https://www.facebook.com/share/v/19iShpsQa8/",
+        embedUrl: "https://www.facebook.com/reel/1591488295804767/",
+        layout: "square",
+      },
     ],
+    closeProtectionVideos: [
+      {
+        sourceUrl: "https://www.facebook.com/share/v/19vDPzycfW/",
+        embedUrl: "https://www.facebook.com/reel/1231628108029497/",
+        layout: "portrait",
+      },
+      {
+        sourceUrl: "https://www.facebook.com/share/v/1YiT9YW884/",
+        embedUrl: "https://www.facebook.com/reel/1082973183535260/",
+        layout: "landscape",
+      },
+    ],
+    k9TrainingPost: "https://www.facebook.com/share/p/1E7x6Xconw/",
     k9Contact: { label: "+216 24 076 368", href: "tel:+21624076368" },
     phone: { label: "+216 29 039 493", href: "tel:+21629039493" },
     trainingPhone: { label: "+216 92 204 005", href: "tel:+21692204005" },

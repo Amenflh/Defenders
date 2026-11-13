@@ -7,7 +7,6 @@ import { FacebookVideoEmbed } from "@/components/FacebookVideoEmbed";
 import { Icon } from "@/components/Icon";
 import { Reveal } from "@/components/Reveal";
 import { divisionCopy } from "@/lib/division-copy";
-import { getHomeHeroVideo } from "@/lib/home-page-data";
 import { bannerPhotos } from "@/lib/images";
 import { site } from "@/lib/site";
 import { getDictionary } from "@/lib/i18n/server";
@@ -19,7 +18,7 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function SecurityPage() {
-  const [{ locale, t }, heroVideo] = await Promise.all([getDictionary(), getHomeHeroVideo()]);
+  const { locale, t } = await getDictionary();
   const S = t.pages.security;
   const experience = divisionCopy[locale].security;
   return (
@@ -28,7 +27,7 @@ export default async function SecurityPage() {
         eyebrow=""
         title={S.title}
         intro={S.intro}
-        videoSrc={heroVideo}
+        facebookVideoUrl={site.securityHeroVideo}
         poster={bannerPhotos[0].src}
         logo="/pics/partners/DSP-logo.jpg"
         logoAlt="Defenders Security Protection"
@@ -64,7 +63,7 @@ export default async function SecurityPage() {
       </section>
 
       <section className="border-y border-line bg-ink-2 py-16 lg:py-20">
-        <div className="container-site grid items-center gap-8 lg:grid-cols-[0.8fr_1.2fr]">
+        <div className="container-site">
           <Reveal>
             <p className="eyebrow mb-3">{S.servicesEyebrow}</p>
             <h2 className="heading-lg">{S.closeProtectionTitle}</h2>
@@ -73,8 +72,12 @@ export default async function SecurityPage() {
               {t.pages.akAcademy.courseDetailsLink} <Icon name="arrow" className="rtl:-scale-x-100" />
             </Link>
           </Reveal>
-          <Reveal delay={100} className="mx-auto w-full max-w-[360px] overflow-hidden border border-line bg-black">
-            <FacebookVideoEmbed url={site.tunisianSecurityAcademy.closeProtectionVideo} title={S.closeProtectionTitle} />
+          <Reveal delay={100} className="mt-8 grid items-start gap-6 md:grid-cols-2">
+            {site.tunisianSecurityAcademy.closeProtectionVideos.map(({ embedUrl, layout }, index) => (
+              <div key={embedUrl} className="mx-auto w-full max-w-2xl overflow-hidden border border-line bg-black p-2">
+                <FacebookVideoEmbed url={embedUrl} layout={layout} title={`${S.closeProtectionTitle} ${index + 1}`} />
+              </div>
+            ))}
           </Reveal>
         </div>
       </section>

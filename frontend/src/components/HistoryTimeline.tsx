@@ -154,7 +154,7 @@ export function HistoryTimeline({
                         video.platform === "instagram" ? (
                           <InstagramReelEmbed key={video.url} url={video.url} title={video.title[locale]} />
                         ) : (
-                          <FacebookVideoEmbed key={video.url} url={video.url} title={video.title[locale]} />
+                          <FacebookVideoEmbed key={video.url} url={video.url} title={video.title[locale]} layout={video.layout} />
                         )
                       ))}
                     </div>

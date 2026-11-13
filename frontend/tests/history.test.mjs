@@ -60,4 +60,11 @@ describe("division archive", () => {
     assert.equal(entry.embeddedVideos?.length, 1);
     assert.equal(entry.status, "course");
   });
+
+  it("embeds the CFA La Marsa first-response video with its matching archive entry", () => {
+    const entry = historyFor("tsa").find((item) => item.id === "tsa-cfa-la-marsa-announcement-2026-10-23");
+    assert.ok(entry);
+    assert.equal(entry.embeddedVideos?.[0].url, "https://www.facebook.com/reel/1747595872982498/");
+    assert.equal(entry.sourceUrl, "https://www.facebook.com/share/r/1D4ZZCjZku/");
+  });
 });

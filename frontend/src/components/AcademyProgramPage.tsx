@@ -3,6 +3,7 @@ import Link from "next/link";
 import type { StaticImageData } from "next/image";
 import { getDictionary } from "@/lib/i18n/server";
 import { FacebookVideoEmbed } from "./FacebookVideoEmbed";
+import type { FacebookVideoLayout } from "./FacebookVideoEmbed";
 import { Icon } from "./Icon";
 import { Reveal } from "./Reveal";
 
@@ -15,7 +16,7 @@ export type AcademyProgram = {
   topics: string[];
   practical: string;
   poster: string | StaticImageData;
-  videoEmbedUrls?: readonly string[];
+  videoEmbeds?: readonly { url: string; layout: FacebookVideoLayout }[];
   contactHref?: string;
   contactLabel?: string;
 };
@@ -67,23 +68,31 @@ export async function AcademyProgramPage({ program }: { program: AcademyProgram 
           </div>
           <Reveal from="right" delay={100} className="relative overflow-hidden border border-gold/40 bg-ink-2 p-2">
             <div className="absolute inset-0 bg-gradient-to-br from-gold/10 via-transparent to-transparent" aria-hidden="true" />
-            <div className="relative overflow-hidden bg-black">
-              {program.videoEmbedUrls?.length ? (
-                <div className={`grid items-start gap-3 ${program.videoEmbedUrls.length > 1 ? "sm:grid-cols-2" : ""}`}>
-                  {program.videoEmbedUrls.map((url, index) => (
-                    <FacebookVideoEmbed key={url} url={url} title={`${program.title} ${index + 1}`} />
-                  ))}
-                </div>
-              ) : (
-                <div className="relative aspect-[4/3] sm:aspect-video">
-                  <Image src={program.poster} alt="" fill unoptimized={typeof program.poster === "string"} sizes="(min-width: 1024px) 40vw, 100vw" className="object-contain p-8" />
-                </div>
-              )}
+            <div className="relative aspect-[4/3] overflow-hidden bg-ink sm:aspect-video">
+              <Image src={program.poster} alt="" fill unoptimized={typeof program.poster === "string"} sizes="(min-width: 1024px) 40vw, 100vw" className="object-contain p-8" />
             </div>
             <p className="px-4 py-3 font-display text-xs tracking-[0.18em] text-gold uppercase">{program.eyebrow}</p>
           </Reveal>
         </div>
       </section>
+
+      {program.videoEmbeds && program.videoEmbeds.length > 0 && (
+        <section className="border-y border-line bg-ink-2 py-12 lg:py-16" aria-labelledby="program-videos-title">
+          <div className="container-site">
+            <Reveal className="mb-8">
+              <p className="eyebrow mb-3">{program.eyebrow}</p>
+              <h2 id="program-videos-title" className="heading-lg">{t.pages.formation.videoGalleryTitle}</h2>
+            </Reveal>
+            <div className={`grid items-start gap-6 ${program.videoEmbeds.length > 1 ? "md:grid-cols-2" : ""}`}>
+              {program.videoEmbeds.map(({ url, layout }, index) => (
+                <Reveal key={url} className="mx-auto w-full max-w-2xl overflow-hidden border border-line bg-black p-2">
+                  <FacebookVideoEmbed url={url} layout={layout} title={`${program.title} ${index + 1}`} />
+                </Reveal>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
 
       <section className="border-y border-line bg-ink-2 py-20 lg:py-24">
         <div className={`container-site grid gap-14 ${program.topics.length ? "lg:grid-cols-2" : ""}`}>
