@@ -48,7 +48,7 @@ export async function FormationHighlights({ slug }: { slug: string }) {
 
 /** Renvoi vers la page Historique, filtrée sur l'activité. Rien si aucune session n'est connue. */
 export async function FormationHistoryLink({ slug }: { slug: string }) {
-  const count = historyFor(slug).length;
+  const count = historyFor(slug).filter((entry) => entry.status === "completed").length;
   if (!count) return null;
   const { t } = await getDictionary();
   return (

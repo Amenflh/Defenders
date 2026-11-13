@@ -6,9 +6,9 @@ export const site = {
   group: "Defenders Academy",
   /** Les trois filières de Defenders Academy. */
   branches: [
-    { name: "Defenders Security Protection", href: "/securite", logo: "/pics/logo.jpg" },
-    { name: "Defenders Fitness Academy", href: "/formations", logo: "/pics/logo.jpg" },
-    { name: "A.K Tunisian Security Academy", href: "/securite", logo: "/pics/partners/TSA-logo.jpg" },
+    { key: "security", name: "Defenders Security Protection", href: "/securite", logo: "/pics/partners/DSP-logo.jpg", mark: "DSP", comingSoon: false },
+    { key: "fitness", name: "Defenders Fitness Academy", href: "/fitness-academy", logo: "/pics/logo.jpg", mark: "DFA", comingSoon: false },
+    { key: "tsa", name: "A.K Tunisian Security Academy", href: "/ak-tunisian-security-academy", logo: "/pics/partners/TSA-logo.jpg", mark: "TSA", comingSoon: false },
   ],
   approval: "Agrément n° 21-340-24",
   phone: { label: "+216 92 204 005", href: "tel:+21692204005" },
@@ -24,22 +24,53 @@ export const site = {
     /** Publication Facebook annonçant l'exclusivité des formations football et sécurité. */
     exclusivityPost: "https://www.facebook.com/story.php?story_fbid=122176704962936428&id=61578092844519",
   },
-  securityFacebook: [
-    { label: "Defenders Security Protection", href: "https://www.facebook.com/100077382387038" },
-    { label: "Defenders Security Protection", href: "https://www.facebook.com/profile.php?id=61556110269629" },
-  ],
+  securityPortal: "https://taplink.cc/defenderssecurityprotection",
+  tunisianSecurityAcademy: {
+    facebook: "https://www.facebook.com/profile.php?id=100077382387038",
+    videos: "https://www.facebook.com/100077382387038/videos/",
+    firstResponseVideo: "https://www.facebook.com/share/v/19iShpsQa8/",
+    firstResponseVideoEmbed: "https://www.facebook.com/reel/1591488295804767/",
+    k9TrainingPost: "https://www.facebook.com/share/p/1E7x6Xconw/",
+    k9Contact: { label: "+216 24 076 368", href: "tel:+21624076368" },
+    phone: { label: "+216 29 039 493", href: "tel:+21629039493" },
+    trainingPhone: { label: "+216 92 204 005", href: "tel:+21692204005" },
+    email: { label: "akkari-abdrrahmen@live.fr", href: "mailto:akkari-abdrrahmen@live.fr" },
+    address: ["Avenue d'Abou Dhabi", "8050 Hammamet, Tunisie"],
+  },
   address: {
     lines: ["Avenue Abou Dhabi", "8050 Hammamet, Tunisie"],
     href: "https://www.google.com/maps/search/?api=1&query=Avenue+Abou+Dhabi+Hammamet+8050+Tunisia",
-    embedHref: "https://maps.google.com/maps?q=Avenue+Abou+Dhabi+Hammamet+8050+Tunisia&output=embed",
   },
   facebook: {
     label: "Defenders Fitness Academy",
     href: "https://www.facebook.com/DefendersFitnessAcademy",
+    videos: "https://www.facebook.com/DefendersFitnessAcademy/videos/",
+    pilatesVideos: [
+      "https://www.facebook.com/share/r/1985tDibWA/",
+      "https://www.facebook.com/share/r/1HW4hfeYzt/",
+    ],
+    pilatesVideoEmbeds: [
+      "https://www.facebook.com/reel/1380600687572791/",
+      "https://www.facebook.com/reel/2149688955939054/",
+    ],
+    personalTrainingVideos: [
+      "https://www.facebook.com/share/r/195Kvtn2tE/",
+      "https://www.facebook.com/share/r/19u4neMyov/",
+      "https://www.facebook.com/share/r/18wmqDJpdZ/",
+    ],
+    personalTrainingVideoEmbeds: [
+      "https://www.facebook.com/reel/877141621507702/",
+      "https://www.facebook.com/reel/3279150018914978/",
+      "https://www.facebook.com/reel/796475196712099/",
+    ],
+    footballVideos: ["https://www.facebook.com/share/r/1DGzq17D8M/"],
+    footballVideoEmbeds: ["https://www.facebook.com/reel/1818481708830444/"],
   },
   instagram: {
     label: "@defenders_fitness_academy",
     href: "https://www.instagram.com/defenders_fitness_academy",
+    pilatesAnnouncement: "https://www.instagram.com/defenders_fitness_academy/reel/DfXPgOJHGKx/",
+    pilatesAnnouncementEmbed: "https://www.instagram.com/reel/DfXPgOJHGKx/embed/",
   },
   /**
    * Partenaires, dans l'ordre d'affichage du bandeau : les deux agences de recrutement
@@ -84,16 +115,22 @@ export const site = {
   ],
 } as const;
 
-export type NavKey = "home" | "formations" | "gallery" | "security" | "planning" | "history" | "contact";
+export type NavKey = "home" | "formations" | "fitnessAcademy" | "gallery" | "security" | "akAcademy" | "planning" | "history" | "contact";
 export type NavItem = { href: string; key: NavKey };
 
 /** Navigation principale : les libellés viennent du dictionnaire de la langue active (t.nav[key]). */
 export const mainNav: NavItem[] = [
   { href: "/", key: "home" },
-  { href: "/formations", key: "formations" },
+  { href: "/fitness-academy", key: "fitnessAcademy" },
   { href: "/#galerie", key: "gallery" },
   { href: "/securite", key: "security" },
+  { href: "/ak-tunisian-security-academy", key: "akAcademy" },
   { href: "/planning", key: "planning" },
   { href: "/historique", key: "history" },
   { href: "/contact", key: "contact" },
 ];
+
+/** Navigation du header : garde les liens qui mènent à des pages et sections utiles. */
+export const headerNav = mainNav.filter(
+  (item) => item.key !== "home" && item.key !== "gallery",
+);

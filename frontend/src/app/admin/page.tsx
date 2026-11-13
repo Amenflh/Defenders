@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { apiFetch, getCurrentUser } from "@/lib/session";
 import { AdminDashboard } from "./AdminDashboard";
+import type { SecurityQuote } from "./SecurityQuotesManager";
 import type { AdminStats } from "./actions";
 
 type Contact = {
@@ -33,20 +34,26 @@ export default async function AdminPage({ searchParams }: PageProps<"/admin">) {
   const res = await apiFetch("/api/admin/contacts");
   if (res.status === 401) redirect("/login?next=/admin");
   const data = res.ok ? ((await res.json()) as { contacts: Contact[] }) : null;
-  const [statsRes, formationsRes, mediaRes, cmsRes, settingsRes, unreadRes] = await Promise.all([
+  const [statsRes, formationsRes, mediaRes, cmsRes, settingsRes, unreadRes, securityQuotesRes] = await Promise.all([
     apiFetch("/api/admin/stats?days=30"),
     apiFetch("/api/admin/formations"),
     apiFetch("/api/admin/media"),
     apiFetch("/api/admin/cms/all"),
     apiFetch("/api/admin/settings/site"),
     apiFetch("/api/admin/chat/unread"),
+    apiFetch("/api/admin/security-quotes"),
   ]);
+  if (securityQuotesRes.status === 401) redirect("/login?next=/admin");
   const unreadMessages = unreadRes.ok ? ((await unreadRes.json()) as { unread: number }).unread : 0;
   const stats = statsRes.ok ? ((await statsRes.json()) as AdminStats) : null;
   const formations = formationsRes.ok ? ((await formationsRes.json()) as { formations: React.ComponentProps<typeof AdminDashboard>["formations"] }).formations : [];
   const media = mediaRes.ok ? ((await mediaRes.json()) as { media: React.ComponentProps<typeof AdminDashboard>["media"] }).media : [];
   const cms = cmsRes.ok ? ((await cmsRes.json()) as { items: React.ComponentProps<typeof AdminDashboard>["cms"] }).items : [];
   const settings = settingsRes.ok ? ((await settingsRes.json()) as { value: Record<string, unknown> }).value : {};
+  const securityQuotes = securityQuotesRes.ok
+    ? ((await securityQuotesRes.json()) as { quotes: SecurityQuote[] }).quotes
+    : [];
+  const securityQuotesError = securityQuotesRes.ok ? undefined : "Les demandes de devis sécurité n'ont pas pu être chargées. Vérifiez la migration de la base et réessayez.";
 
   return (
     <AdminDashboard
@@ -57,6 +64,8 @@ export default async function AdminPage({ searchParams }: PageProps<"/admin">) {
       media={media}
       cms={cms}
       contacts={data?.contacts ?? []}
+      securityQuotes={securityQuotes}
+      securityQuotesError={securityQuotesError}
       initialSettings={settings}
       userName={typeof user === "object" ? user.name : ""}
       userEmail={typeof user === "object" ? user.email : ""}

@@ -42,7 +42,7 @@
   html {
     font-size: 14px;
     scroll-behavior: smooth;
-    scroll-padding-top: 5rem;
+    scroll-padding-top: 7rem;
   }
 
   body {
@@ -93,6 +93,39 @@
 :root[data-theme="light"] .accent-football { --color-gold-soft: #9f1d1d; }
 :root[data-theme="light"] .accent-pilates { --color-gold-soft: #9c7600; }
 :root[data-theme="light"] .accent-personal { --color-gold-soft: #3f5222; }
+
+/* Identités propres aux filières, sans modifier l'en-tête ni le pied de page partagés. */
+.branch-theme {
+  background: var(--color-ink);
+  color: var(--color-bone);
+}
+.branch-theme-fitness {
+  --color-ink: #f5f2e9;
+  --color-ink-2: #fffdf7;
+  --color-ink-3: #e9e4d8;
+  --color-line: #d8d3c7;
+  --color-bone: #293128;
+  --color-bone-2: #41483d;
+  --color-mist: #5e665a;
+  --color-gold: #687a52;
+  --color-gold-soft: #87976f;
+  --color-beige: #d8cbb2;
+  --color-pilates: #71845d;
+  --color-football: #a63d37;
+  --color-personal: #65764b;
+}
+.branch-theme-tsa {
+  --color-ink: #111a25;
+  --color-ink-2: #1a2735;
+  --color-ink-3: #263545;
+  --color-line: #3a4b5c;
+  --color-bone: #f1f0eb;
+  --color-bone-2: #e2e2dc;
+  --color-mist: #b7c0c8;
+  --color-gold: #b9aa89;
+  --color-gold-soft: #d2c7af;
+  --color-beige: #cfc3a9;
+}
 
 /* Arabe : police adaptée, sans espacement des lettres (qui casse les liaisons). */
 html[lang="ar"] {
@@ -209,6 +242,12 @@ html[lang="ar"] body * {
   html { scroll-behavior: auto; }
   [data-reveal] { opacity: 1; transform: none; transition: none; }
   .marquee-track { animation: none !important; }
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+  }
 }
 
 @keyframes accordion-down {
@@ -251,8 +290,4 @@ html[lang="ar"] body * {
   0% { box-shadow: 0 0 0 0 rgba(37, 211, 102, 0.45); }
   70% { box-shadow: 0 0 0 16px rgba(37, 211, 102, 0); }
   100% { box-shadow: 0 0 0 0 rgba(37, 211, 102, 0); }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .fab-pulse { animation: none !important; }
 }

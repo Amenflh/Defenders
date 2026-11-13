@@ -6,15 +6,20 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const formations = (await getFormations()) ?? [];
   const routes = [
     "",
+    "/fitness-academy",
     "/formations",
+    "/formations/catalogue",
     "/trouver-ma-formation",
     ...formations.map((f) => `/formations/${f.slug}`),
     "/planning",
+    "/historique",
     "/securite",
+    "/ak-tunisian-security-academy",
     "/contact",
     "/mentions-legales",
     "/politique-de-confidentialite",
     "/cookies",
+    "/reglement-interieur",
   ];
 
   return routes.map((route) => ({

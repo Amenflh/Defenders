@@ -2,10 +2,11 @@ import Image from "next/image";
 import Link from "next/link";
 import type { Dictionary } from "@/lib/i18n/dictionaries";
 import { site } from "@/lib/site";
+import { pilatesPhotos } from "@/lib/images";
 import { Icon } from "./Icon";
 import { Reveal } from "./Reveal";
 
-/** Les trois filières de Defenders Academy. */
+/** Present the three independent organizations without implying a fourth division. */
 export function BranchesSection({ t }: { t: Dictionary }) {
   return (
     <div className="container-site">
@@ -14,21 +15,42 @@ export function BranchesSection({ t }: { t: Dictionary }) {
         <h2 className="heading-lg">{t.branches.title}</h2>
         <p className="mt-5 text-lg text-mist">{t.branches.intro}</p>
       </Reveal>
-      <div className="grid gap-px border border-line bg-line md:grid-cols-3">
+      <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
         {site.branches.map((branch, i) => {
           const copy = t.branches.items[i];
+          const isFitness = branch.key === "fitness";
           return (
             <Reveal key={branch.name} delay={i * 100} className="h-full">
-              <Link href={branch.href} className="group flex h-full flex-col bg-ink-2 p-7 transition-colors hover:bg-ink-3 sm:p-9">
-                <span className="flex items-center gap-4">
-                  <Image src={branch.logo} alt="" width={56} height={56} className="size-14 rounded-full bg-white object-contain ring-1 ring-white/15" />
-                  <span className="font-display text-sm text-gold">0{i + 1}</span>
-                </span>
-                <h3 className="mt-6 font-display text-2xl uppercase">{branch.name}</h3>
-                <p className="mt-3 flex-1 text-sm leading-relaxed text-mist">{copy.text}</p>
-                <span className="mt-6 inline-flex items-center gap-2 font-display text-sm tracking-[0.15em] text-gold uppercase">
-                  {copy.cta} <Icon name="arrow" className="transition-transform group-hover:translate-x-1 rtl:-scale-x-100 rtl:group-hover:-translate-x-1" />
-                </span>
+              <Link href={branch.href} className="group relative flex h-full min-h-[26rem] flex-col overflow-hidden border border-line bg-ink-2 transition-[border-color,background-color,transform] duration-300 hover:-translate-y-1 hover:border-gold hover:bg-ink-3">
+                <div className={`relative flex h-52 items-center justify-center overflow-hidden border-b border-line ${isFitness ? "bg-ink" : branch.key === "tsa" ? "bg-[#f3f0e8]" : "bg-gradient-to-br from-ink-3 to-ink"}`}>
+                  {isFitness ? (
+                    <Image
+                      src={pilatesPhotos[0].src}
+                      alt={pilatesPhotos[0].alt}
+                      fill
+                      sizes="(min-width: 1280px) 33vw, (min-width: 768px) 50vw, 100vw"
+                      className="object-cover transition duration-700 group-hover:scale-105"
+                    />
+                  ) : (
+                    <span aria-hidden="true" className={`absolute inset-0 ${branch.key === "tsa" ? "bg-[radial-gradient(circle_at_center,rgba(197,151,73,0.12),transparent_65%)]" : "bg-[radial-gradient(circle_at_center,rgba(197,151,73,0.16),transparent_65%)]"}`} />
+                  )}
+                  {branch.logo && (
+                    <span className={`relative z-10 grid size-28 place-items-center overflow-hidden rounded-full p-2 shadow-2xl ${isFitness ? "bg-white/95 ring-1 ring-white/60" : "bg-white ring-1 ring-black/10"}`}>
+                      <Image src={branch.logo} alt={`${branch.name} logo`} width={112} height={112} className="size-full rounded-full object-contain" />
+                    </span>
+                  )}
+                  <span className="absolute start-5 top-5 z-10 border border-white/25 bg-ink/80 px-2.5 py-1 font-display text-xs tracking-[0.16em] text-bone">
+                    0{i + 1}
+                  </span>
+                </div>
+                <div className="flex flex-1 flex-col p-6 sm:p-8">
+                  <h3 className="font-display text-2xl uppercase text-bone">{branch.name}</h3>
+                  <p className="mt-3 flex-1 text-sm leading-relaxed text-mist">{copy.text}</p>
+                  <span className="mt-7 inline-flex items-center gap-2 font-display text-sm tracking-[0.15em] text-gold uppercase">
+                    {copy.cta}
+                    <Icon name="arrow" className="transition-transform group-hover:translate-x-1 rtl:-scale-x-100 rtl:group-hover:-translate-x-1" />
+                  </span>
+                </div>
               </Link>
             </Reveal>
           );

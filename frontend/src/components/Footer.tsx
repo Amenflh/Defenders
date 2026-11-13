@@ -32,7 +32,8 @@ export async function Footer() {
           <ul className="space-y-1.5 text-xs text-mist">
             {site.branches.map((branch) => (
               <li key={branch.name} className="flex items-center gap-2">
-                <span className="size-1.5 rounded-full bg-gold" aria-hidden="true" /> {branch.name}
+                <span className="size-1.5 rounded-full bg-gold" aria-hidden="true" />
+                {branch.href ? <Link href={branch.href} className="transition-colors hover:text-bone">{branch.comingSoon ? t.branches.comingSoon.title : branch.name}</Link> : t.branches.comingSoon.title}
               </li>
             ))}
           </ul>
@@ -59,20 +60,13 @@ export async function Footer() {
               {formation.name}
             </FooterLink>
           ))}
-          <FooterLink href="/formations">{t.common.allFormations}</FooterLink>
+          <FooterLink href="/formations/catalogue">{t.common.allFormations}</FooterLink>
           <FooterLink href="/planning">{t.common.planningLink}</FooterLink>
         </FooterColumn>
 
         <FooterColumn title={t.common.contact}>
-          <li className="overflow-hidden border border-line bg-ink">
-            <iframe
-              src={site.address.embedHref}
-              title={t.common.mapTitle}
-              loading="lazy"
-              referrerPolicy="no-referrer-when-downgrade"
-              className="h-40 w-full"
-            />
-            <div className="flex items-center justify-between gap-3 p-3">
+          <li className="border border-line bg-ink p-3">
+            <div className="flex items-center justify-between gap-3">
               <span className="flex min-w-0 items-start gap-2 text-xs leading-relaxed text-mist">
                 <Icon name="pin" width={15} height={15} className="mt-0.5 shrink-0 text-gold" />
                 <span>{address}</span>
@@ -124,6 +118,7 @@ export async function Footer() {
             <Link href="/mentions-legales" className="hover:text-bone">{t.common.legal}</Link>
             <Link href="/politique-de-confidentialite" className="hover:text-bone">{t.common.privacy}</Link>
             <Link href="/cookies" className="hover:text-bone">{t.common.cookies}</Link>
+            <Link href="/reglement-interieur" className="hover:text-bone">{t.common.rules}</Link>
           </nav>
         </div>
       </div>

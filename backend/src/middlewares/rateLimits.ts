@@ -6,6 +6,9 @@ const message = (text: string) => ({ error: text });
 /** Formulaire d'inscription : 10 envois / 15 min / IP. */
 export const registrationLimiter = rateLimit({ ...common, windowMs: 15 * 60_000, limit: 10, message: message("Trop de demandes envoyées. Réessayez plus tard.") });
 
+/** Demande de devis sécurité : 5 envois / 15 min / IP. */
+export const securityQuoteLimiter = rateLimit({ ...common, windowMs: 15 * 60_000, limit: 5, message: message("Trop de demandes envoyées. Réessayez plus tard.") });
+
 /** Connexion : 5 échecs / 15 min / IP (les réussites ne comptent pas). */
 export const loginLimiter = rateLimit({ ...common, windowMs: 15 * 60_000, limit: 5, skipSuccessfulRequests: true, message: message("Trop de tentatives. Réessayez dans 15 minutes.") });
 

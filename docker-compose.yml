@@ -46,6 +46,7 @@ services:
       SMTP_USER: ${SMTP_USER:-}
       SMTP_PASS: ${SMTP_PASS:-}
       CONTACT_TO: ${CONTACT_TO:-ahannachi193@gmail.com}
+      SECURITY_CONTACT_TO: ${SECURITY_CONTACT_TO:-akkari-dsp@outlook.com}
       KONNECT_API_KEY: ${KONNECT_API_KEY:-}
       KONNECT_WALLET_ID: ${KONNECT_WALLET_ID:-}
       KONNECT_API_URL: ${KONNECT_API_URL:-https://api.konnect.network/api/v2}

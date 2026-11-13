@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useEffect, useRef } from "react";
 import { logoutAction } from "@/app/(auth)/actions";
 import { useI18n } from "@/lib/i18n/client";
-import { mainNav, site } from "@/lib/site";
+import { headerNav, site } from "@/lib/site";
 import { LanguageSwitcher } from "./LanguageSwitcher";
 import { ThemeToggle } from "./ThemeToggle";
 import type { HeaderUser } from "./Header";
@@ -16,33 +16,66 @@ type Props = { open: boolean; onClose: () => void; pathname: string; user: Heade
 /** Panneau latéral : compte, navigation complète, coordonnées et appel à l'action. */
 export function Sidebar({ open, onClose, pathname, user, identity = {} }: Props) {
   const closeRef = useRef<HTMLButtonElement>(null);
+  const sidebarRef = useRef<HTMLElement>(null);
   const { t } = useI18n();
 
   useEffect(() => {
     if (!open) return;
+    const previouslyFocused = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    const previousOverflow = document.body.style.overflow;
     closeRef.current?.focus();
-    const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        onClose();
+        return;
+      }
+      if (e.key !== "Tab") return;
+
+      const focusable = Array.from(
+        sidebarRef.current?.querySelectorAll<HTMLElement>(
+          'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])',
+        ) ?? [],
+      ).filter((element) => element.getClientRects().length > 0);
+      const first = focusable[0];
+      const last = focusable.at(-1);
+      if (!first || !last) {
+        e.preventDefault();
+        sidebarRef.current?.focus();
+      } else if (e.shiftKey && (document.activeElement === first || !sidebarRef.current?.contains(document.activeElement))) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && (document.activeElement === last || !sidebarRef.current?.contains(document.activeElement))) {
+        e.preventDefault();
+        first.focus();
+      }
+    };
     document.addEventListener("keydown", onKey);
     document.body.style.overflow = "hidden";
     return () => {
       document.removeEventListener("keydown", onKey);
-      document.body.style.overflow = "";
+      document.body.style.overflow = previousOverflow;
+      if (previouslyFocused?.isConnected) previouslyFocused.focus();
     };
   }, [open, onClose]);
 
   return (
-    <div className={`fixed inset-0 z-50 ${open ? "" : "pointer-events-none"}`} aria-hidden={!open}>
-      <div
+    <div className={`fixed inset-0 z-50 lg:hidden ${open ? "" : "pointer-events-none"}`} aria-hidden={!open}>
+      <button
+        type="button"
+        tabIndex={-1}
+        aria-hidden="true"
         onClick={onClose}
-        className={`absolute inset-0 bg-black/70 backdrop-blur-sm transition-opacity duration-500 ${open ? "opacity-100" : "opacity-0"}`}
+        className={`absolute inset-0 cursor-default border-0 bg-black/70 backdrop-blur-sm transition-opacity duration-500 ${open ? "opacity-100" : "opacity-0"}`}
       />
       <aside
+        ref={sidebarRef}
         id="site-sidebar"
         role="dialog"
         aria-modal="true"
         aria-label={t.common.mainMenu}
         inert={!open}
-        className={`absolute top-0 end-0 flex h-full w-full max-w-md flex-col border-s border-line bg-ink-2 transition-transform duration-500 ease-[cubic-bezier(0.2,0.7,0.2,1)] ${open ? "translate-x-0" : "translate-x-full rtl:-translate-x-full"}`}
+        tabIndex={-1}
+        className={`absolute top-0 end-0 flex h-full w-full max-w-md flex-col overscroll-contain border-s border-line bg-ink-2 transition-transform duration-500 ease-[cubic-bezier(0.2,0.7,0.2,1)] ${open ? "translate-x-0" : "translate-x-full rtl:-translate-x-full"}`}
       >
         <div className="flex items-center justify-between border-b border-line px-6 py-5">
           <Logo {...identity} />
@@ -81,7 +114,7 @@ export function Sidebar({ open, onClose, pathname, user, identity = {} }: Props)
             <ThemeToggle />
           </div>
           <ol className="space-y-1">
-            {mainNav.map((item, i) => {
+            {headerNav.map((item, i) => {
               const active = item.href === "/" ? pathname === "/" : pathname.startsWith(item.href);
               return (
                 <li

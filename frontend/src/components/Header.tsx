@@ -2,9 +2,10 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useI18n } from "@/lib/i18n/client";
-import { mainNav } from "@/lib/site";
+import { headerNav } from "@/lib/site";
+import { subscribeToScroll } from "@/lib/scroll-subscription";
 import { LanguageSwitcher } from "./LanguageSwitcher";
 import { ThemeToggle } from "./ThemeToggle";
 import { Icon } from "./Icon";
@@ -17,19 +18,30 @@ export function Header({ user, identity = {} }: { user: HeaderUser | null; ident
   const pathname = usePathname();
   const { t } = useI18n();
   const [scrolled, setScrolled] = useState(false);
-  const [progress, setProgress] = useState(0);
+  const progressRef = useRef<HTMLDivElement>(null);
   const [menuOpen, setMenuOpen] = useState(false);
   const closeMenu = useCallback(() => setMenuOpen(false), []);
 
   useEffect(() => {
-    const onScroll = () => {
-      const max = document.documentElement.scrollHeight - window.innerHeight;
-      setScrolled(window.scrollY > 24);
-      setProgress(max > 0 ? window.scrollY / max : 0);
+    const desktop = window.matchMedia("(min-width: 64rem)");
+    const closeOnDesktop = () => {
+      if (desktop.matches) closeMenu();
     };
-    onScroll();
-    window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
+    desktop.addEventListener("change", closeOnDesktop);
+    return () => desktop.removeEventListener("change", closeOnDesktop);
+  }, [closeMenu]);
+
+  useEffect(() => {
+    const updateScrollIndicators = () => {
+      const scrollY = window.scrollY;
+      setScrolled((current) => current === (scrollY > 24) ? current : scrollY > 24);
+      const max = document.documentElement.scrollHeight - window.innerHeight;
+      if (progressRef.current) {
+        const progress = max > 0 ? Math.min(1, Math.max(0, scrollY / max)) : 0;
+        progressRef.current.style.transform = `scaleX(${progress})`;
+      }
+    };
+    return subscribeToScroll(updateScrollIndicators);
   }, [pathname]);
 
   return (
@@ -43,12 +55,12 @@ export function Header({ user, identity = {} }: { user: HeaderUser | null; ident
         }`}
       >
         <div className="container-site flex h-14 items-center justify-between gap-2 sm:h-16 sm:gap-4">
-          <span className="sm:hidden"><Logo compact {...identity} /></span>
-          <span className="hidden sm:inline-flex"><Logo {...identity} /></span>
+          <span className="shrink-0 sm:hidden"><Logo compact {...identity} /></span>
+          <span className="hidden shrink-0 sm:inline-flex"><Logo {...identity} /></span>
 
-          <nav aria-label={t.common.mainNav} className="hidden lg:block">
-            <ul className="flex items-center gap-1">
-              {mainNav.map((item) => {
+          <nav aria-label={t.common.mainNav} className="hidden min-w-0 lg:block">
+            <ul className="flex items-center gap-0 xl:gap-1">
+              {headerNav.map((item) => {
                 const route = item.href.split("#")[0] || "/";
                 const active = item.href === "/" ? pathname === "/" : pathname.startsWith(route) && route !== "/";
                 return (
@@ -56,7 +68,7 @@ export function Header({ user, identity = {} }: { user: HeaderUser | null; ident
                     <Link
                       href={item.href}
                       aria-current={active ? "page" : undefined}
-                      className={`relative px-1.5 py-2 font-display text-[0.68rem] tracking-[0.08em] uppercase transition-colors after:absolute after:inset-x-1.5 after:-bottom-0.5 after:h-px after:origin-left after:bg-gold after:transition-transform after:duration-300 xl:px-2 xl:text-xs ${
+                      className={`relative px-1 py-2 font-display text-[0.62rem] tracking-[0.03em] uppercase transition-colors after:absolute after:inset-x-1 after:-bottom-0.5 after:h-px after:origin-left after:bg-gold after:transition-transform after:duration-300 xl:px-2 xl:text-xs xl:tracking-[0.08em] ${
                         active ? "text-bone after:scale-x-100" : "text-mist after:scale-x-0 hover:text-bone hover:after:scale-x-100"
                       }`}
                     >
@@ -68,12 +80,12 @@ export function Header({ user, identity = {} }: { user: HeaderUser | null; ident
             </ul>
           </nav>
 
-          <nav aria-label={t.common.quickLinks} className="hidden items-center gap-2 sm:flex lg:hidden">
-            <Link href="/formations" className="whitespace-nowrap font-display text-xs uppercase text-bone hover:text-gold">
-              {t.common.formations}
+          <nav aria-label={t.common.quickLinks} className="hidden min-w-0 items-center gap-3 sm:flex lg:hidden">
+            <Link href="/fitness-academy" className="whitespace-nowrap font-display text-xs uppercase text-bone hover:text-gold">
+              {t.nav.fitnessAcademy}
             </Link>
-            <Link href="/#galerie" className="whitespace-nowrap font-display text-xs uppercase text-mist hover:text-gold">
-              {t.nav.gallery}
+            <Link href="/securite" className="whitespace-nowrap font-display text-xs uppercase text-mist hover:text-gold">
+              {t.nav.security}
             </Link>
           </nav>
 
@@ -99,7 +111,7 @@ export function Header({ user, identity = {} }: { user: HeaderUser | null; ident
             )}
             <button
               onClick={() => setMenuOpen(true)}
-              className="grid size-10 place-items-center rounded-full border border-white/20 transition-colors hover:border-bone sm:size-11"
+              className="grid size-10 place-items-center rounded-full border border-white/20 transition-colors hover:border-bone sm:size-11 lg:hidden"
               aria-label={t.common.openMenu}
               aria-expanded={menuOpen}
               aria-controls="site-sidebar"
@@ -108,7 +120,23 @@ export function Header({ user, identity = {} }: { user: HeaderUser | null; ident
             </button>
           </div>
         </div>
-        <div className="h-px origin-left bg-gold rtl:origin-right" style={{ transform: `scaleX(${progress})` }} aria-hidden="true" />
+        {user?.role !== "admin" && (
+          <div className="h-10 bg-gold text-ink">
+            <div className="container-site flex h-full items-center justify-between gap-2 sm:gap-4">
+              <p className="min-w-0 truncate text-[0.68rem] font-semibold leading-4 sm:text-sm">
+                {t.common.coursePromotion}
+              </p>
+              <Link
+                href="/contact"
+                className="inline-flex shrink-0 items-center gap-1 border border-ink/50 px-2.5 py-1 text-[0.65rem] font-bold leading-4 transition-colors hover:bg-ink hover:text-gold focus-visible:outline-ink sm:gap-2 sm:px-4 sm:text-xs"
+              >
+                {t.common.coursePromotionCta}
+                <Icon name="arrow" width={14} height={14} className="rtl:-scale-x-100" />
+              </Link>
+            </div>
+          </div>
+        )}
+        <div ref={progressRef} className="h-px origin-left bg-gold rtl:origin-right" aria-hidden="true" />
       </header>
 
       <Sidebar open={menuOpen} onClose={closeMenu} pathname={pathname} user={user} identity={identity} />

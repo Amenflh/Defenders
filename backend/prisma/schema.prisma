@@ -186,6 +186,15 @@ enum RegistrationStatus {
   archive
 }
 
+enum SecurityQuoteStatus {
+  nouveau
+  contacte
+  devis_envoye
+  gagne
+  perdu
+  archive
+}
+
 /// Demande d'inscription envoyée depuis le formulaire (liée au compte client si connecté).
 model Registration {
   id                      String             @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
@@ -217,6 +226,26 @@ model Registration {
   @@index([userId])
   @@index([referrerId])
   @@map("registrations")
+}
+
+/// Demande de devis adressée à Defenders Security Protection.
+model SecurityQuoteRequest {
+  id          String             @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  createdAt   DateTime           @default(now()) @map("created_at") @db.Timestamptz(6)
+  firstName   String             @map("first_name")
+  lastName    String             @map("last_name")
+  companyName String             @default("") @map("company_name")
+  email       String
+  phone       String
+  city        String             @default("")
+  service     String
+  message     String             @db.Text
+  consentAt   DateTime           @map("consent_at") @db.Timestamptz(6)
+  status      SecurityQuoteStatus @default(nouveau)
+
+  @@index([createdAt(sort: Desc)])
+  @@index([status, createdAt(sort: Desc)])
+  @@map("security_quote_requests")
 }
 
 /// Formations demandées dans une inscription (relation plusieurs-à-plusieurs).

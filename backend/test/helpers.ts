@@ -14,7 +14,7 @@ export type Api = (path: string, options?: Options) => Promise<{ status: number;
 
 /** Vide les données de test (formations et réglages de référence conservés), puis recrée l'admin. */
 export async function resetDb(): Promise<void> {
-  await prisma.$executeRawUnsafe(`TRUNCATE payments, resources, chat_messages, conversations, registration_formations, registrations, auth_sessions, users RESTART IDENTITY CASCADE`);
+  await prisma.$executeRawUnsafe(`TRUNCATE security_quote_requests, payments, resources, chat_messages, conversations, registration_formations, registrations, auth_sessions, users RESTART IDENTITY CASCADE`);
   await prisma.siteSetting.deleteMany({ where: { key: "paiements" } });
   await ensureSeedData();
 }

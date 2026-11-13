@@ -20,6 +20,7 @@ import { adminChatRoutes, myChatRoutes } from "./modules/chat/chat.routes.js";
 import { adminPaymentsRoutes, myPaymentsRoutes, paymentsPublicRoutes } from "./modules/payments/payments.routes.js";
 import { adminReferralRoutes, myReferralRoutes, referralsPublicRoutes } from "./modules/referrals/referrals.routes.js";
 import { adminResourceRoutes, myResourceRoutes } from "./modules/resources/resources.routes.js";
+import { adminSecurityQuoteRoutes, publicSecurityQuoteRoutes } from "./modules/security-quotes/security-quotes.routes.js";
 
 export function createApp() {
   const app = express();
@@ -47,6 +48,8 @@ export function createApp() {
   app.use("/api/auth", authRoutes);
   app.use("/api/contact", publicRegistrationRoutes);
   app.use("/api/admin/contacts", adminRegistrationRoutes);
+  app.use("/api/security-quotes", publicSecurityQuoteRoutes);
+  app.use("/api/admin/security-quotes", adminSecurityQuoteRoutes);
   app.use("/api/me/inscriptions", myRegistrationRoutes);
   app.use("/api/me/chat", myChatRoutes);
   app.use("/api/admin/chat", adminChatRoutes);

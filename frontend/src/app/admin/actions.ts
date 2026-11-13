@@ -14,6 +14,20 @@ export async function updateStatusAction(id: string, status: string): Promise<{ 
   return { ok: !!res?.ok };
 }
 
+export async function updateSecurityQuoteStatusAction(id: string, status: string): Promise<{ ok: boolean }> {
+  const res = await apiFetch(`/api/admin/security-quotes/${encodeURIComponent(id)}`, {
+    method: "PATCH",
+    body: JSON.stringify({ status }),
+  }).catch((error: unknown) => {
+    console.error("[admin security quote status]", error);
+    return null;
+  });
+  if (res?.status === 401) redirect("/login?next=/admin");
+  if (!res?.ok) return { ok: false };
+  revalidatePath("/admin");
+  return { ok: true };
+}
+
 export async function saveSettingsAction(key: string, value: Record<string, unknown>): Promise<{ ok: boolean }> {
   const res = await apiFetch(`/api/admin/settings/${encodeURIComponent(key)}`, {
     method: "PUT",

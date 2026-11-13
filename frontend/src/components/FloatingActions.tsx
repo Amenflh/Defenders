@@ -6,6 +6,7 @@ import { useCallback, useEffect, useState } from "react";
 import { getMyUnreadAction } from "@/app/(site)/chat-actions";
 import { useI18n } from "@/lib/i18n/client";
 import { site } from "@/lib/site";
+import { subscribeToScroll } from "@/lib/scroll-subscription";
 import { ClientChatPanel, OPEN_CHAT_EVENT, type ChatViewer } from "./chat/ClientChatPanel";
 import { Icon } from "./Icon";
 
@@ -84,10 +85,10 @@ export function FloatingActions({ viewer = { role: "guest" } }: { viewer?: ChatV
 
   // Apparaît après un léger défilement, pour ne pas masquer la bannière d'accueil au chargement.
   useEffect(() => {
-    const onScroll = () => setVisible(window.scrollY > 240);
-    onScroll();
-    window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
+    return subscribeToScroll(() => {
+      const next = window.scrollY > 240;
+      setVisible((current) => current === next ? current : next);
+    });
   }, []);
   useEffect(() => {
     if (!open) return;

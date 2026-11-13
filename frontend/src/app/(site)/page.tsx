@@ -2,8 +2,8 @@ import Image from "next/image";
 import Link from "next/link";
 import { Icon } from "@/components/Icon";
 import { Reveal } from "@/components/Reveal";
-import { RotatingWord } from "@/components/RotatingWord";
 import { ScrollStory, type StoryItem } from "@/components/ScrollStory";
+import { HomeHero } from "@/components/HomeHero";
 import { bannerPhotos } from "@/lib/images";
 import { disciplineList } from "@/lib/disciplines";
 import { site } from "@/lib/site";
@@ -11,16 +11,14 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 import { AnimatedAccent } from "@/components/AnimatedAccent";
 import { BannerMarquee } from "@/components/BannerMarquee";
 import { trainingOptions } from "@/lib/formations";
-import { apiFetch, getContactDefaults } from "@/lib/session";
 import { VideoShowcase } from "@/components/VideoShowcase";
-import { brandIdentity, getSiteSettings } from "@/lib/settings";
-import { getDictionary } from "@/lib/i18n/server";
 import type { Dictionary } from "@/lib/i18n/dictionaries";
 import { BranchesSection, HighlightsSection } from "@/components/AcademySections";
 import { accentClassFor } from "@/lib/formation-visuals";
 import { localizeFormation } from "@/lib/formation-i18n";
-import { PartnersMarquee, type PublicPartner } from "@/components/PartnersMarquee";
+import { PartnersMarquee } from "@/components/PartnersMarquee";
 import { HomeContactButton } from "@/components/HomeContactButton";
+import { getHomePageData, localizeVideoTitle } from "@/lib/home-page-data";
 
 /** Domaines d'activité (bloc « À propos ») dans la langue active. */
 const domain = (t: Dictionary): StoryItem[] =>
@@ -32,80 +30,31 @@ const domain = (t: Dictionary): StoryItem[] =>
     points: item.points,
   }));
 
-const hiddenPromotionImages = new Set([
-  "/pics/football_images/acc_images.jpg",
-  "/pics/Pilates_images/acc_images.jpg",
-  "/pics/personal_trainers/acc_images.jpg",
-]);
-
-/** Titres des vidéos d'origine (saisis en français dans l'admin), dans les trois langues. */
-const VIDEO_TITLES: Record<string, Record<"fr" | "en" | "ar", string>> = {
-  "Une équipe, une formation": { fr: "Une équipe, une formation", en: "One team, one course", ar: "فريق واحد، تكوين واحد" },
-};
-
-const HOME_SECTION_IDS = ["hero", "stats", "promotions", "about", "videos", "security", "formations", "method", "testimonials", "faq", "cta", "partners", "branches", "highlights"] as const;
-
 export default async function HomePage({ searchParams }: PageProps<"/">) {
   const params = await searchParams;
   const inscriptionSuccess = params.inscription === "success";
-  const [settings, contactDefaults, { locale, t }] = await Promise.all([getSiteSettings(), getContactDefaults(), getDictionary()]);
-  const isFr = locale === "fr";
-  /** Texte personnalisé dans l'admin (en français) : utilisé seulement quand le site est affiché en français. */
-  const custom = (key: string, fallback: string) => (isFr && typeof settings[key] === "string" && settings[key] ? (settings[key] as string) : fallback);
-  const [faqRes, testimonialRes, promotionsRes, mediaRes, formationsRes, partnersRes] = await Promise.all([
-    apiFetch("/api/content/items/faq"),
-    apiFetch("/api/content/items/testimonials"),
-    apiFetch("/api/content/items/promotions"),
-    apiFetch("/api/media?type=video"),
-    apiFetch("/api/formations"),
-    apiFetch("/api/content/items/partners"),
-  ]);
-  const faqsCms = faqRes.ok ? ((await faqRes.json()) as { items: { title: string; body: string }[] }).items : [];
-  const testimonialsCms = testimonialRes.ok ? ((await testimonialRes.json()) as { items: { title: string; subtitle: string; body: string }[] }).items : [];
-  const promotionsCms = promotionsRes.ok ? ((await promotionsRes.json()) as { items: { id: number; title: string; subtitle: string; body: string; imageUrl: string; linkUrl: string }[] }).items : [];
-  const visiblePromotions = promotionsCms.filter((promotion) => !hiddenPromotionImages.has(promotion.imageUrl));
-  const videosCms = mediaRes.ok ? ((await mediaRes.json()) as { media: { id: number; type: string; url: string; title: string; category: string }[] }).media.filter((item) => item.type === "video") : [];
-  const formationsCms = formationsRes.ok ? ((await formationsRes.json()) as { formations: { id: number; slug: string; name: string; headline: string; summary: string; coverUrl?: string; accent?: string }[] }).formations.map((formation) => localizeFormation(formation, locale)) : [];
-  const partnersCms = partnersRes.ok ? ((await partnersRes.json()) as { items: PublicPartner[] }).items : [];
-  const rotatingFormationNames = formationsCms.map((formation) => formation.name);
-  const approval = typeof settings.approval === "string" && settings.approval ? settings.approval : site.approval;
-  const certificationLabel = custom("certificationLabel", t.home.certification);
-  const { brandName, brandDescriptor } = brandIdentity(settings);
-  const heroDescription = custom("heroDescription", t.home.heroDescription);
-  const heroLead = custom("heroLead", t.home.heroLead);
-  const stats = [
-    [typeof settings.statsDisciplines === "string" ? settings.statsDisciplines : "3", t.home.stats[0]],
-    [typeof settings.statsPromotions === "string" ? settings.statsPromotions : "7+", t.home.stats[1]],
-    [typeof settings.statsFacebook === "string" ? settings.statsFacebook : "5904+", t.home.stats[2]],
-  ];
-  // La FAQ du CMS est rédigée en français ; dans les autres langues, la FAQ traduite est affichée.
-  const visibleFaqs = isFr && faqsCms.length > 0
-    ? faqsCms.map((faq) => ({ question: faq.title, answer: faq.body }))
-    : t.home.faqs;
-  const savedHomeSections = Array.isArray(settings.homepageSections) ? settings.homepageSections : [];
-  const homepageSections = HOME_SECTION_IDS.map((id, index) => {
-    const saved = savedHomeSections.find((section) => typeof section === "object" && section !== null && "id" in section && section.id === id);
-    return {
-      id,
-      enabled: saved && "enabled" in saved && typeof saved.enabled === "boolean" ? saved.enabled : true,
-      order: saved && "order" in saved && typeof saved.order === "number" ? saved.order : index,
-    };
-  }).sort((a, b) => a.order - b.order);
-  const sectionOrder = (id: typeof HOME_SECTION_IDS[number]) => homepageSections.find((section) => section.id === id)?.order ?? HOME_SECTION_IDS.indexOf(id);
-  const sectionEnabled = (id: typeof HOME_SECTION_IDS[number]) => homepageSections.find((section) => section.id === id)?.enabled ?? true;
-  const inquiryCopy = {
-    contactPopupEnabled: settings.contactPopupEnabled !== "false",
-    contactPopupButtonLabel: custom("contactPopupButtonLabel", t.home.contactUs),
-    contactPopupTitle: custom("contactPopupTitle", t.home.contactUs),
-    contactFirstNameLabel: custom("contactFirstNameLabel", t.form.firstName),
-    contactLastNameLabel: custom("contactLastNameLabel", t.form.lastName),
-    contactEmailLabel: custom("contactEmailLabel", t.form.email),
-    contactPhoneLabel: custom("contactPhoneLabel", t.form.phone),
-    contactMessageLabel: custom("contactMessageLabel", t.form.step4.replace(/^\d+\.\s*/, "")),
-    contactMessagePlaceholder: custom("contactMessagePlaceholder", t.form.messagePlaceholder),
-    contactConsentText: custom("contactConsentText", t.form.consent),
-    contactSubmitLabel: custom("contactSubmitLabel", t.form.submit),
-  };
+  const {
+    contactDefaults,
+    locale,
+    t,
+    testimonialsCms,
+    visiblePromotions,
+    videosCms,
+    formationsCms,
+    partnersCms,
+    rotatingFormationNames,
+    approval,
+    certificationLabel,
+    brandName,
+    brandDescriptor,
+    heroDescription,
+    heroLead,
+    stats,
+    visibleFaqs,
+    sectionOrder,
+    sectionEnabled,
+    inquiryCopy,
+  } = await getHomePageData();
   const contactButton = (className = "btn btn-ghost") => inquiryCopy.contactPopupEnabled
     ? <HomeContactButton
         className={className}
@@ -132,81 +81,23 @@ export default async function HomePage({ searchParams }: PageProps<"/">) {
         </div>
       )}
       <div className="flex flex-col">
-      {/* ---------------- HÉRO ---------------- */}
-      <section style={{ order: sectionOrder("hero") }} hidden={!sectionEnabled("hero")} className="relative isolate flex min-h-[100svh] items-center overflow-hidden pt-24 pb-16">
-        <video
-          key={videosCms[0]?.url ?? "/videos/1-Video by defenders_fitness_academy.mp4"}
-          src={videosCms[0]?.url ?? "/videos/1-Video by defenders_fitness_academy.mp4"}
-          autoPlay
-          loop
-          muted
-          playsInline
-          preload="metadata"
-          aria-hidden="true"
-          className="absolute inset-0 -z-20 h-full w-full object-cover"
-        />
-        <div className="absolute inset-0 -z-10 bg-ink/65" />
-        <div className="absolute inset-0 -z-10 bg-[radial-gradient(ellipse_at_top_right,color-mix(in_oklab,var(--color-gold)_12%,transparent)_0%,transparent_58%)]" />
-        <div className="absolute inset-0 -z-10 bg-gradient-to-b from-ink/45 via-ink/60 to-ink" />
+      <HomeHero
+        order={sectionOrder("hero")}
+        enabled={sectionEnabled("hero")}
+        videoSrc={videosCms[0]?.url}
+        poster={bannerPhotos[0].src.src}
+        certificationLabel={certificationLabel}
+        approval={approval}
+        brandName={brandName}
+        brandDescriptor={brandDescriptor}
+        description={heroDescription}
+        lead={heroLead}
+        formationNames={rotatingFormationNames}
+        t={t}
+        contactButton={contactButton()}
+      />
 
-        <div className="container-site flex items-center">
-          <div className="w-full max-w-5xl">
-            <Reveal>
-              <p className="mb-6 inline-flex items-center gap-2 border border-gold/40 bg-gold/10 px-3 py-1.5 text-xs tracking-[0.2em] text-gold-soft uppercase">
-                <Icon name="shield" width={14} height={14} /> {certificationLabel} · {approval}
-              </p>
-            </Reveal>
-            <Reveal delay={100}>
-              <h1 className="heading-xl">
-                {brandName}
-                <br />
-                <span className="text-transparent [-webkit-text-stroke:1.5px_var(--color-bone)]">{brandDescriptor}</span>
-              </h1>
-            </Reveal>
-            <Reveal delay={200}>
-              <p className="mt-6 max-w-xl whitespace-pre-line text-lg leading-relaxed text-mist sm:text-xl">
-                {heroDescription}
-              </p>
-            </Reveal>
-            <Reveal delay={300}>
-              <p className="mt-8 font-display text-2xl tracking-wide uppercase sm:text-3xl">
-                {heroLead} <span className="text-gold"><RotatingWord words={rotatingFormationNames.length ? rotatingFormationNames : ["Pilates", "Football", "Personal Training"]} /></span>
-              </p>
-            </Reveal>
-            <Reveal delay={350}>
-              <ul className="mt-6 flex flex-wrap gap-2" aria-label={t.branches.title}>
-                {site.branches.map((branch) => (
-                  <li key={branch.name}>
-                    <Link href={branch.href} className="inline-block border border-bone/25 bg-ink/40 px-3 py-1.5 text-[0.7rem] tracking-[0.14em] text-bone uppercase backdrop-blur-sm transition-colors hover:border-gold hover:text-gold">
-                      {branch.name}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </Reveal>
-            <Reveal delay={400} className="mt-10 flex flex-wrap gap-4">
-              <Link href="#formations" className="btn btn-primary">
-                {t.home.ourFormations} <Icon name="arrow" className="rtl:-scale-x-100" />
-              </Link>
-              <Link href="/trouver-ma-formation" className="btn btn-ghost">
-                <Icon name="star" /> {t.home.findFormation}
-              </Link>
-              {contactButton()}
-            </Reveal>
-          </div>
-
-        </div>
-
-        <a
-          href="#statistiques"
-          className="absolute bottom-6 left-1/2 hidden -translate-x-1/2 flex-col items-center gap-2 text-[0.65rem] tracking-[0.3em] text-mist uppercase sm:flex"
-        >
-          {t.home.scroll}
-          <span className="h-10 w-px animate-pulse bg-gradient-to-b from-gold to-transparent" />
-        </a>
-      </section>
-
-      {/* ---------------- LES 3 FILIÈRES ---------------- */}
+      {/* ---------------- LES FILIÈRES ---------------- */}
       <section id="filieres" style={{ order: sectionOrder("branches") }} hidden={!sectionEnabled("branches")} className="py-20 lg:py-24">
         <BranchesSection t={t} />
       </section>
@@ -285,14 +176,30 @@ export default async function HomePage({ searchParams }: PageProps<"/">) {
             <p className="eyebrow mb-3">{t.home.videosEyebrow}</p>
             <h2 className="heading-lg">{t.home.videosTitle}</h2>
           </Reveal>
-          <VideoShowcase
-            videos={videosCms.length > 0 ? videosCms.map((video) => ({ title: VIDEO_TITLES[video.title]?.[locale] ?? (video.title || t.pages.video.fallbackTitle), src: video.url, category: video.category })) : [
-              { title: VIDEO_TITLES["Une équipe, une formation"][locale], src: "/videos/1-Video by defenders_fitness_academy.mp4" },
-              { title: "Pilates Matwork & Reformer", src: "/videos/2-Video by defenders_fitness_academy.mp4", category: "pilates" },
-            ]}
-            trainings={formationsCms.length ? trainingOptions(formationsCms) : undefined}
-            defaults={contactDefaults}
-          />
+          {videosCms.length > 0 ? (
+            <VideoShowcase
+              videos={videosCms.map((video) => ({ title: localizeVideoTitle(video.title, locale, t.pages.video.fallbackTitle), src: video.url, category: video.category }))}
+              trainings={formationsCms.length ? trainingOptions(formationsCms) : undefined}
+              defaults={contactDefaults}
+            />
+          ) : (
+            <div className="grid gap-3 sm:grid-cols-2">
+              <a href={site.facebook.videos} target="_blank" rel="noreferrer" className="flex min-h-32 items-center justify-between gap-5 border border-line bg-ink-2 p-6 transition-colors hover:border-gold">
+                <span className="flex items-center gap-4">
+                  <Icon name="facebook" className="shrink-0 text-gold" width={24} height={24} />
+                  <span className="font-display text-lg uppercase">{t.pages.formationsList.facebookVideos}</span>
+                </span>
+                <Icon name="arrow" className="shrink-0 text-gold rtl:-scale-x-100" />
+              </a>
+              <a href={site.instagram.href} target="_blank" rel="noreferrer" className="flex min-h-32 items-center justify-between gap-5 border border-line bg-ink-2 p-6 transition-colors hover:border-gold">
+                <span className="flex items-center gap-4">
+                  <Icon name="instagram" className="shrink-0 text-gold" width={24} height={24} />
+                  <span className="font-display text-lg uppercase">{t.pages.formationsList.instagramReel}</span>
+                </span>
+                <Icon name="arrow" className="shrink-0 text-gold rtl:-scale-x-100" />
+              </a>
+            </div>
+          )}
         </div>
       </section>
 
@@ -335,7 +242,7 @@ export default async function HomePage({ searchParams }: PageProps<"/">) {
               <h2 className="heading-lg">{t.home.formationsTitle(formationsCms.length)}</h2>
             </div>
             <div className="flex flex-wrap gap-3 self-start">
-              <Link href="/formations" className="btn btn-dark">
+              <Link href="/formations/catalogue" className="btn btn-dark">
                 {t.home.allFormations} <Icon name="arrow" className="rtl:-scale-x-100" />
               </Link>
               <Link href="/planning" className="btn btn-dark">
