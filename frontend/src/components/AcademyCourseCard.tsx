@@ -19,6 +19,9 @@ export function AcademyCourseCard({
   external = false,
   accentClassName,
   priority = false,
+  posterLayout = "landscape",
+  posterAlt = "",
+  extraLink,
 }: {
   title: string;
   text: string;
@@ -32,6 +35,11 @@ export function AcademyCourseCard({
   external?: boolean;
   accentClassName?: string;
   priority?: boolean;
+  /** « portrait » : affiche verticale montrée en entier (format 72/102), sans recadrage du titre. */
+  posterLayout?: "landscape" | "portrait";
+  posterAlt?: string;
+  /** Lien secondaire (publication source, programme…), ouvert dans un nouvel onglet. */
+  extraLink?: { href: string; label: string };
 }) {
   const posterSrc = typeof poster === "string" ? poster : poster.src;
 
@@ -49,14 +57,17 @@ export function AcademyCourseCard({
           </span>
         </div>
       ) : (
-        <div className="relative aspect-video overflow-hidden bg-ink">
+        <div className={posterLayout === "portrait"
+          ? "relative mx-auto aspect-[72/102] w-full max-w-[360px] overflow-hidden bg-ink"
+          : "relative aspect-video overflow-hidden bg-ink"}
+        >
           <Image
             src={poster}
-            alt=""
+            alt={posterAlt}
             fill
             priority={priority}
             unoptimized={typeof poster === "string"}
-            sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
+            sizes={posterLayout === "portrait" ? "360px" : "(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"}
             className="object-cover"
           />
         </div>
@@ -74,6 +85,11 @@ export function AcademyCourseCard({
             <Link href={href} className="btn btn-primary !px-4 !py-2.5 !text-xs">
               {action} <Icon name="arrow" className="rtl:-scale-x-100" />
             </Link>
+          )}
+          {extraLink && (
+            <a href={extraLink.href} target="_blank" rel="noreferrer" className="btn btn-ghost !px-4 !py-2.5 !text-xs">
+              <Icon name="facebook" /> {extraLink.label}
+            </a>
           )}
         </div>
       </div>

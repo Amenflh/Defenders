@@ -4,7 +4,9 @@ import Link from "next/link";
 import { connection } from "next/server";
 import { AcademyVideoHero } from "@/components/AcademyVideoHero";
 import { AcademyCourseCard } from "@/components/AcademyCourseCard";
+import { FacebookVideoEmbed } from "@/components/FacebookVideoEmbed";
 import { FormationCard } from "@/components/FormationCard";
+import { Icon } from "@/components/Icon";
 import { Reveal } from "@/components/Reveal";
 import { Unavailable } from "@/components/Unavailable";
 import { getFormations } from "@/lib/formations";
@@ -31,9 +33,6 @@ export default async function FormationsPage({ searchParams }: PageProps<"/forma
     fr: {
       filterAcademy: "Filtrer par académie",
       allAcademies: "Toutes les académies",
-      featuredEyebrow: "Nos parcours phares",
-      featuredTitle: "Les formations à la une",
-      featuredIntro: "Pilates, Football et Personal Training : découvrez nos parcours phares en vidéo.",
       fitnessIntro: "Pilates, coaching football ou Personal Training : choisissez votre spécialité. Ouvrez chaque fiche pour voir le contenu, les vidéos disponibles et les modalités.",
       securityIntro: "Consultez le programme de formation de DSP, puis contactez l'équipe pour préciser votre besoin.",
       securityTitle: "Formation professionnelle en sécurité",
@@ -44,9 +43,6 @@ export default async function FormationsPage({ searchParams }: PageProps<"/forma
     en: {
       filterAcademy: "Filter by academy",
       allAcademies: "All academies",
-      featuredEyebrow: "Featured courses",
-      featuredTitle: "Courses in the spotlight",
-      featuredIntro: "Pilates, Football and Personal Training: explore our featured courses in video.",
       fitnessIntro: "Pilates, football coaching or Personal Training: choose your speciality. Open a course to review its content, available videos and practical details.",
       securityIntro: "Review DSP's training programme, then contact the team to discuss your requirements.",
       securityTitle: "Professional Security Training",
@@ -57,9 +53,6 @@ export default async function FormationsPage({ searchParams }: PageProps<"/forma
     ar: {
       filterAcademy: "تصفية حسب الأكاديمية",
       allAcademies: "كل الأكاديميات",
-      featuredEyebrow: "مساراتنا المميزة",
-      featuredTitle: "تكوينات مميزة",
-      featuredIntro: "بيلاتس وكرة القدم والتدريب الشخصي: اكتشفوا أبرز مساراتنا عبر الفيديو.",
       fitnessIntro: "اختر اختصاصك: Pilates أو تدريب كرة القدم أو التدريب الشخصي. افتح كل تكوين للاطلاع على المحتوى والفيديوهات والتفاصيل العملية.",
       securityIntro: "اطّلع على برنامج DSP للتكوين، ثم تواصل مع الفريق لشرح احتياجك.",
       securityTitle: "التكوين المهني في الأمن",
@@ -78,13 +71,6 @@ export default async function FormationsPage({ searchParams }: PageProps<"/forma
     { key: "fitness", label: t.nav.fitnessAcademy },
     { key: "tsa", label: t.nav.akAcademy },
   ];
-  const featuredFormations = formations
-    ? ["pilates", "football", "personal-training"].flatMap((slug) => {
-        const formation = formations.find((item) => item.slug === slug);
-        return formation ? [{ formation, video: fitnessCourseVideos[slug] }] : [];
-      })
-    : [];
-
   return (
     <div className="branch-theme">
       <AcademyVideoHero
@@ -97,29 +83,6 @@ export default async function FormationsPage({ searchParams }: PageProps<"/forma
         logoAlt={site.name}
         coursesLabel={t.common.formations}
       />
-
-      {(activeAcademy === "all" || activeAcademy === "fitness") && featuredFormations.length > 0 && (
-        <section className="container-site pt-8" aria-labelledby="featured-formations-title">
-          <Reveal className="mb-6">
-            <p className="eyebrow mb-2">{copy.featuredEyebrow}</p>
-            <h2 id="featured-formations-title" className="font-display text-2xl uppercase text-bone sm:text-3xl">
-              {copy.featuredTitle}
-            </h2>
-            <p className="mt-2 max-w-3xl text-sm leading-relaxed text-mist sm:text-base">{copy.featuredIntro}</p>
-          </Reveal>
-          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {featuredFormations.map(({ formation, video }, index) => (
-              <Reveal key={formation.slug} delay={index * 70}>
-                <FormationCard
-                  f={formation}
-                  priority
-                  videoUrl={video?.embedUrl}
-                />
-              </Reveal>
-            ))}
-          </div>
-        </section>
-      )}
 
       <div id="programmes" className="container-site pt-8">
         <p className="eyebrow mb-4">{copy.filterAcademy}</p>
@@ -146,8 +109,8 @@ export default async function FormationsPage({ searchParams }: PageProps<"/forma
       <div className="container-site space-y-14 py-14 lg:space-y-20 lg:py-20">
         {(activeAcademy === "all" || activeAcademy === "security") && (
           <AcademySection branch={security} intro={copy.securityIntro}>
-            <div className="max-w-2xl">
-              <Reveal>
+            <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+              <Reveal className="h-full sm:col-span-2 lg:col-span-1">
                 <AcademyCourseCard
                   title={copy.securityTitle}
                   text={copy.securityText}
@@ -157,6 +120,20 @@ export default async function FormationsPage({ searchParams }: PageProps<"/forma
                   action={copy.details}
                 />
               </Reveal>
+              {site.securityVideos.slice(0, 2).map(({ url, layout }, index) => (
+                <Reveal key={url} delay={(index + 1) * 90} className="video-card group flex flex-col overflow-hidden border border-line bg-ink-2">
+                  <span className="h-1 w-full bg-gold" aria-hidden="true" />
+                  <div className="relative aspect-square lg:aspect-auto lg:min-h-80 lg:flex-1">
+                    <FacebookVideoEmbed url={url} layout={layout} fit="cover" title={`${t.pages.security.closeProtectionTitle} ${index + 1}`} />
+                  </div>
+                  <div className="flex items-center justify-between gap-3 px-5 py-4">
+                    <p className="font-display text-sm uppercase text-gold-soft">{t.pages.security.closeProtectionTitle}</p>
+                    <a href={url} target="_blank" rel="noreferrer" aria-label={`Facebook · ${t.pages.security.closeProtectionTitle} ${index + 1}`} className="grid size-9 shrink-0 place-items-center rounded-full border border-line text-mist transition-colors hover:border-gold hover:text-gold">
+                      <Icon name="facebook" width={16} height={16} />
+                    </a>
+                  </div>
+                </Reveal>
+              ))}
             </div>
           </AcademySection>
         )}
@@ -198,7 +175,10 @@ export default async function FormationsPage({ searchParams }: PageProps<"/forma
               title={tsaCopy.k9CourseTitle}
               text={tsaCopy.k9CourseText}
               detail={tsaCopy.k9CourseDuration}
-              poster="/pics/partners/TSA-logo.jpg"
+              poster={site.tunisianSecurityAcademy.k9Poster}
+              posterLayout="portrait"
+              posterAlt={tsaCopy.k9PosterAlt}
+              extraLink={{ href: site.tunisianSecurityAcademy.k9CoursePost, label: tsaCopy.k9CoursePostLink }}
               accentClassName="accent-k9"
               href="/ak-tunisian-security-academy/formations/k9"
               action={copy.details}
