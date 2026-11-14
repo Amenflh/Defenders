@@ -59,7 +59,7 @@ export function Sidebar({ open, onClose, pathname, user, identity = {} }: Props)
   }, [open, onClose]);
 
   return (
-    <div className={`fixed inset-0 z-50 lg:hidden ${open ? "" : "pointer-events-none"}`} aria-hidden={!open}>
+    <div className={`fixed inset-0 z-50 xl:hidden ${open ? "" : "pointer-events-none"}`} aria-hidden={!open}>
       <button
         type="button"
         tabIndex={-1}
