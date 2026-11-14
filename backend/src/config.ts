@@ -77,5 +77,6 @@ export const config = {
     user: process.env.SMTP_USER,
     pass: process.env.SMTP_PASS,
     contactTo: process.env.CONTACT_TO ?? "",
+    securityContactTo: process.env.SECURITY_CONTACT_TO ?? process.env.CONTACT_TO ?? "",
   },
 } as const;

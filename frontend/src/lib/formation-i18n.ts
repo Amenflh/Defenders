@@ -21,8 +21,8 @@ const T: Record<string, Partial<Record<Exclude<Locale, "fr">, Content>>> = {
   pilates: {
     en: {
       name: "Pilates",
-      headline: "Become a Mat & Reformer Pilates instructor",
-      summary: "Master the Pilates method, on the mat and on the Reformer, and learn to build safe, progressive sessions adapted to every client.",
+      headline: "Pilates Mat & Reformer Instructor Training",
+      summary: "Train in Matwork and Reformer, levels 1 and 2: 40 hours over six days in Nabeul, with certification stated at the end of the course. Contact the academy to confirm the next session.",
       intro: [
         "Pilates is one of the most requested practices in studios and private coaching. Our course combines a scientific understanding of movement with teaching skills.",
         "You work on the mat and on the Reformer, focusing on alignment, breathing, core control and adapting exercises to different profiles.",
@@ -48,8 +48,8 @@ const T: Record<string, Partial<Record<Exclude<Locale, "fr">, Content>>> = {
     },
     ar: {
       name: "بيلاتس",
-      headline: "كن مدرب بيلاتس على البساط والريفورمر",
-      summary: "أتقن طريقة البيلاتس على البساط وعلى جهاز الريفورمر، وتعلّم بناء حصص آمنة وتدريجية ومتلائمة مع كل حريف.",
+      headline: "تكوين مدربي Pilates Mat وReformer",
+      summary: "تكوين Matwork وReformer، المستوى الأول والثاني: 40 ساعة خلال ستة أيام في نابل، مع شهادة مذكورة في نهاية التكوين. تواصل مع الأكاديمية للتثبت من موعد الدورة القادمة.",
       intro: [
         "البيلاتس من أكثر الممارسات طلبًا في الاستوديوهات والتدريب الخاص. يجمع تكويننا بين الفهم العلمي للحركة والتحكم البيداغوجي.",
         "تعمل على البساط وعلى الريفورمر، مع التركيز على وضعية الجسم والتنفس والتحكم في الجذع وتكييف التمارين مع مختلف الملفات.",
@@ -77,8 +77,8 @@ const T: Record<string, Partial<Record<Exclude<Locale, "fr">, Content>>> = {
   football: {
     en: {
       name: "Football",
-      headline: "Football coach training",
-      summary: "An intensive course to coach, prepare and develop players, from youth categories to seniors.",
+      headline: "Football Coaching and Training Course",
+      summary: "Take a four-day football-coaching course in Hammamet focused on session design, physical preparation, game analysis and practical coaching. The post lists two certificates and a 750 TND fee; upcoming dates are not stated.",
       intro: [
         "Coaching means passing on a method. Our course covers planning, physical preparation, tactics and management.",
         "The programme alternates theory and practical scenarios, with ready-to-use sessions.",
@@ -104,8 +104,8 @@ const T: Record<string, Partial<Record<Exclude<Locale, "fr">, Content>>> = {
     },
     ar: {
       name: "كرة القدم",
-      headline: "تكوين مدربي كرة القدم",
-      summary: "تكوين مكثف لتأطير اللاعبين وإعدادهم وتطويرهم، من الفئات الشابة إلى الأكابر.",
+      headline: "تكوين في تدريب كرة القدم والإعداد",
+      summary: "تكوين مدته أربعة أيام في الحمامات حول تخطيط الحصص والإعداد البدني وتحليل اللعب والتدريب التطبيقي. يذكر المنشور شهادتين وسعرًا قدره 750 دينارًا؛ ولا يحدد موعد الدورة القادمة.",
       intro: [
         "التدريب هو نقل منهجية. يشمل تكويننا التخطيط والإعداد البدني والتكتيك والتسيير.",
         "يتناوب البرنامج بين الدروس النظرية والوضعيات التطبيقية، مع حصص جاهزة للاستعمال.",
@@ -133,8 +133,8 @@ const T: Record<string, Partial<Record<Exclude<Locale, "fr">, Content>>> = {
   "personal-training": {
     en: {
       name: "Personal Training",
-      headline: "Personal Fitness Trainer Certification",
-      summary: "Become a personal trainer: assessment, programming, strength training, nutrition and client support, validated by several certificates.",
+      headline: "Personal Sports Coaching Course",
+      summary: "Assess client goals, plan sessions, and coach strength training, conditioning and nutrition foundations. Watch the source videos and contact the academy for upcoming dates and location.",
       intro: [
         "Private coaching requires solid expertise and a real client relationship. The certification gives you the scientific and practical tools to design effective and safe programmes.",
         "An intensive course led by experienced trainers, with career support through our partner network.",
@@ -160,8 +160,8 @@ const T: Record<string, Partial<Record<Exclude<Locale, "fr">, Content>>> = {
     },
     ar: {
       name: "التدريب الشخصي",
-      headline: "شهادة مدرب لياقة شخصي",
-      summary: "كن مدربًا شخصيًا: التقييم، البرمجة، تقوية العضلات، التغذية ومرافقة الحريف، مع عدة شهادات.",
+      headline: "تكوين في التدريب الرياضي الشخصي",
+      summary: "قيّم أهداف الحرفاء، وبرمج حصصهم، ورافقهم في تمارين القوة واللياقة وأسس التغذية. شاهد الفيديوهات المصدرية وتواصل مع الأكاديمية لمعرفة المواعيد والمكان.",
       intro: [
         "يتطلب التدريب الخاص خبرة متينة وعلاقة حقيقية مع الحريف. تمنحك الشهادة الأدوات العلمية والعملية لتصميم برامج فعالة وآمنة.",
         "تكوين مكثف يؤطره مدربون ذوو خبرة، مع مرافقة نحو التشغيل عبر شبكة شركائنا.",

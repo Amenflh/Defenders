@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { ContactForm, type ContactDefaults } from "@/app/(site)/contact/ContactForm";
 import { Reveal } from "./Reveal";
 import { useI18n } from "@/lib/i18n/client";
@@ -10,6 +10,62 @@ export type ShowcaseVideo = { title: string; src: string; category?: string };
 type Training = { value: string; label: string; dot?: string };
 
 const normalize = (text: string) => text.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
+
+function VideoPreview({ src, className }: { src: string; className: string }) {
+  const ref = useRef<HTMLVideoElement>(null);
+  const [visible, setVisible] = useState(false);
+  const [motionAllowed, setMotionAllowed] = useState(false);
+
+  useEffect(() => {
+    const preference = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const updateMotion = () => setMotionAllowed(!preference.matches);
+    updateMotion();
+    preference.addEventListener("change", updateMotion);
+
+    const video = ref.current;
+    if (!video || !("IntersectionObserver" in window)) {
+      setVisible(true);
+      return () => preference.removeEventListener("change", updateMotion);
+    }
+
+    const observer = new IntersectionObserver(
+      ([entry]) => setVisible(entry.isIntersecting),
+      { rootMargin: "100px" },
+    );
+    observer.observe(video);
+    return () => {
+      observer.disconnect();
+      preference.removeEventListener("change", updateMotion);
+    };
+  }, []);
+
+  useEffect(() => {
+    const video = ref.current;
+    if (!video) return;
+    if (!visible || !motionAllowed) {
+      video.pause();
+      return;
+    }
+    void video.play().catch((error: unknown) => {
+      if (error instanceof DOMException && error.name === "NotAllowedError") return;
+      console.error("[home] video preview playback failed", error);
+    });
+  }, [motionAllowed, visible]);
+
+  return (
+    <video
+      ref={ref}
+      src={visible ? src : undefined}
+      autoPlay={visible && motionAllowed}
+      loop
+      muted
+      playsInline
+      preload={visible ? "metadata" : "none"}
+      aria-hidden="true"
+      className={className}
+    />
+  );
+}
 
 /** Formation évoquée par la vidéo (catégorie = slug, ou nom de la formation dans le titre) : pré-cochée dans le formulaire. */
 function guessFormation(video: ShowcaseVideo, trainings: Training[]): string | undefined {
@@ -44,7 +100,7 @@ export function VideoShowcase({ videos, trainings, defaults }: { videos: Showcas
               aria-label={v.watch(video.title)}
             >
               <span className="relative block bg-black">
-                <video src={video.src} autoPlay loop muted playsInline preload="metadata" aria-hidden="true" className="mx-auto block max-h-[360px] w-full object-contain transition duration-700 group-hover:scale-[1.02]" />
+                <VideoPreview src={video.src} className="mx-auto block max-h-[360px] w-full object-contain transition duration-700 group-hover:scale-[1.02]" />
                 <span className="absolute inset-0 bg-gradient-to-t from-ink/80 via-transparent to-transparent" />
                 <span className="absolute bottom-4 left-4 flex items-center gap-3">
                   <span className="grid size-12 place-items-center rounded-full border border-bone/70 bg-ink/75 text-bone transition-transform group-hover:scale-110">

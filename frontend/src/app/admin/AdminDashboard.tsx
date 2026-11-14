@@ -12,6 +12,7 @@ import { ChatInbox } from "./ChatInbox";
 import { PaymentsManager } from "./PaymentsManager";
 import { ReferralsManager } from "./ReferralsManager";
 import { ResourcesManager } from "./ResourcesManager";
+import { SecurityQuotesManager, type SecurityQuote } from "./SecurityQuotesManager";
 import { getAdminUnreadAction } from "./chat-actions";
 import { followUpMessage, whatsappHref } from "@/lib/contact-links";
 import { toCsv } from "@/lib/csv";
@@ -66,9 +67,9 @@ function normalizeHomepageSections(value: unknown): HomepageSection[] {
   }).sort((a, b) => a.order - b.order).map((section, index) => ({ ...section, order: index }));
 }
 
-const TABS = ["aperçu", "messages", "demandes d'information", "inscriptions", "paiements", "parrainage", "ressources", "formations", "contenus", "médias", "partenaires", "paramètres & footer"];
+const TABS = ["aperçu", "messages", "demandes d'information", "inscriptions", "devis sécurité", "paiements", "parrainage", "ressources", "formations", "contenus", "médias", "partenaires", "paramètres & footer"];
 
-export function AdminDashboard({ stats, formations, media, cms, contacts = [], initialSettings = {}, userName = "Administrateur", userEmail = "", initialTab, initialUnreadMessages = 0 }: { initialTab?: string; initialUnreadMessages?: number; stats: AdminStats | null; formations: Formation[]; media: Media[]; cms: CmsItem[]; contacts?: Contact[]; initialSettings?: Record<string, unknown>; userName?: string; userEmail?: string }) {
+export function AdminDashboard({ stats, formations, media, cms, contacts = [], securityQuotes = [], securityQuotesError, initialSettings = {}, userName = "Administrateur", userEmail = "", initialTab, initialUnreadMessages = 0 }: { initialTab?: string; initialUnreadMessages?: number; stats: AdminStats | null; formations: Formation[]; media: Media[]; cms: CmsItem[]; contacts?: Contact[]; securityQuotes?: SecurityQuote[]; securityQuotesError?: string; initialSettings?: Record<string, unknown>; userName?: string; userEmail?: string }) {
   const [tab, setTab] = useState(initialTab && TABS.includes(initialTab) ? initialTab : "aperçu");
   const [unreadMessages, setUnreadMessages] = useState(initialUnreadMessages);
   // Badge « messages » tenu à jour hors de l'onglet (l'onglet ouvert le met à jour lui-même).
@@ -84,7 +85,8 @@ export function AdminDashboard({ stats, formations, media, cms, contacts = [], i
   const registrationCount = contacts.length - inquiryCount;
   const latestInquiry = contacts.filter((contact) => contact.profile === "demande-info").sort((a, b) => Date.parse(b.createdAt) - Date.parse(a.createdAt))[0];
   const latestRegistration = contacts.filter((contact) => contact.profile !== "demande-info").sort((a, b) => Date.parse(b.createdAt) - Date.parse(a.createdAt))[0];
-  const newContactCount = contacts.filter((contact) => contact.status === "nouveau").length;
+  const latestSecurityQuote = securityQuotes[0];
+  const newContactCount = contacts.filter((contact) => contact.status === "nouveau").length + securityQuotes.filter((quote) => quote.status === "nouveau").length;
   const logoUrl = typeof initialSettings.logoUrl === "string" && initialSettings.logoUrl ? initialSettings.logoUrl : undefined;
   const brandName = typeof initialSettings.brandName === "string" && initialSettings.brandName ? initialSettings.brandName : undefined;
   const brandDescriptor = typeof initialSettings.brandDescriptor === "string" && initialSettings.brandDescriptor ? initialSettings.brandDescriptor : undefined;
@@ -120,6 +122,7 @@ export function AdminDashboard({ stats, formations, media, cms, contacts = [], i
                   {([
                     { label: "Dernière demande d'information", contact: latestInquiry, target: "demandes d'information" },
                     { label: "Dernière inscription", contact: latestRegistration, target: "inscriptions" },
+                    { label: "Dernier devis sécurité", contact: latestSecurityQuote, target: "devis sécurité" },
                   ] as const).map(({ label, contact, target }) => (
                     <button key={target} type="button" disabled={!contact} onClick={() => { setTab(target); setNotificationsOpen(false); }} className="w-full border border-line bg-ink p-3 text-left transition-colors enabled:hover:border-gold disabled:opacity-60">
                       <span className="block text-[10px] uppercase tracking-widest text-gold">{label}</span>
@@ -151,6 +154,7 @@ export function AdminDashboard({ stats, formations, media, cms, contacts = [], i
                 {name}
                 {name === "demandes d'information" && <span className="ml-2 rounded-full bg-ink/15 px-2 py-0.5 text-[10px]">{inquiryCount}</span>}
                 {name === "inscriptions" && <span className="ml-2 rounded-full bg-ink/15 px-2 py-0.5 text-[10px]">{registrationCount}</span>}
+                {name === "devis sécurité" && <span className="ml-2 rounded-full bg-ink/15 px-2 py-0.5 text-[10px]">{securityQuotes.length}</span>}
                 {name === "messages" && unreadMessages > 0 && <span className={`ml-2 rounded-full px-2 py-0.5 text-[10px] font-bold ${tab === name ? "bg-ink text-gold" : "bg-gold text-ink"}`} aria-label={`${unreadMessages} non lu(s)`}>{unreadMessages}</span>}
               </button>
             ))}
@@ -164,6 +168,7 @@ export function AdminDashboard({ stats, formations, media, cms, contacts = [], i
           {tab === "ressources" && <ResourcesManager formations={formations.map((f) => ({ id: f.id, name: f.name }))} />}
           {tab === "demandes d'information" && <ContactsManager contacts={contacts} type="inquiry" />}
           {tab === "inscriptions" && <ContactsManager contacts={contacts} type="registration" />}
+          {tab === "devis sécurité" && <SecurityQuotesManager quotes={securityQuotes} loadError={securityQuotesError} />}
           {tab === "contenus" && <ContentManager cms={cms.filter((item) => ["faq", "testimonials", "promotions"].includes(item.section))} />}
           {tab === "formations" && <FormationManager formations={formations} />}
           {tab === "médias" && <MediaManager media={media} />}
@@ -327,7 +332,7 @@ function downloadContactsCsv(contacts: Contact[], type: "inquiry" | "registratio
 function SettingsManager({ initialSettings = {} }: { initialSettings?: Record<string, unknown> }) {
   const legalDefaults = {
     mentions: "Éditeur du site\nDefenders Fitness Academy — Avenue Abou Dhabi, 8050 Hammamet, Tunisie\n\nContact\n+216 92 204 005 — +216 29 039 493 — direction-dsp@outlook.com\n\nActivité\nCentre de formation certifié — Agrément n° 21-340-24. Les contenus pédagogiques et les prochaines sessions doivent être confirmés directement auprès de l'académie.\n\nPropriété intellectuelle\nLes textes, photographies, vidéos, marques et éléments graphiques présents sur ce site sont protégés. Toute reproduction ou exploitation non autorisée est interdite.\n\nResponsabilité\nLes informations du site sont fournies à titre informatif. L'académie peut les modifier ou les actualiser sans préavis. Les horaires et tarifs exacts sont confirmés auprès de l'équipe.",
-    privacy: "Responsable du traitement\nDefenders Fitness Academy peut collecter les informations envoyées volontairement depuis le formulaire de contact ou d'inscription.\n\nDonnées collectées\nLe formulaire peut collecter le prénom, le nom, l'e-mail, le téléphone, la ville, le profil, les formations souhaitées, la disponibilité, le message et une éventuelle pièce jointe.\n\nFinalités\nCes données sont utilisées pour répondre à une demande, fournir des informations sur les formations et organiser le suivi des inscriptions.\n\nBase juridique et conservation\nLes données sont traitées dans le cadre du consentement et de la demande d'information. Elles sont conservées pendant la durée nécessaire au suivi de la demande.\n\nDestinataires\nLes informations sont consultées par les personnes habilitées de l'académie pour traiter la demande.\n\nSécurité\nDes mesures techniques limitent les accès et protègent les transmissions.\n\nVos droits\nVous pouvez demander l'accès, la rectification ou la suppression des données en écrivant à direction-dsp@outlook.com.",
+    privacy: "Responsable du traitement\nDefenders Academy collecte les informations envoyées volontairement depuis les formulaires de contact, d'inscription et de demande de devis sécurité.\n\nDonnées collectées\nLes formulaires peuvent collecter le prénom, le nom, l'entreprise ou l'organisme, l'e-mail, le téléphone, la ville, le profil, les formations souhaitées, le domaine de demande, la disponibilité, le message et une éventuelle pièce jointe.\n\nFinalités\nCes données sont utilisées pour répondre aux demandes, étudier un besoin de devis, fournir des informations sur les formations et organiser le suivi des inscriptions.\n\nBase juridique et conservation\nLes données sont traitées dans le cadre du consentement et de la demande de la personne concernée. Elles sont conservées pendant la durée nécessaire au suivi de la demande.\n\nDestinataires\nLes informations sont consultées par les personnes habilitées de l'académie pour traiter la demande concernée.\n\nSécurité\nDes mesures techniques limitent les accès et protègent les transmissions.\n\nVos droits\nVous pouvez demander l'accès, la rectification ou la suppression des données en écrivant à direction-dsp@outlook.com.",
     cookies: "Cookies strictement nécessaires\nLe site n'utilise pas de bandeau publicitaire ni de traçage marketing. Son fonctionnement peut utiliser des mécanismes techniques essentiels au chargement des pages.\n\nServices tiers\nLa carte intégrée et les liens vers les réseaux sociaux sont soumis aux politiques de confidentialité de leurs fournisseurs.\n\nGestion du navigateur\nVous pouvez supprimer ou bloquer les cookies depuis les paramètres de votre navigateur. Certaines fonctionnalités externes peuvent alors ne plus fonctionner normalement.",
   };
   const defaults = {

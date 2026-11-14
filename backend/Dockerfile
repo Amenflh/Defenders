@@ -7,7 +7,7 @@ ARG DATABASE_URL=postgresql://build:build@localhost:5432/build
 ENV DATABASE_URL=$DATABASE_URL
 WORKDIR /app
 COPY package.json package-lock.json ./
-RUN npm ci
+RUN --mount=type=cache,target=/root/.npm npm ci
 COPY tsconfig.json prisma.config.ts ./
 COPY prisma ./prisma
 COPY src ./src
@@ -15,11 +15,8 @@ COPY src ./src
 RUN npm run build
 
 # ---- Étape 2 : dépendances de production (inclut la CLI Prisma pour les migrations) ----
-FROM node:24-alpine AS prod-deps
-RUN apk add --no-cache openssl
-WORKDIR /app
-COPY package.json package-lock.json ./
-RUN npm ci --omit=dev
+FROM build AS prod-deps
+RUN npm prune --omit=dev
 
 # ---- Étape 3 : image finale légère, utilisateur non-root ----
 FROM node:24-alpine AS runner

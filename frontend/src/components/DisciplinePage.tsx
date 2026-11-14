@@ -7,6 +7,8 @@ import { apiFetch } from "@/lib/session";
 import { localizeFormation } from "@/lib/formation-i18n";
 import { getDictionary } from "@/lib/i18n/server";
 import { accentClassFor } from "@/lib/formation-visuals";
+import { site } from "@/lib/site";
+import { FacebookVideoEmbed } from "./FacebookVideoEmbed";
 import { FormationHighlights, FormationHistoryLink } from "./FormationExtras";
 import { Icon } from "./Icon";
 import { Reveal } from "./Reveal";
@@ -15,6 +17,12 @@ export async function DisciplinePage({ d: source }: { d: Discipline }) {
   const { locale, t } = await getDictionary();
   const p = t.pages.formation;
   const d = localizeFormation(source, locale);
+  const personalTrainingVideos = d.slug === "personal-training"
+    ? {
+        embedUrls: site.facebook.personalTrainingVideoEmbeds,
+        titles: [p.personalTrainingVideo1, p.personalTrainingVideo2, p.personalTrainingVideo3],
+      }
+    : null;
   const [hero, ...gallery] = d.photos;
   const relatedRes = await apiFetch("/api/formations");
   const others = relatedRes.ok
@@ -43,6 +51,11 @@ export async function DisciplinePage({ d: source }: { d: Discipline }) {
             <Reveal delay={160}>
               <p className="mt-6 max-w-xl text-lg leading-relaxed text-mist">{d.summary}</p>
             </Reveal>
+            {personalTrainingVideos && (
+              <Reveal delay={200}>
+                <p className="mt-5 max-w-xl border-s-2 border-gold/60 bg-ink-2 p-5 text-sm leading-relaxed text-mist">{p.personalTrainingVideoDetails}</p>
+              </Reveal>
+            )}
             <Reveal delay={240}>
               <dl className="mt-10 grid grid-cols-3 border-y border-line">
                 {d.facts.map((f) => (
@@ -64,10 +77,22 @@ export async function DisciplinePage({ d: source }: { d: Discipline }) {
           </div>
 
           <Reveal from="right" delay={150} className="relative">
-            <div className={`absolute -inset-3 border ${d.accent.border} opacity-40`} aria-hidden="true" />
-            <div className="relative aspect-[4/5] overflow-hidden bg-ink-3">
-              <Image src={hero.src} alt={hero.alt} fill preload placeholder={typeof hero.src === "string" ? "empty" : "blur"} unoptimized={typeof hero.src === "string"} sizes="(min-width: 1024px) 45vw, 100vw" className="object-cover" />
-            </div>
+            {personalTrainingVideos ? (
+              <ul className="grid items-start gap-3 sm:grid-cols-2">
+                {personalTrainingVideos.embedUrls.map((url, index) => (
+                  <li key={url} className="overflow-hidden border border-line bg-ink-2">
+                    <FacebookVideoEmbed url={url} title={personalTrainingVideos.titles[index]} />
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <>
+                <div className={`absolute -inset-3 border ${d.accent.border} opacity-40`} aria-hidden="true" />
+                <div className="relative aspect-[4/5] overflow-hidden bg-ink-3">
+                  <Image src={hero.src} alt={hero.alt} fill preload placeholder={typeof hero.src === "string" ? "empty" : "blur"} unoptimized={typeof hero.src === "string"} sizes="(min-width: 1024px) 45vw, 100vw" className="object-cover" />
+                </div>
+              </>
+            )}
           </Reveal>
         </div>
       </section>

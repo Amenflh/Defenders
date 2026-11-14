@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useI18n } from "@/lib/i18n/client";
+import { subscribeToScroll } from "@/lib/scroll-subscription";
 import { Icon } from "./Icon";
 
 /**
@@ -16,10 +17,10 @@ export function FloatingRegister() {
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
-    const onScroll = () => setVisible(window.scrollY > 240);
-    onScroll();
-    window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
+    return subscribeToScroll(() => {
+      const next = window.scrollY > 240;
+      setVisible((current) => current === next ? current : next);
+    });
   }, []);
 
   // Inutile sur la page d'inscription elle-même.

@@ -1,11 +1,12 @@
 import Image from "next/image";
 import Link from "next/link";
-import { visualFor } from "@/lib/formation-visuals";
+import { accentClassFor, visualFor } from "@/lib/formation-visuals";
 import { formatPrice, keyFacts, type Formation, type FormationDetail } from "@/lib/formations";
 import { intlLocale } from "@/lib/i18n/config";
 import { localizeFormation } from "@/lib/formation-i18n";
 import { getDictionary } from "@/lib/i18n/server";
-import { accentClassFor } from "@/lib/formation-visuals";
+import { site } from "@/lib/site";
+import { FacebookVideoEmbed } from "./FacebookVideoEmbed";
 import { FormationHighlights, FormationHistoryLink } from "./FormationExtras";
 import { Icon } from "./Icon";
 import { Reveal } from "./Reveal";
@@ -21,6 +22,20 @@ export async function FormationPage({ f: source, others: sourceOthers }: { f: Fo
   const uploadedImages = f.media.filter((m) => m.type === "image" && m.url !== f.coverUrl);
   const galleryUrls = f.galleryUrls.filter((url) => url !== f.coverUrl);
   const videos = f.media.filter((m) => m.type === "video");
+  const socialVideos = f.slug === "pilates"
+    ? { title: p.pilatesVideosTitle, embedUrls: site.facebook.pilatesVideoEmbeds, labels: [p.pilatesVideo1, p.pilatesVideo2] }
+    : f.slug === "personal-training"
+      ? { title: p.personalTrainingVideosTitle, embedUrls: site.facebook.personalTrainingVideoEmbeds, labels: [p.personalTrainingVideo1, p.personalTrainingVideo2, p.personalTrainingVideo3] }
+      : f.slug === "football"
+      ? { title: p.footballVideosTitle, embedUrls: site.facebook.footballVideoEmbeds, labels: [p.footballVideo1] }
+      : null;
+  const socialDetails = f.slug === "pilates"
+    ? p.pilatesVideoDetails
+    : f.slug === "personal-training"
+      ? p.personalTrainingVideoDetails
+      : f.slug === "football"
+      ? p.footballVideoDetails
+      : null;
   const facts = keyFacts(f);
   const price = formatPrice(f.priceTnd);
 
@@ -47,6 +62,11 @@ export async function FormationPage({ f: source, others: sourceOthers }: { f: Fo
                 <p className="mt-6 max-w-xl text-lg leading-relaxed text-mist">{f.summary}</p>
               </Reveal>
             )}
+            {socialDetails && (
+              <Reveal delay={200}>
+                <p className="mt-5 max-w-xl border-s-2 border-gold/60 bg-ink-2 p-5 text-sm leading-relaxed text-mist">{socialDetails}</p>
+              </Reveal>
+            )}
             {facts.length > 0 && (
               <Reveal delay={240}>
                 <dl className="mt-10 grid border-y border-line" style={{ gridTemplateColumns: `repeat(${facts.length}, minmax(0, 1fr))` }}>
@@ -70,14 +90,26 @@ export async function FormationPage({ f: source, others: sourceOthers }: { f: Fo
           </div>
 
           <Reveal from="right" delay={150} className="relative">
-            <div className={`absolute -inset-3 border ${accent.border} opacity-40`} aria-hidden="true" />
-            <div className="relative aspect-[4/5] overflow-hidden bg-ink-3">
-              {f.coverUrl ? (
-                <Image src={f.coverUrl} alt={p.imageAlt(f.name)} fill preload unoptimized sizes="(min-width: 1024px) 45vw, 100vw" className="object-cover" />
-              ) : (
-                <Image src={defaultHero.src} alt={defaultHero.alt} fill preload placeholder="blur" sizes="(min-width: 1024px) 45vw, 100vw" className="object-cover" />
-              )}
-            </div>
+            {socialVideos ? (
+              <ul className={`grid items-start gap-3 ${socialVideos.embedUrls.length > 1 ? "sm:grid-cols-2" : ""}`}>
+                {socialVideos.embedUrls.map((url, index) => (
+                  <li key={url} className="overflow-hidden border border-line bg-ink-2">
+                    <FacebookVideoEmbed url={url} title={socialVideos.labels[index]} />
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <>
+                <div className={`absolute -inset-3 border ${accent.border} opacity-40`} aria-hidden="true" />
+                <div className="relative aspect-[4/5] overflow-hidden bg-ink-3">
+                  {f.coverUrl ? (
+                    <Image src={f.coverUrl} alt={p.imageAlt(f.name)} fill preload unoptimized sizes="(min-width: 1024px) 45vw, 100vw" className="object-cover" />
+                  ) : (
+                    <Image src={defaultHero.src} alt={defaultHero.alt} fill preload placeholder="blur" sizes="(min-width: 1024px) 45vw, 100vw" className="object-cover" />
+                  )}
+                </div>
+              </>
+            )}
           </Reveal>
         </div>
       </section>
@@ -230,7 +262,7 @@ export async function FormationPage({ f: source, others: sourceOthers }: { f: Fo
               <div className="grid gap-6 sm:grid-cols-2">
                 {videos.map((v) => (
                   <figure key={v.id} className="overflow-hidden border border-line bg-ink-2">
-                    <video src={v.url} controls preload="metadata" playsInline className="aspect-video w-full bg-black" />
+                    <video src={v.url} controls preload="metadata" playsInline className="mx-auto block max-h-[70svh] w-full bg-black object-contain" />
                     {v.title && <figcaption className="px-4 py-3 text-sm text-mist">{v.title}</figcaption>}
                   </figure>
                 ))}

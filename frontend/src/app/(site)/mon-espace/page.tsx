@@ -72,7 +72,7 @@ export default async function MonEspacePage({ searchParams }: PageProps<"/mon-es
         {A.intro}
       </PageIntro>
 
-      <nav aria-label={A.sectionsNav} className="sticky top-16 z-20 border-b border-line bg-ink/90 backdrop-blur-md">
+      <nav aria-label={A.sectionsNav} className="sticky top-[7rem] z-20 border-b border-line bg-ink/90 backdrop-blur-md">
         <div className="container-site flex gap-1 overflow-x-auto py-2 text-xs tracking-[0.14em] uppercase">
           {([["#inscriptions", A.sections.inscriptions], ["#ressources", A.sections.ressources], ["#parrainage", A.sections.parrainage], ["#messages", A.sections.messages]] as const).map(([href, label]) => (
             <a key={href} href={href} className="shrink-0 px-3 py-2 text-mist hover:text-gold">{label}</a>

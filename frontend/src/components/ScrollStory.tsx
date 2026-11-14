@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState, type ReactNode } from "react";
+import { subscribeToScroll } from "@/lib/scroll-subscription";
 
 export type StoryItem = {
   id: string;
@@ -16,8 +17,8 @@ export type StoryItem = {
  */
 export function ScrollStory({ items }: { items: StoryItem[] }) {
   const [active, setActive] = useState(items[0]?.id);
-  const [progress, setProgress] = useState(0);
   const sectionRef = useRef<HTMLDivElement>(null);
+  const progressRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const blocks = items
@@ -50,21 +51,21 @@ export function ScrollStory({ items }: { items: StoryItem[] }) {
       activeObserver.observe(b);
     });
 
-    const onScroll = () => {
+    const updateProgress = () => {
       const el = sectionRef.current;
       if (!el) return;
       const rect = el.getBoundingClientRect();
       const total = rect.height - window.innerHeight * 0.5;
       const passed = window.innerHeight * 0.5 - rect.top;
-      setProgress(Math.min(1, Math.max(0, passed / total)));
+      const progress = total > 0 ? Math.min(1, Math.max(0, passed / total)) : Number(passed > 0);
+      if (progressRef.current) progressRef.current.style.height = `${progress * 100}%`;
     };
-    onScroll();
-    window.addEventListener("scroll", onScroll, { passive: true });
+    const unsubscribe = subscribeToScroll(updateProgress);
 
     return () => {
       revealObserver.disconnect();
       activeObserver.disconnect();
-      window.removeEventListener("scroll", onScroll);
+      unsubscribe();
     };
   }, [items]);
 
@@ -76,8 +77,8 @@ export function ScrollStory({ items }: { items: StoryItem[] }) {
           <div className="relative pl-6">
             <div className="absolute top-0 bottom-0 left-0 w-px bg-line" />
             <div
+              ref={progressRef}
               className="absolute top-0 left-0 w-px bg-gold transition-[height] duration-200"
-              style={{ height: `${progress * 100}%` }}
             />
             <ol className="space-y-6">
               {items.map((item, i) => {
