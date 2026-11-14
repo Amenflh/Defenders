@@ -46,7 +46,7 @@
   html {
     font-size: 14px;
     scroll-behavior: smooth;
-    scroll-padding-top: 7rem;
+    scroll-padding-top: 8.5rem;
   }
 
   body {
@@ -224,10 +224,161 @@ html[lang="ar"] body * {
   animation-play-state: paused;
 }
 
+/* ---------- Vidéos Facebook (SDK) : le lecteur remplit toujours son cadre ---------- */
+.fb-embed-host > .fb-video,
+.fb-embed-host > .fb-video > span,
+.fb-embed-host iframe {
+  display: block;
+  width: 100% !important;
+  height: 100% !important;
+}
+
+/* ---------- Traînée du curseur (souris uniquement, voir CustomCursor.tsx) ---------- */
+.cursor-trail {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  pointer-events: none;
+}
+
+/* ---------- Attente du lecteur vidéo : cadre animé au lieu d'un rectangle noir ---------- */
+.video-skeleton {
+  pointer-events: none;
+  background:
+    linear-gradient(110deg, transparent 30%, color-mix(in oklab, var(--color-gold) 14%, transparent) 50%, transparent 70%) 0 0 / 250% 100%,
+    radial-gradient(circle at 50% 45%, color-mix(in oklab, var(--color-gold) 12%, transparent), transparent 60%),
+    #050505;
+  animation: video-shimmer 1.6s linear infinite;
+}
+.video-skeleton-play {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 3.5rem;
+  height: 3.5rem;
+  translate: -50% -50%;
+  border: 1.5px solid color-mix(in oklab, var(--color-gold) 70%, transparent);
+  border-radius: 9999px;
+  animation: video-pulse 1.6s ease-in-out infinite;
+}
+.video-skeleton-play::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 54%;
+  translate: -50% -50%;
+  border-block: 0.5rem solid transparent;
+  border-inline-start: 0.8rem solid var(--color-gold);
+}
+@keyframes video-shimmer { to { background-position: -150% 0, 0 0, 0 0; } }
+@keyframes video-pulse {
+  0%, 100% { scale: 1; opacity: 0.7; }
+  50% { scale: 1.12; opacity: 1; }
+}
+
+/* ---------- Lecteur vidéo en liste : apparition de la vidéo choisie ---------- */
+.video-swap { animation: video-swap 0.55s cubic-bezier(0.2, 0.7, 0.2, 1) both; }
+@keyframes video-swap {
+  from { opacity: 0; transform: translateY(14px) scale(0.97); }
+  to { opacity: 1; transform: none; }
+}
+
+/* ---------- Cartes vidéo : relief au survol ---------- */
+/* « translate » (et non « transform ») : ne perturbe pas l'animation d'apparition de <Reveal>. */
+.video-card {
+  transition:
+    opacity 0.8s cubic-bezier(0.2, 0.7, 0.2, 1),
+    transform 0.8s cubic-bezier(0.2, 0.7, 0.2, 1),
+    translate 0.5s cubic-bezier(0.2, 0.7, 0.2, 1),
+    border-color 0.4s,
+    box-shadow 0.5s;
+  transition-delay: var(--reveal-delay, 0ms), var(--reveal-delay, 0ms), 0s, 0s, 0s;
+}
+.video-card:hover {
+  translate: 0 -6px;
+  border-color: color-mix(in oklab, var(--color-gold) 70%, transparent);
+  box-shadow: 0 26px 60px -30px color-mix(in oklab, var(--color-gold) 60%, transparent);
+}
+
+/* ---------- Bandeau « page active » sous le header ---------- */
+.dock {
+  --dock: var(--color-gold);
+  animation: dock-in 0.55s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+.dock-sweep {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(100deg, transparent 0%, color-mix(in oklab, var(--dock) 28%, transparent) 45%, transparent 60%);
+  transform: translateX(-100%);
+  animation: dock-sweep 1.4s 0.25s cubic-bezier(0.4, 0, 0.2, 1) both;
+}
+.dock-lens::before {
+  content: "";
+  position: absolute;
+  inset: -3px;
+  border-radius: 9999px;
+  background: conic-gradient(from 0deg, var(--dock), transparent 35%, transparent 65%, var(--dock));
+  animation: dock-spin 4s linear infinite;
+}
+.dock-lens::after {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  border-radius: 9999px;
+  background: var(--color-ink-2);
+}
+.dock-lens > * { position: relative; z-index: 1; }
+.dock-ping {
+  position: relative;
+  display: inline-block;
+  width: 0.4rem;
+  height: 0.4rem;
+  border-radius: 9999px;
+  background: var(--dock);
+}
+.dock-ping::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: var(--dock);
+  animation: dock-ping 1.8s cubic-bezier(0, 0, 0.2, 1) infinite;
+}
+.dock-label { animation: dock-label 0.6s 0.15s cubic-bezier(0.2, 0.7, 0.2, 1) both; }
+.dock-chip { transition: background-color 0.3s, color 0.3s, border-color 0.3s; }
+.dock-chip[aria-current="location"] {
+  background: var(--dock);
+  border-color: var(--dock);
+  color: #0b0b0c;
+}
+.dock-chips { scrollbar-width: none; }
+.dock-chips::-webkit-scrollbar { display: none; }
+
+@keyframes dock-in {
+  from { opacity: 0; transform: translateY(-100%); clip-path: inset(0 0 100% 0); }
+  to { opacity: 1; transform: none; clip-path: inset(0); }
+}
+@keyframes dock-sweep {
+  to { transform: translateX(100%); }
+}
+@keyframes dock-spin {
+  to { transform: rotate(360deg); }
+}
+@keyframes dock-ping {
+  75%, 100% { transform: scale(2.6); opacity: 0; }
+}
+@keyframes dock-label {
+  from { opacity: 0; transform: translateX(-0.75rem); filter: blur(4px); }
+  to { opacity: 1; transform: none; filter: none; }
+}
+
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
   [data-reveal] { opacity: 1; transform: none; transition: none; }
   .marquee-track { animation: none !important; }
+  .video-skeleton, .video-skeleton-play, .video-swap { animation: none !important; }
+  .video-card:hover { translate: none; }
   *, *::before, *::after {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
