@@ -22,7 +22,7 @@ const T: Record<string, Partial<Record<Exclude<Locale, "fr">, Content>>> = {
     en: {
       name: "Pilates",
       headline: "Pilates Mat & Reformer Instructor Training",
-      summary: "Train in Matwork and Reformer, levels 1 and 2: 40 hours over six days in Nabeul, with certification stated at the end of the course. Contact the academy to confirm the next session.",
+      summary: "Train in Matwork and Reformer, levels 1 and 2: 40 hours over six days in Nabeul, with a certificate awarded at the end of the course. Contact us to book your place in the next session.",
       intro: [
         "Pilates is one of the most requested practices in studios and private coaching. Our course combines a scientific understanding of movement with teaching skills.",
         "You work on the mat and on the Reformer, focusing on alignment, breathing, core control and adapting exercises to different profiles.",
@@ -49,7 +49,7 @@ const T: Record<string, Partial<Record<Exclude<Locale, "fr">, Content>>> = {
     ar: {
       name: "بيلاتس",
       headline: "تكوين مدربي Pilates Mat وReformer",
-      summary: "تكوين Matwork وReformer، المستوى الأول والثاني: 40 ساعة خلال ستة أيام في نابل، مع شهادة مذكورة في نهاية التكوين. تواصل مع الأكاديمية للتثبت من موعد الدورة القادمة.",
+      summary: "تكوين Matwork وReformer، المستويان الأول والثاني: 40 ساعة خلال ستة أيام في نابل، مع شهادة تُسلَّم في نهاية التكوين. تواصل معنا لحجز مكانك في الدورة القادمة.",
       intro: [
         "البيلاتس من أكثر الممارسات طلبًا في الاستوديوهات والتدريب الخاص. يجمع تكويننا بين الفهم العلمي للحركة والتحكم البيداغوجي.",
         "تعمل على البساط وعلى الريفورمر، مع التركيز على وضعية الجسم والتنفس والتحكم في الجذع وتكييف التمارين مع مختلف الملفات.",
@@ -78,7 +78,7 @@ const T: Record<string, Partial<Record<Exclude<Locale, "fr">, Content>>> = {
     en: {
       name: "Football",
       headline: "Football Coaching and Training Course",
-      summary: "Take a four-day football-coaching course in Hammamet focused on session design, physical preparation, game analysis and practical coaching. The post lists two certificates and a 750 TND fee; upcoming dates are not stated.",
+      summary: "Four days of theory and practice in Hammamet: coaching methods, physical preparation, game analysis and session delivery. Two certificates awarded, full board included, 750 TND fee.",
       intro: [
         "Coaching means passing on a method. Our course covers planning, physical preparation, tactics and management.",
         "The programme alternates theory and practical scenarios, with ready-to-use sessions.",
@@ -100,12 +100,12 @@ const T: Record<string, Partial<Record<Exclude<Locale, "fr">, Content>>> = {
       ],
       audience: ["Working coaches and educators", "Experienced athletes (2+ years)", "Sports science graduates"],
       careers: ["Club coach or educator", "Football physical trainer", "Opportunities abroad with our partner RITEJ"],
-      facts: [{ label: "Duration", value: "4 intensive days" }, { label: "Accommodation", value: "Included" }, { label: "Validation", value: "Accredited certificate" }],
+      facts: [{ label: "Duration", value: "4 intensive days" }, { label: "Accommodation", value: "Full board" }, { label: "Validation", value: "2 certificates" }],
     },
     ar: {
       name: "كرة القدم",
       headline: "تكوين في تدريب كرة القدم والإعداد",
-      summary: "تكوين مدته أربعة أيام في الحمامات حول تخطيط الحصص والإعداد البدني وتحليل اللعب والتدريب التطبيقي. يذكر المنشور شهادتين وسعرًا قدره 750 دينارًا؛ ولا يحدد موعد الدورة القادمة.",
+      summary: "أربعة أيام من النظري والتطبيقي في الحمامات: منهجية التدريب، الإعداد البدني، تحليل اللعب وإدارة الحصص. تُسلَّم شهادتان، مع إقامة كاملة، بسعر 750 دينارًا.",
       intro: [
         "التدريب هو نقل منهجية. يشمل تكويننا التخطيط والإعداد البدني والتكتيك والتسيير.",
         "يتناوب البرنامج بين الدروس النظرية والوضعيات التطبيقية، مع حصص جاهزة للاستعمال.",
@@ -127,14 +127,14 @@ const T: Record<string, Partial<Record<Exclude<Locale, "fr">, Content>>> = {
       ],
       audience: ["مربّون ومدربون ناشطون", "رياضيون ذوو خبرة (أكثر من سنتين)", "خريجو علوم الرياضة"],
       careers: ["مدرب أو مربٍّ في نادٍ", "معدّ بدني في كرة القدم", "فرص في الخارج مع شريكنا رتاج"],
-      facts: [{ label: "المدة", value: "4 أيام مكثفة" }, { label: "الإقامة", value: "مشمولة" }, { label: "المصادقة", value: "شهادة معتمدة" }],
+      facts: [{ label: "المدة", value: "4 أيام مكثفة" }, { label: "الإقامة", value: "إقامة كاملة" }, { label: "المصادقة", value: "شهادتان" }],
     },
   },
   "personal-training": {
     en: {
       name: "Personal Training",
       headline: "Personal Sports Coaching Course",
-      summary: "Assess client goals, plan sessions, and coach strength training, conditioning and nutrition foundations. Watch the source videos and contact the academy for upcoming dates and location.",
+      summary: "Assess your clients' goals, plan their sessions and coach strength training, conditioning and nutrition basics. Contact us for the dates and venue of the next session.",
       intro: [
         "Private coaching requires solid expertise and a real client relationship. The certification gives you the scientific and practical tools to design effective and safe programmes.",
         "An intensive course led by experienced trainers, with career support through our partner network.",
@@ -161,7 +161,7 @@ const T: Record<string, Partial<Record<Exclude<Locale, "fr">, Content>>> = {
     ar: {
       name: "التدريب الشخصي",
       headline: "تكوين في التدريب الرياضي الشخصي",
-      summary: "قيّم أهداف الحرفاء، وبرمج حصصهم، ورافقهم في تمارين القوة واللياقة وأسس التغذية. شاهد الفيديوهات المصدرية وتواصل مع الأكاديمية لمعرفة المواعيد والمكان.",
+      summary: "قيّم أهداف حرفائك، وبرمج حصصهم، وأطّر تمارين القوة واللياقة البدنية وأسس التغذية. تواصل معنا لمعرفة موعد ومكان الدورة القادمة.",
       intro: [
         "يتطلب التدريب الخاص خبرة متينة وعلاقة حقيقية مع الحريف. تمنحك الشهادة الأدوات العلمية والعملية لتصميم برامج فعالة وآمنة.",
         "تكوين مكثف يؤطره مدربون ذوو خبرة، مع مرافقة نحو التشغيل عبر شبكة شركائنا.",

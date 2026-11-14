@@ -75,7 +75,7 @@ export const disciplines: Record<DisciplineSlug, Discipline> = {
     facts: [
       { label: "Durée", value: "4 jours intensifs" },
       { label: "Hébergement", value: "Inclus" },
-      { label: "Validation", value: "Certificat accrédité" },
+      { label: "Validation", value: "2 certificats" },
     ],
     objectives: [
       "Planifier une saison, un cycle et une séance d'entraînement",
