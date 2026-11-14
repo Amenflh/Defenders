@@ -6,7 +6,8 @@ import { intlLocale } from "@/lib/i18n/config";
 import { localizeFormation } from "@/lib/formation-i18n";
 import { getDictionary } from "@/lib/i18n/server";
 import { site } from "@/lib/site";
-import { FacebookVideoEmbed } from "./FacebookVideoEmbed";
+import { GalleryMarquee } from "./GalleryMarquee";
+import { VideoCarousel } from "./VideoCarousel";
 import { FormationHighlights, FormationHistoryLink } from "./FormationExtras";
 import { Icon } from "./Icon";
 import { Reveal } from "./Reveal";
@@ -36,6 +37,13 @@ export async function FormationPage({ f: source, others: sourceOthers }: { f: Fo
       : f.slug === "football"
       ? p.footballVideoDetails
       : null;
+  const carouselVideos = socialVideos?.embedUrls.map((url, i) => ({ url, title: socialVideos.labels[i] ?? `${f.name} · ${i + 1}` })) ?? [];
+  // Galerie défilante : photos du site (toutes si les vidéos occupent le héro), puis images ajoutées dans l'admin.
+  const galleryPhotos = [
+    ...(carouselVideos.length > 0 && !f.coverUrl ? [defaultHero, ...defaultGallery] : defaultGallery),
+    ...galleryUrls.map((url) => ({ src: url, alt: p.imageAlt(f.name) })),
+    ...uploadedImages.map((m) => ({ src: m.url, alt: m.title || p.imageAlt(f.name) })),
+  ];
   const facts = keyFacts(f);
   const price = formatPrice(f.priceTnd);
 
@@ -90,14 +98,8 @@ export async function FormationPage({ f: source, others: sourceOthers }: { f: Fo
           </div>
 
           <Reveal from="right" delay={150} className="relative">
-            {socialVideos ? (
-              <ul className={`grid items-start gap-3 ${socialVideos.embedUrls.length > 1 ? "sm:grid-cols-2" : ""}`}>
-                {socialVideos.embedUrls.map((url, index) => (
-                  <li key={url} className="overflow-hidden border border-line bg-ink-2">
-                    <FacebookVideoEmbed url={url} title={socialVideos.labels[index]} />
-                  </li>
-                ))}
-              </ul>
+            {carouselVideos.length > 0 ? (
+              <VideoCarousel videos={carouselVideos} labels={{ previous: p.previousVideo, next: p.nextVideo, upNext: p.upNext }} />
             ) : (
               <>
                 <div className={`absolute -inset-3 border ${accent.border} opacity-40`} aria-hidden="true" />
@@ -254,40 +256,26 @@ export async function FormationPage({ f: source, others: sourceOthers }: { f: Fo
         </section>
       )}
 
-      {/* -------- Galerie : photos du site + images et vidéos téléversées -------- */}
-      {(defaultGallery.length > 0 || galleryUrls.length > 0 || uploadedImages.length > 0 || videos.length > 0) && (
-        <section className="pb-24">
-          <div className="container-site space-y-6">
-            {videos.length > 0 && (
-              <div className="grid gap-6 sm:grid-cols-2">
-                {videos.map((v) => (
-                  <figure key={v.id} className="overflow-hidden border border-line bg-ink-2">
-                    <video src={v.url} controls preload="metadata" playsInline className="mx-auto block max-h-[70svh] w-full bg-black object-contain" />
-                    {v.title && <figcaption className="px-4 py-3 text-sm text-mist">{v.title}</figcaption>}
-                  </figure>
-                ))}
-              </div>
-            )}
-            <div className="grid gap-6 sm:grid-cols-2">
-              {defaultGallery.map((p, i) => (
-                <Reveal key={p.alt} from="zoom" delay={i * 120}>
-                  <figure className="group relative aspect-[4/3] overflow-hidden bg-ink-3 sm:aspect-[4/5]">
-                    <Image src={p.src} alt={p.alt} fill placeholder="blur" sizes="(min-width: 640px) 50vw, 100vw" className="object-cover transition duration-700 group-hover:scale-105" />
-                  </figure>
-                </Reveal>
-              ))}
-              {galleryUrls.map((url) => (
-                <figure key={url} className="group relative aspect-[4/3] overflow-hidden bg-ink-3 sm:aspect-[4/5]">
-                  <Image src={url} alt={p.imageAlt(f.name)} fill unoptimized sizes="(min-width: 640px) 50vw, 100vw" className="object-cover transition duration-700 group-hover:scale-105" />
-                </figure>
-              ))}
-              {uploadedImages.map((m) => (
-                <figure key={m.id} className="group relative aspect-[4/3] overflow-hidden bg-ink-3 sm:aspect-[4/5]">
-                  <Image src={m.url} alt={m.title || p.imageAlt(f.name)} fill unoptimized sizes="(min-width: 640px) 50vw, 100vw" className="object-cover transition duration-700 group-hover:scale-105" />
-                </figure>
-              ))}
-            </div>
+      {/* -------- Vidéos téléversées dans l'admin -------- */}
+      {videos.length > 0 && (
+        <section className="pb-12">
+          <div className="container-site grid gap-6 sm:grid-cols-2">
+            {videos.map((v) => (
+              <figure key={v.id} className="overflow-hidden border border-line bg-ink-2">
+                <video src={v.url} controls preload="metadata" playsInline className="mx-auto block max-h-[70svh] w-full bg-black object-contain" />
+                {v.title && <figcaption className="px-4 py-3 text-sm text-mist">{v.title}</figcaption>}
+              </figure>
+            ))}
           </div>
+        </section>
+      )}
+
+      {/* -------- Galerie défilante : photos du site + images téléversées -------- */}
+      {galleryPhotos.length > 0 && (
+        <section className="pb-24">
+          <Reveal>
+            <GalleryMarquee photos={galleryPhotos} label={p.galleryLabel} />
+          </Reveal>
         </section>
       )}
 
