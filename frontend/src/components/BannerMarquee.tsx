@@ -18,6 +18,7 @@ export function BannerMarquee({ photos, duration = 70, reverse = false, height =
 
   return (
     <div
+      dir="ltr"
       className="relative overflow-hidden [mask-image:linear-gradient(90deg,transparent,#000_6%,#000_94%,transparent)]"
       role="region"
       aria-label="Galerie de nos promotions"
@@ -68,7 +69,7 @@ export function KeywordTicker({ words, reverse = false }: { words: string[]; rev
   );
 
   return (
-    <div className="overflow-hidden border-y border-line bg-ink-2 py-5" aria-hidden="true">
+    <div dir="ltr" className="overflow-hidden border-y border-line bg-ink-2 py-5" aria-hidden="true">
       <div
         className={`marquee-track flex w-max font-display text-2xl tracking-[0.12em] whitespace-nowrap text-bone/80 uppercase sm:text-3xl ${reverse ? "animate-marquee-reverse" : "animate-marquee"}`}
         style={{ "--marquee-duration": "40s" } as React.CSSProperties}

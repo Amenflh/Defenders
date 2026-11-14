@@ -59,7 +59,7 @@ export function PartnersMarquee({ partners: inputPartners, title = "Nos partenai
       <p id="partners-title" className="mb-6 text-center font-display text-xs tracking-[0.28em] text-mist uppercase">
         {title}
       </p>
-      <div className="relative overflow-hidden [mask-image:linear-gradient(90deg,transparent,#000_8%,#000_92%,transparent)]">
+      <div dir="ltr" className="relative overflow-hidden [mask-image:linear-gradient(90deg,transparent,#000_8%,#000_92%,transparent)]">
         <ul
           className="marquee-track animate-marquee flex w-max"
           style={{ "--marquee-duration": "35s" } as React.CSSProperties}

@@ -10,15 +10,14 @@ import { site } from "@/lib/site";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { AnimatedAccent } from "@/components/AnimatedAccent";
 import { BannerMarquee } from "@/components/BannerMarquee";
-import { trainingOptions } from "@/lib/formations";
-import { VideoShowcase } from "@/components/VideoShowcase";
+import { FacebookVideoEmbed } from "@/components/FacebookVideoEmbed";
 import type { Dictionary } from "@/lib/i18n/dictionaries";
 import { BranchesSection, HighlightsSection } from "@/components/AcademySections";
 import { accentClassFor } from "@/lib/formation-visuals";
 import { localizeFormation } from "@/lib/formation-i18n";
 import { PartnersMarquee } from "@/components/PartnersMarquee";
 import { HomeContactButton } from "@/components/HomeContactButton";
-import { getHomePageData, localizeVideoTitle } from "@/lib/home-page-data";
+import { getHomePageData } from "@/lib/home-page-data";
 
 /** Domaines d'activité (bloc « À propos ») dans la langue active. */
 const domain = (t: Dictionary): StoryItem[] =>
@@ -34,7 +33,6 @@ export default async function HomePage({ searchParams }: PageProps<"/">) {
   const params = await searchParams;
   const inscriptionSuccess = params.inscription === "success";
   const {
-    contactDefaults,
     locale,
     t,
     testimonialsCms,
@@ -49,12 +47,12 @@ export default async function HomePage({ searchParams }: PageProps<"/">) {
     brandDescriptor,
     heroDescription,
     heroLead,
-    stats,
     visibleFaqs,
     sectionOrder,
     sectionEnabled,
     inquiryCopy,
   } = await getHomePageData();
+  const personalTrainingTitles = [t.pages.formation.personalTrainingVideo1, t.pages.formation.personalTrainingVideo2, t.pages.formation.personalTrainingVideo3];
   const contactButton = (className = "btn btn-ghost") => inquiryCopy.contactPopupEnabled
     ? <HomeContactButton
         className={className}
@@ -100,20 +98,6 @@ export default async function HomePage({ searchParams }: PageProps<"/">) {
       {/* ---------------- LES FILIÈRES ---------------- */}
       <section id="filieres" style={{ order: sectionOrder("branches") }} hidden={!sectionEnabled("branches")} className="py-20 lg:py-24">
         <BranchesSection t={t} />
-      </section>
-
-      {/* ---------------- CHIFFRES ---------------- */}
-      <section id="statistiques" style={{ order: sectionOrder("stats") }} hidden={!sectionEnabled("stats")} className="border-y border-line bg-ink-2 py-14">
-        <div className="container-site">
-        <div className="grid grid-cols-1 gap-px overflow-hidden border border-line bg-line sm:grid-cols-3">
-          {stats.map(([value, label]) => (
-            <div key={label} className="bg-ink-2 px-4 py-8 text-center sm:px-6 sm:py-10">
-              <AnimatedAccent className="block font-display text-4xl text-gold sm:text-5xl">{value}</AnimatedAccent>
-              <p className="mt-2 font-display text-xs uppercase tracking-[0.12em] text-mist sm:text-sm">{label}</p>
-            </div>
-          ))}
-        </div>
-        </div>
       </section>
 
       {/* ---------------- POINTS FORTS : MÉDECINS, EXCLUSIVITÉ ---------------- */}
@@ -176,30 +160,19 @@ export default async function HomePage({ searchParams }: PageProps<"/">) {
             <p className="eyebrow mb-3">{t.home.videosEyebrow}</p>
             <h2 className="heading-lg">{t.home.videosTitle}</h2>
           </Reveal>
-          {videosCms.length > 0 ? (
-            <VideoShowcase
-              videos={videosCms.map((video) => ({ title: localizeVideoTitle(video.title, locale, t.pages.video.fallbackTitle), src: video.url, category: video.category }))}
-              trainings={formationsCms.length ? trainingOptions(formationsCms) : undefined}
-              defaults={contactDefaults}
-            />
-          ) : (
-            <div className="grid gap-3 sm:grid-cols-2">
-              <a href={site.facebook.videos} target="_blank" rel="noreferrer" className="flex min-h-32 items-center justify-between gap-5 border border-line bg-ink-2 p-6 transition-colors hover:border-gold">
-                <span className="flex items-center gap-4">
-                  <Icon name="facebook" className="shrink-0 text-gold" width={24} height={24} />
-                  <span className="font-display text-lg uppercase">{t.pages.formationsList.facebookVideos}</span>
-                </span>
-                <Icon name="arrow" className="shrink-0 text-gold rtl:-scale-x-100" />
-              </a>
-              <a href={site.instagram.href} target="_blank" rel="noreferrer" className="flex min-h-32 items-center justify-between gap-5 border border-line bg-ink-2 p-6 transition-colors hover:border-gold">
-                <span className="flex items-center gap-4">
-                  <Icon name="instagram" className="shrink-0 text-gold" width={24} height={24} />
-                  <span className="font-display text-lg uppercase">{t.pages.formationsList.instagramReel}</span>
-                </span>
-                <Icon name="arrow" className="shrink-0 text-gold rtl:-scale-x-100" />
-              </a>
-            </div>
-          )}
+          <div className="grid items-start gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            {site.facebook.personalTrainingVideoEmbeds.map((url, index) => (
+              <Reveal key={url} delay={index * 120} className="video-card mx-auto flex w-full max-w-[360px] flex-col border border-line bg-ink-2">
+                <FacebookVideoEmbed url={url} title={personalTrainingTitles[index] ?? t.pages.video.fallbackTitle} />
+                <div className="flex items-center justify-between gap-3 px-5 py-4">
+                  <p className="font-display text-sm uppercase text-gold-soft">{personalTrainingTitles[index] ?? t.pages.video.fallbackTitle}</p>
+                  <Link href="/contact?formation=personal-training" className="shrink-0 font-display text-xs tracking-[0.12em] text-gold uppercase hover:text-bone">
+                    {t.pages.video.register} <Icon name="arrow" className="inline rtl:-scale-x-100" width={14} height={14} />
+                  </Link>
+                </div>
+              </Reveal>
+            ))}
+          </div>
         </div>
       </section>
 
@@ -347,8 +320,15 @@ export default async function HomePage({ searchParams }: PageProps<"/">) {
           </Reveal>
         </div>
         <div className="container-site mt-10">
-          {testimonialsCms.length > 0 ? (
-            <div className="grid gap-px border border-line bg-line md:grid-cols-3">
+          <div className="grid items-start gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            {site.facebook.testimonialVideoEmbeds.map((url, index) => (
+              <Reveal key={url} delay={index * 120} className="video-card mx-auto w-full max-w-[360px] border border-line bg-ink-2 p-2">
+                <FacebookVideoEmbed url={url} title={t.home.testimonialVideo(index + 1)} />
+              </Reveal>
+            ))}
+          </div>
+          {testimonialsCms.length > 0 && (
+            <div className="mt-6 grid gap-px border border-line bg-line md:grid-cols-3">
               {testimonialsCms.map((item, index) => (
                 <article key={`${item.title}-${index}`} className="bg-ink-2 p-6">
                   <Icon name="star" className="text-gold" />
@@ -358,10 +338,6 @@ export default async function HomePage({ searchParams }: PageProps<"/">) {
                 </article>
               ))}
             </div>
-          ) : (
-            <p className="border border-line bg-ink-2 px-6 py-8 text-center text-sm text-mist">
-              {t.home.testimonialsSoon}
-            </p>
           )}
         </div>
       </section>
