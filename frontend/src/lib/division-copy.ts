@@ -30,7 +30,7 @@ export const divisionCopy: Record<Locale, Record<DivisionKey, DivisionCopy>> = {
     fitness: {
       galleryEyebrow: "Médias de la filière",
       galleryTitle: "Dans les studios et sur le terrain",
-      galleryText: "Plongez dans l'ambiance de nos formations Pilates. Retrouvez toutes nos disciplines en photos et en vidéos sur nos réseaux officiels.",
+      galleryText: "Plongez dans l'ambiance de nos formations : Pilates en studio, football sur le terrain et coaching personnel en salle. Retrouvez plus de photos et de vidéos sur nos réseaux officiels.",
       noGalleryText: "Retrouvez nos photos et nos vidéos de formation sur nos pages officielles.",
       historyEyebrow: "Archives",
       historyTitle: "Programmes de formation répertoriés",
@@ -84,7 +84,7 @@ export const divisionCopy: Record<Locale, Record<DivisionKey, DivisionCopy>> = {
     fitness: {
       galleryEyebrow: "Division media",
       galleryTitle: "In the studio and on the field",
-      galleryText: "Step into our Pilates courses. Find all our disciplines in photos and videos on our official channels.",
+      galleryText: "Step into our courses: Pilates in the studio, football on the pitch and personal coaching in the gym. Find more photos and videos on our official channels.",
       noGalleryText: "Find our training photos and videos on our official pages.",
       historyEyebrow: "Archive",
       historyTitle: "Listed course programmes",
@@ -138,7 +138,7 @@ export const divisionCopy: Record<Locale, Record<DivisionKey, DivisionCopy>> = {
     fitness: {
       galleryEyebrow: "وسائط الفرع",
       galleryTitle: "في الاستوديو وعلى الميدان",
-      galleryText: "عِش أجواء تكويناتنا في البيلاتس. شاهد كل اختصاصاتنا بالصور والفيديو على قنواتنا الرسمية.",
+      galleryText: "عِش أجواء تكويناتنا: البيلاتس في الاستوديو، كرة القدم في الملعب والتدريب الشخصي في القاعة. شاهد المزيد من الصور والفيديوهات على قنواتنا الرسمية.",
       noGalleryText: "شاهد صور وفيديوهات تكويناتنا على صفحاتنا الرسمية.",
       historyEyebrow: "الأرشيف",
       historyTitle: "برامج التكوين المدرجة",
