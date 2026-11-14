@@ -8,7 +8,8 @@ import { localizeFormation } from "@/lib/formation-i18n";
 import { getDictionary } from "@/lib/i18n/server";
 import { accentClassFor } from "@/lib/formation-visuals";
 import { site } from "@/lib/site";
-import { FacebookVideoEmbed } from "./FacebookVideoEmbed";
+import { GalleryMarquee } from "./GalleryMarquee";
+import { VideoCarousel } from "./VideoCarousel";
 import { FormationHighlights, FormationHistoryLink } from "./FormationExtras";
 import { Icon } from "./Icon";
 import { Reveal } from "./Reveal";
@@ -17,13 +18,28 @@ export async function DisciplinePage({ d: source }: { d: Discipline }) {
   const { locale, t } = await getDictionary();
   const p = t.pages.formation;
   const d = localizeFormation(source, locale);
-  const personalTrainingVideos = d.slug === "personal-training"
-    ? {
-        embedUrls: site.facebook.personalTrainingVideoEmbeds,
-        titles: [p.personalTrainingVideo1, p.personalTrainingVideo2, p.personalTrainingVideo3],
-      }
-    : null;
-  const [hero, ...gallery] = d.photos;
+  const videoSets: Record<string, { embedUrls: readonly string[]; titles: string[]; details: string }> = {
+    "personal-training": {
+      embedUrls: site.facebook.personalTrainingVideoEmbeds,
+      titles: [p.personalTrainingVideo1, p.personalTrainingVideo2, p.personalTrainingVideo3],
+      details: p.personalTrainingVideoDetails,
+    },
+    pilates: {
+      embedUrls: site.facebook.pilatesVideoEmbeds,
+      titles: [p.pilatesVideo1, p.pilatesVideo2],
+      details: p.pilatesVideoDetails,
+    },
+    football: {
+      embedUrls: site.facebook.footballVideoEmbeds,
+      titles: [p.footballVideo1],
+      details: p.footballVideoDetails,
+    },
+  };
+  const videoSet = videoSets[d.slug];
+  const videos = videoSet?.embedUrls.map((url, i) => ({ url, title: videoSet.titles[i] ?? `${d.name} · ${i + 1}` })) ?? [];
+  const [hero, ...rest] = d.photos;
+  // Avec des vidéos dans le héro, toutes les photos passent dans la galerie défilante.
+  const gallery = videos.length > 0 ? d.photos : rest;
   const relatedRes = await apiFetch("/api/formations");
   const others = relatedRes.ok
     ? (((await relatedRes.json()) as { formations: FormationContent[] }).formations)
@@ -51,9 +67,9 @@ export async function DisciplinePage({ d: source }: { d: Discipline }) {
             <Reveal delay={160}>
               <p className="mt-6 max-w-xl text-lg leading-relaxed text-mist">{d.summary}</p>
             </Reveal>
-            {personalTrainingVideos && (
+            {videoSet && (
               <Reveal delay={200}>
-                <p className="mt-5 max-w-xl border-s-2 border-gold/60 bg-ink-2 p-5 text-sm leading-relaxed text-mist">{p.personalTrainingVideoDetails}</p>
+                <p className="mt-5 max-w-xl border-s-2 border-gold/60 bg-ink-2 p-5 text-sm leading-relaxed text-mist">{videoSet.details}</p>
               </Reveal>
             )}
             <Reveal delay={240}>
@@ -77,14 +93,8 @@ export async function DisciplinePage({ d: source }: { d: Discipline }) {
           </div>
 
           <Reveal from="right" delay={150} className="relative">
-            {personalTrainingVideos ? (
-              <ul className="grid items-start gap-3 sm:grid-cols-2">
-                {personalTrainingVideos.embedUrls.map((url, index) => (
-                  <li key={url} className="overflow-hidden border border-line bg-ink-2">
-                    <FacebookVideoEmbed url={url} title={personalTrainingVideos.titles[index]} />
-                  </li>
-                ))}
-              </ul>
+            {videos.length > 0 ? (
+              <VideoCarousel videos={videos} labels={{ previous: p.previousVideo, next: p.nextVideo, upNext: p.upNext }} />
             ) : (
               <>
                 <div className={`absolute -inset-3 border ${d.accent.border} opacity-40`} aria-hidden="true" />
@@ -144,30 +154,12 @@ export async function DisciplinePage({ d: source }: { d: Discipline }) {
         </div>
       </section>
 
-      {/* -------- Galerie -------- */}
+      {/* -------- Galerie défilante -------- */}
       {gallery.length > 0 && (
         <section className="pb-24">
-          <div className="container-site">
-            <div className={`grid gap-6 ${gallery.length > 1 ? "sm:grid-cols-2" : "sm:grid-cols-1"}`}>
-              {gallery.map((p, i) => (
-                <Reveal key={p.alt} from="zoom" delay={i * 120}>
-                  <figure
-                    className={`group relative overflow-hidden bg-ink-3 ${gallery.length > 1 ? "aspect-[4/3] sm:aspect-[4/5]" : "aspect-video"}`}
-                  >
-                    <Image
-                      src={p.src}
-                      alt={p.alt}
-                      fill
-                      placeholder={typeof p.src === "string" ? "empty" : "blur"}
-                      unoptimized={typeof p.src === "string"}
-                      sizes={gallery.length > 1 ? "(min-width: 640px) 50vw, 100vw" : "100vw"}
-                      className="object-cover transition duration-700 group-hover:scale-105"
-                    />
-                  </figure>
-                </Reveal>
-              ))}
-            </div>
-          </div>
+          <Reveal>
+            <GalleryMarquee photos={gallery} label={p.galleryLabel} />
+          </Reveal>
         </section>
       )}
 

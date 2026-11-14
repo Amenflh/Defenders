@@ -14,12 +14,18 @@ import banner18 from "../../public/pics/banner_images/banner18.jpeg";
 import pilates1 from "../../public/pics/Pilates_images/acc_images.jpg";
 import pilates2 from "../../public/pics/Pilates_images/acc_images1.jpg";
 import pilates3 from "../../public/pics/Pilates_images/acc_images2.jpg";
+// Photos Pilates complémentaires : Unsplash (licence libre).
+import pilatesStraps from "../../public/pics/Pilates_images/pilates-unsplash-3.jpg";
+import pilatesArabesque from "../../public/pics/Pilates_images/pilates-unsplash-4.jpg";
+import pilatesPlank from "../../public/pics/Pilates_images/pilates-unsplash-5.jpg";
+import pilatesStudio from "../../public/pics/Pilates_images/pilates-studio.jpg";
 
 // Photos football et personal trainer : banque d'images libre de droits (Unsplash).
 import footballStaff from "../../public/pics/football_images/staff-technique.jpg";
 import footballTeam from "../../public/pics/football_images/seance-equipe.jpg";
 import footballDrill from "../../public/pics/football_images/exercice-plots.jpg";
 import footballCoach from "../../public/pics/football_images/coach-terrain.jpg";
+import footballSquad from "../../public/pics/football_images/2.jpeg";
 
 import ptTechnique from "../../public/pics/personal_trainers/coaching-technique.jpg";
 import ptLifting from "../../public/pics/personal_trainers/coaching-halterophilie.jpg";
@@ -48,6 +54,10 @@ export const pilatesPhotos: Photo[] = [
   { src: pilates2, alt: "Exercice de Pilates sur Reformer avec sangles" },
   { src: pilates1, alt: "Travail de jambes sur Reformer dans un studio lumineux" },
   { src: pilates3, alt: "Deux pratiquantes en séance de Pilates Reformer" },
+  { src: pilatesStraps, alt: "Travail des jambes aux sangles sur Reformer" },
+  { src: pilatesArabesque, alt: "Exercice d'équilibre debout sur le Reformer" },
+  { src: pilatesPlank, alt: "Gainage sur Reformer dans un studio de Pilates" },
+  { src: pilatesStudio, alt: "Studio de Pilates équipé de plusieurs Reformers" },
 ];
 
 export const footballPhotos: Photo[] = [
@@ -55,6 +65,7 @@ export const footballPhotos: Photo[] = [
   { src: footballTeam, alt: "Équipe à l'échauffement pendant une séance d'entraînement" },
   { src: footballDrill, alt: "Joueur réalisant un exercice technique entre les plots" },
   { src: footballCoach, alt: "Entraîneur donnant des consignes à une joueuse sur le terrain" },
+  { src: footballSquad, alt: "Équipe de jeunes joueurs et leurs encadrants sur le terrain" },
 ];
 
 export const personalPhotos: Photo[] = [

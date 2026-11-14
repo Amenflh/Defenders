@@ -1,11 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useI18n } from "@/lib/i18n/client";
-import { headerNav, site } from "@/lib/site";
+import { headerNav, site, type NavKey } from "@/lib/site";
+import { ActiveDock } from "./ActiveDock";
 import { subscribeToScroll } from "@/lib/scroll-subscription";
 import { LanguageSwitcher } from "./LanguageSwitcher";
 import { ThemeToggle } from "./ThemeToggle";
@@ -13,15 +13,24 @@ import { Icon } from "./Icon";
 import { Logo, type BrandIdentity } from "./Logo";
 import { Sidebar } from "./Sidebar";
 
+/** Couleur du bandeau de la rubrique active (jetons du thème : s'adaptent au mode clair). */
+const dockAccent: Partial<Record<NavKey, string>> = {
+  fitnessAcademy: "var(--color-pilates)",
+  akAcademy: "var(--color-intervention)",
+  security: "var(--color-gold)",
+};
+
 export type HeaderUser = { name: string; email: string; role: "admin" | "client" };
 
 export function Header({ user, identity = {} }: { user: HeaderUser | null; identity?: BrandIdentity }) {
   const pathname = usePathname();
   const { t } = useI18n();
-  const branch = site.branches.find(({ href }) => pathname === href || pathname.startsWith(`${href}/`));
-  const branchLabel = branch
-    ? t.nav[branch.key === "security" ? "security" : branch.key === "fitness" ? "fitnessAcademy" : "akAcademy"]
-    : undefined;
+  const isActive = (href: string) => {
+    const route = href.split("#")[0] || "/";
+    return route === "/" ? pathname === "/" : pathname === route || pathname.startsWith(`${route}/`);
+  };
+  const activeItem = headerNav.find((item) => isActive(item.href));
+  const activeBranch = activeItem && site.branches.find(({ href }) => href === activeItem.href);
   const [scrolled, setScrolled] = useState(false);
   const progressRef = useRef<HTMLDivElement>(null);
   const [menuOpen, setMenuOpen] = useState(false);
@@ -66,32 +75,25 @@ export function Header({ user, identity = {} }: { user: HeaderUser | null; ident
             <span className="max-w-24 truncate font-display text-[0.62rem] tracking-[0.12em] uppercase sm:hidden">
               {identity.brandName ?? site.shortName} {identity.brandDescriptor ?? site.descriptor}
             </span>
-            {branch && (
-              <Link
-                href={branch.href}
-                aria-label={branchLabel}
-                title={branchLabel}
-                className="flex min-w-0 shrink-0 items-center gap-2 rounded-full border border-line bg-white/[0.03] px-2 py-1 transition-colors hover:border-gold sm:ms-1"
-              >
-                <Image src={branch.logo} alt="" width={32} height={32} className="size-8 shrink-0 rounded-full bg-white object-contain p-0.5" />
-                <span className="hidden max-w-32 truncate pe-1 font-display text-[0.65rem] tracking-[0.08em] text-bone uppercase sm:block">{branchLabel}</span>
-              </Link>
-            )}
           </div>
 
           <nav aria-label={t.common.mainNav} className="hidden min-w-0 xl:block">
             <ul className="flex items-center gap-1">
               {headerNav.map((item) => {
-                const route = item.href.split("#")[0] || "/";
-                const active = item.href === "/" ? pathname === "/" : pathname.startsWith(route) && route !== "/";
+                // La rubrique ouverte quitte le menu : elle est présentée dans le bandeau sous le header.
+                const hidden = item === activeItem;
                 return (
-                  <li key={item.href}>
+                  <li
+                    key={item.href}
+                    aria-hidden={hidden || undefined}
+                    className={`overflow-hidden transition-[max-width,opacity,transform] duration-500 ease-[cubic-bezier(0.2,0.7,0.2,1)] ${
+                      hidden ? "max-w-0 -translate-y-2 opacity-0" : "max-w-56 opacity-100"
+                    }`}
+                  >
                     <Link
                       href={item.href}
-                      aria-current={active ? "page" : undefined}
-                      className={`rounded-full px-3 py-2 font-display text-[0.68rem] tracking-[0.06em] uppercase transition-colors ${
-                        active ? "bg-white/[0.08] text-bone" : "text-mist hover:bg-white/[0.05] hover:text-bone"
-                      }`}
+                      tabIndex={hidden ? -1 : undefined}
+                      className="block rounded-full px-3 py-2 font-display text-[0.68rem] tracking-[0.06em] whitespace-nowrap text-mist uppercase transition-colors hover:bg-white/[0.05] hover:text-bone"
                     >
                       {t.nav[item.key]}
                     </Link>
@@ -123,7 +125,7 @@ export function Header({ user, identity = {} }: { user: HeaderUser | null; ident
             )}
             <button
               onClick={() => setMenuOpen(true)}
-            className="grid size-10 place-items-center rounded-full border border-white/20 transition-colors hover:border-bone sm:size-11 xl:hidden"
+              className="grid size-10 place-items-center rounded-full border border-white/20 transition-colors hover:border-bone sm:size-11 xl:hidden"
               aria-label={t.common.openMenu}
               aria-expanded={menuOpen}
               aria-controls="site-sidebar"
@@ -132,6 +134,17 @@ export function Header({ user, identity = {} }: { user: HeaderUser | null; ident
             </button>
           </div>
         </div>
+        {activeItem && (
+          <ActiveDock
+            key={activeItem.href}
+            label={t.nav[activeItem.key]}
+            href={activeItem.href}
+            logo={activeBranch?.logo}
+            accent={dockAccent[activeItem.key] ?? "var(--color-gold)"}
+            pathname={pathname}
+            copy={t.dock}
+          />
+        )}
         <div ref={progressRef} className="h-px origin-left bg-gold rtl:origin-right" aria-hidden="true" />
       </header>
 

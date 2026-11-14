@@ -24,7 +24,7 @@ export const FORMATION_CONTENT: Record<string, FormationContent> = {
     name: "Pilates",
     headline: "Pilates Mat & Reformer : formation d'instructeur",
     summary:
-      "Suivez le parcours Matwork & Reformer, niveaux 1 et 2 : 40 heures sur six jours à Nabeul, avec certification annoncée à l'issue de la formation. Contactez l'académie pour confirmer la prochaine session.",
+      "Suivez le parcours Matwork & Reformer, niveaux 1 et 2 : 40 heures sur six jours à Nabeul, avec une certification remise à l'issue de la formation. Contactez-nous pour réserver votre place à la prochaine session.",
     intro: [
       "Le Pilates est l'une des pratiques les plus demandées en studio et en coaching privé. Notre formation allie compréhension scientifique du mouvement et maîtrise pédagogique, pour vous permettre d'encadrer des séances de qualité dès la certification.",
       "Vous travaillez sur tapis et sur Reformer, avec un accent sur le placement, la respiration, le contrôle du centre et l'adaptation des exercices aux différents profils.",
@@ -58,15 +58,15 @@ export const FORMATION_CONTENT: Record<string, FormationContent> = {
     durationLabel: "4 jours intensifs",
     headline: "Formation en entraînement et coaching de football",
     summary:
-      "Suivez quatre jours de théorie et de pratique à Hammamet : méthode d'entraînement, préparation physique, analyse du jeu et conduite des séances. Le post annonce deux certificats et un tarif de 750 TND ; aucune prochaine session n'est datée.",
+      "Quatre jours de théorie et de pratique à Hammamet : méthode d'entraînement, préparation physique, analyse du jeu et conduite des séances. Deux certificats délivrés, pension complète incluse, tarif de 750 TND.",
     intro: [
       "Entraîner, c'est transmettre une méthode. Notre formation d'entraîneur couvre la planification, la préparation physique, la tactique et le management d'un groupe, avec des formateurs issus du terrain.",
       "Le programme alterne apports théoriques et mises en situation, pour que chaque stagiaire reparte avec des séances prêtes à l'emploi et une vraie démarche d'entraîneur.",
     ],
     facts: [
       { label: "Durée", value: "4 jours intensifs" },
-      { label: "Hébergement", value: "Inclus" },
-      { label: "Validation", value: "Certificat accrédité" },
+      { label: "Hébergement", value: "Pension complète" },
+      { label: "Validation", value: "2 certificats" },
     ],
     objectives: [
       "Planifier une saison, un cycle et une séance d'entraînement",
@@ -92,7 +92,7 @@ export const FORMATION_CONTENT: Record<string, FormationContent> = {
     durationLabel: "4 jours consécutifs",
     headline: "Formation de coach sportif personnel",
     summary:
-      "Évaluez les objectifs de vos clients, planifiez leurs séances et encadrez la musculation, le conditionnement physique et les bases nutritionnelles. Consultez les vidéos sources et contactez l'académie pour les prochaines dates et le lieu.",
+      "Évaluez les objectifs de vos clients, planifiez leurs séances et encadrez la musculation, le conditionnement physique et les bases de la nutrition. Contactez-nous pour connaître les dates et le lieu de la prochaine session.",
     intro: [
       "Le coaching privé exige une expertise solide et une vraie relation client. La certification Personal Fitness Trainer vous donne les outils scientifiques et pratiques pour concevoir des programmes efficaces et sûrs.",
       "Formation intensive, encadrée par des formateurs expérimentés, avec un accompagnement vers l'emploi grâce à notre réseau de partenaires.",

@@ -72,17 +72,26 @@ export default async function SecurityPage() {
               {t.pages.akAcademy.courseDetailsLink} <Icon name="arrow" className="rtl:-scale-x-100" />
             </Link>
           </Reveal>
-          <Reveal delay={100} className="mt-8 grid items-start gap-6 md:grid-cols-2">
-            {site.tunisianSecurityAcademy.closeProtectionVideos.map(({ embedUrl, layout }, index) => (
-              <div key={embedUrl} className="mx-auto w-full max-w-2xl overflow-hidden border border-line bg-black p-2">
-                <FacebookVideoEmbed url={embedUrl} layout={layout} title={`${S.closeProtectionTitle} ${index + 1}`} />
-              </div>
+          <div className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+            {site.securityVideos.map(({ url, layout }, index) => (
+                <Reveal key={url} delay={index * 110} className="video-card group flex flex-col overflow-hidden border border-line bg-ink-2">
+                  <span className="h-1 w-full bg-gold" aria-hidden="true" />
+                  <div className="relative aspect-square">
+                    <FacebookVideoEmbed url={url} layout={layout} fit="cover" title={`${S.closeProtectionTitle} ${index + 1}`} />
+                  </div>
+                  <div className="flex items-center justify-between gap-3 px-5 py-4">
+                    <p className="font-display text-sm uppercase text-gold-soft">{S.closeProtectionTitle}</p>
+                    <a href={url} target="_blank" rel="noreferrer" aria-label={`Facebook · ${S.closeProtectionTitle} ${index + 1}`} className="grid size-9 shrink-0 place-items-center rounded-full border border-line text-mist transition-colors hover:border-gold hover:text-gold">
+                      <Icon name="facebook" width={16} height={16} />
+                    </a>
+                  </div>
+                </Reveal>
             ))}
-          </Reveal>
+          </div>
         </div>
       </section>
 
-      <section id="programmes" className="scroll-mt-24 border-y border-line bg-ink-2 py-16 lg:py-24">
+      <section id="programmes" className="scroll-mt-24 py-16 lg:py-24">
         <div className="container-site grid gap-8 lg:grid-cols-[1fr_0.7fr] lg:items-start">
           <Reveal>
             <AcademyCourseCard
@@ -96,7 +105,7 @@ export default async function SecurityPage() {
             />
           </Reveal>
 
-          <Reveal delay={120} className="border border-line bg-ink p-7 sm:p-8">
+          <Reveal delay={120} className="border border-line bg-ink-2 p-7 sm:p-8">
             <h3 className="font-display text-2xl uppercase text-bone">{S.infoTitle}</h3>
             <div className="mt-6 space-y-5">
               <a href={site.phone2.href} className="flex items-center gap-4 text-mist hover:text-bone">
@@ -137,7 +146,7 @@ export default async function SecurityPage() {
         </div>
       </section>
 
-      <section id="galerie" className="border-y border-line py-16 lg:py-20">
+      <section id="galerie" className="py-16 lg:py-20">
         <div className="container-site grid gap-8 lg:grid-cols-[0.8fr_1.2fr] lg:items-center">
           <Reveal>
             <p className="eyebrow mb-3">{experience.galleryEyebrow}</p>
@@ -154,7 +163,7 @@ export default async function SecurityPage() {
         </div>
       </section>
 
-      <section id="temoignages" className="scroll-mt-24 border-b border-line bg-ink-2 py-16 lg:py-20">
+      <section id="temoignages" className="scroll-mt-24 border-y border-line bg-ink-2 py-16 lg:py-20">
         <div className="container-site grid gap-8 lg:grid-cols-[0.8fr_1.2fr] lg:items-center">
           <Reveal>
             <p className="eyebrow mb-3">{experience.reviewsEyebrow}</p>
@@ -167,7 +176,7 @@ export default async function SecurityPage() {
         </div>
       </section>
 
-      <section id="historique" className="border-b border-line py-12">
+      <section id="historique" className="py-12">
         <div className="container-site flex flex-wrap items-center justify-between gap-5">
           <div>
             <p className="eyebrow mb-2">{t.nav.history}</p>
@@ -179,7 +188,7 @@ export default async function SecurityPage() {
         </div>
       </section>
 
-      <section id="inscription" className="scroll-mt-24 border-y border-line py-16 lg:py-24">
+      <section id="inscription" className="scroll-mt-24 border-t border-line py-16 lg:py-24">
         <div className="container-site grid gap-8 lg:grid-cols-[0.8fr_1.2fr] lg:items-start">
           <Reveal>
             <p className="eyebrow mb-3">{S.servicesEyebrow}</p>

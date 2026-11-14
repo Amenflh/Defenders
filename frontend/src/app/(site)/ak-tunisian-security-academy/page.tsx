@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
+import { connection } from "next/server";
 import { AcademyCourseCard } from "@/components/AcademyCourseCard";
 import { AcademyVideoHero } from "@/components/AcademyVideoHero";
 import { Icon } from "@/components/Icon";
@@ -21,6 +22,7 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function AkTunisianSecurityAcademyPage() {
+  await connection();
   const [{ locale, t }, heroVideo] = await Promise.all([getDictionary(), getHomeHeroVideo()]);
   const S = t.pages.akAcademy;
   const experience = divisionCopy[locale].tsa;
@@ -90,7 +92,10 @@ export default async function AkTunisianSecurityAcademyPage() {
                 title={S.k9CourseTitle}
                 text={S.k9CourseText}
                 detail={S.k9CourseDuration}
-                poster="/pics/partners/TSA-logo.jpg"
+                poster={contact.k9Poster}
+                posterLayout="portrait"
+                posterAlt={S.k9PosterAlt}
+                extraLink={{ href: contact.k9CoursePost, label: S.k9CoursePostLink }}
                 accentClassName="accent-k9"
                 href="/ak-tunisian-security-academy/formations/k9"
                 action={S.courseDetailsLink}
@@ -130,13 +135,18 @@ export default async function AkTunisianSecurityAcademyPage() {
               <p className="mt-7 border-s-2 border-gold ps-4 text-sm leading-relaxed text-mist">{S.coursePractical}</p>
             </div>
           </Reveal>
-          <Reveal id="k9-programme" className="mt-6 scroll-mt-24 border border-line bg-ink p-6 sm:p-9">
+          <Reveal id="k9-programme" className="accent-k9 mt-6 grid scroll-mt-24 gap-8 border border-line bg-ink p-6 sm:p-9 lg:grid-cols-[1fr_18rem] lg:items-start">
+            <div>
             <p className="eyebrow mb-2">{S.k9CourseEyebrow}</p>
             <div className="flex flex-wrap items-center justify-between gap-4 border-b border-line pb-5">
               <h3 className="font-display text-2xl uppercase">{S.k9CourseTitle}</h3>
               <span className="border border-line px-3 py-2 font-display text-sm text-gold">{S.k9CourseDuration}</span>
             </div>
             <p className="mt-5 max-w-3xl leading-relaxed text-mist">{S.k9CourseText}</p>
+            <dl className="mt-5 flex flex-wrap gap-2 text-xs">
+              <div className="border border-gold/40 px-3 py-2"><dt className="sr-only">{S.trainersEyebrow}</dt><dd className="text-bone">{S.k9CourseTrainer}</dd></div>
+              <div className="border border-gold/40 px-3 py-2"><dt className="sr-only">{S.locationTitle}</dt><dd className="text-bone">{S.k9CourseLocation}</dd></div>
+            </dl>
             <ul className="mt-6 grid gap-4 text-sm text-mist sm:grid-cols-3">
               {S.k9CourseTopics.map((topic, index) => (
                 <li key={topic} className="flex items-start gap-3 border-t border-line pt-4">
@@ -150,31 +160,38 @@ export default async function AkTunisianSecurityAcademyPage() {
               <a href={contact.k9Contact.href} className="inline-flex items-center gap-2 font-display text-xs tracking-[0.12em] text-gold uppercase hover:text-bone">
                 <Icon name="phone" width={16} height={16} /> {S.k9CourseContact}: {contact.k9Contact.label}
               </a>
+              <a href={contact.k9CoursePost} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 font-display text-xs tracking-[0.12em] text-gold uppercase hover:text-bone">
+                <Icon name="facebook" width={16} height={16} /> {S.k9CoursePostLink}
+              </a>
             </div>
+            </div>
+            <a href={contact.k9Poster} target="_blank" rel="noreferrer" className="group relative mx-auto block aspect-[72/102] w-full max-w-72 overflow-hidden border border-line">
+              <Image src={contact.k9Poster} alt={S.k9PosterAlt} fill sizes="18rem" className="object-cover transition duration-500 group-hover:scale-105" />
+            </a>
           </Reveal>
         </div>
       </section>
 
-      <section id="equipe-pedagogique" className="border-y border-line bg-ink-2 py-16 lg:py-20">
+      <section id="equipe-pedagogique" className="py-16 lg:py-20">
         <div className="container-site grid gap-8 lg:grid-cols-[0.8fr_1.2fr] lg:items-center">
           <Reveal>
             <p className="eyebrow mb-3">{S.trainersEyebrow}</p>
             <h2 className="heading-lg">{S.trainersTitle}</h2>
           </Reveal>
-          <Reveal delay={100} className="border border-line bg-ink p-7 sm:p-9">
+          <Reveal delay={100} className="border border-line bg-ink-2 p-7 sm:p-9">
             <p className="leading-relaxed text-mist">{S.trainersText}</p>
           </Reveal>
         </div>
       </section>
 
-      <section id="galerie" className="border-b border-line py-16 lg:py-20">
+      <section id="galerie" className="border-y border-line bg-ink-2 py-16 lg:py-20">
         <div className="container-site grid gap-8 lg:grid-cols-[0.8fr_1.2fr] lg:items-center">
           <Reveal>
             <p className="eyebrow mb-3">{experience.galleryEyebrow}</p>
             <h2 className="heading-lg">{experience.galleryTitle}</h2>
             <p className="mt-4 leading-relaxed text-mist">{experience.noGalleryText}</p>
           </Reveal>
-          <Reveal delay={100} className="flex min-h-56 flex-wrap items-center justify-center gap-3 border border-dashed border-line bg-ink-2 p-8">
+          <Reveal delay={100} className="flex min-h-56 flex-wrap items-center justify-center gap-3 border border-dashed border-line bg-ink p-8">
             <a href={contact.facebook} target="_blank" rel="noreferrer" className="btn btn-primary">
               <Icon name="facebook" /> {S.profile}
             </a>
@@ -185,20 +202,20 @@ export default async function AkTunisianSecurityAcademyPage() {
         </div>
       </section>
 
-      <section id="temoignages" className="scroll-mt-24 border-b border-line bg-ink-2 py-16 lg:py-20">
+      <section id="temoignages" className="scroll-mt-24 py-16 lg:py-20">
         <div className="container-site grid gap-8 lg:grid-cols-[0.8fr_1.2fr] lg:items-center">
           <Reveal>
             <p className="eyebrow mb-3">{experience.reviewsEyebrow}</p>
             <h2 className="heading-lg">{experience.reviewsTitle}</h2>
             <p className="mt-4 leading-relaxed text-mist">{experience.reviewsText}</p>
           </Reveal>
-          <Reveal delay={100} className="border border-line bg-ink p-7 sm:p-9">
+          <Reveal delay={100} className="border border-line bg-ink-2 p-7 sm:p-9">
             <p className="leading-relaxed text-mist">{experience.reviewsEmpty}</p>
           </Reveal>
         </div>
       </section>
 
-      <section id="historique" className="border-b border-line py-12">
+      <section id="historique" className="border-y border-line bg-ink-2 py-12">
         <div className="container-site flex flex-wrap items-center justify-between gap-5">
           <div>
             <p className="eyebrow mb-2">{t.nav.history}</p>

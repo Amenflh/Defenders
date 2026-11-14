@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { CustomCursor } from "@/components/CustomCursor";
 import { FloatingActions } from "@/components/FloatingActions";
 import { FloatingRegister } from "@/components/FloatingRegister";
 import { Footer } from "@/components/Footer";
@@ -30,10 +31,11 @@ export default async function SiteLayout({ children }: { children: React.ReactNo
   return (
     <>
       <Header user={user === "unavailable" ? null : user} identity={identity} />
-      <main id="contenu" className={`flex-1 ${user && user !== "unavailable" && user.role === "admin" ? "" : "pt-14"}`}>
+      <main id="contenu" className="flex-1 pt-16 sm:pt-[4.5rem]">
         {children}
       </main>
       <Footer />
+      <CustomCursor />
       {!(user && user !== "unavailable" && user.role === "admin") && <FloatingRegister />}
       <FloatingActions
         viewer={

@@ -19,8 +19,11 @@ function programFor(slug: ProgramSlug, copy: Awaited<ReturnType<typeof getDictio
       duration: copy.k9CourseDuration,
       summary: copy.k9CourseText,
       topics: copy.k9CourseTopics,
-      practical: copy.k9CoursePractical,
-      poster: "/pics/partners/TSA-logo.jpg",
+      practical: `${copy.k9CoursePractical} ${copy.k9CourseTrainer} · ${copy.k9CourseLocation}.`,
+      poster: site.tunisianSecurityAcademy.k9Poster,
+      posterAlt: copy.k9PosterAlt,
+      posterLayout: "portrait",
+      sourceLink: { href: site.tunisianSecurityAcademy.k9CoursePost, label: copy.k9CoursePostLink },
       contactHref: site.tunisianSecurityAcademy.k9Contact.href,
       contactLabel: `${copy.k9CourseContact}: ${site.tunisianSecurityAcademy.k9Contact.label}`,
     };

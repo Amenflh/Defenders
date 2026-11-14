@@ -25,7 +25,13 @@ export const site = {
     exclusivityPost: "https://www.facebook.com/story.php?story_fbid=122176704962936428&id=61578092844519",
   },
   securityPortal: "https://taplink.cc/defenderssecurityprotection",
-  securityHeroVideo: "https://www.facebook.com/reel/1082973183535260/?start=1",
+  /** Vidéos de Defenders Security Protection (page Sécurité et page Nos formations), affichées dans des cadres identiques. */
+  securityVideos: [
+    { url: "https://www.facebook.com/reel/1231628108029497/", layout: "portrait" },
+    { url: "https://www.facebook.com/reel/1082973183535260/", layout: "landscape" },
+    { url: "https://www.facebook.com/reel/1591488295804767/", layout: "square" },
+  ] as { url: string; layout: "portrait" | "square" | "landscape" }[],
+  securityHeroVideo: "https://www.facebook.com/reel/1082973183535260/",
   tunisianSecurityAcademy: {
     facebook: "https://www.facebook.com/profile.php?id=100077382387038",
     videos: "https://www.facebook.com/100077382387038/videos/",
@@ -54,6 +60,9 @@ export const site = {
       },
     ],
     k9TrainingPost: "https://www.facebook.com/share/p/1E7x6Xconw/",
+    /** Publication de la formation Éducateur canin & homme d'attaque K9 et son affiche. */
+    k9CoursePost: "https://www.facebook.com/story.php?story_fbid=992042216718515&id=100077382387038",
+    k9Poster: "/pics/k9.jpg",
     k9Contact: { label: "+216 24 076 368", href: "tel:+21624076368" },
     phone: { label: "+216 29 039 493", href: "tel:+21629039493" },
     trainingPhone: { label: "+216 92 204 005", href: "tel:+21692204005" },
@@ -85,6 +94,12 @@ export const site = {
       "https://www.facebook.com/reel/877141621507702/",
       "https://www.facebook.com/reel/3279150018914978/",
       "https://www.facebook.com/reel/796475196712099/",
+    ],
+    /** Témoignages vidéo de stagiaires (section « Témoignages » de l'accueil). */
+    testimonialVideoEmbeds: [
+      "https://www.facebook.com/reel/842610331713875/",
+      "https://www.facebook.com/reel/726579750525884/",
+      "https://www.facebook.com/reel/926929733328196/",
     ],
     footballVideos: ["https://www.facebook.com/share/r/1DGzq17D8M/"],
     footballVideoEmbeds: ["https://www.facebook.com/reel/1818481708830444/"],
@@ -144,9 +159,9 @@ export type NavItem = { href: string; key: NavKey };
 /** Navigation principale : les libellés viennent du dictionnaire de la langue active (t.nav[key]). */
 export const mainNav: NavItem[] = [
   { href: "/", key: "home" },
-  { href: "/securite", key: "security" },
   { href: "/fitness-academy", key: "fitnessAcademy" },
   { href: "/ak-tunisian-security-academy", key: "akAcademy" },
+  { href: "/securite", key: "security" },
   { href: "/formations", key: "formations" },
   { href: "/#galerie", key: "gallery" },
   { href: "/planning", key: "planning" },

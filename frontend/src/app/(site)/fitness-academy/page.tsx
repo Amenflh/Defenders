@@ -15,7 +15,9 @@ import { getFormations, trainingOptions } from "@/lib/formations";
 import { localizeFormation } from "@/lib/formation-i18n";
 import { getDictionary } from "@/lib/i18n/server";
 import { getHomeHeroVideo } from "@/lib/home-page-data";
-import { pilatesPhotos } from "@/lib/images";
+import { footballPhotos, personalPhotos, pilatesPhotos } from "@/lib/images";
+import { FacebookVideoEmbed } from "@/components/FacebookVideoEmbed";
+import { GalleryMarquee } from "@/components/GalleryMarquee";
 import { site } from "@/lib/site";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -25,6 +27,12 @@ export async function generateMetadata(): Promise<Metadata> {
     description: t.pages.fitnessAcademy.metaDescription,
   };
 }
+
+/** Photos des trois disciplines alternées (Pilates, football, coaching) pour une galerie variée. */
+const fitnessGallery = Array.from(
+  { length: Math.max(pilatesPhotos.length, footballPhotos.length, personalPhotos.length) },
+  (_, i) => [pilatesPhotos[i], footballPhotos[i], personalPhotos[i]],
+).flat().filter((photo) => photo !== undefined);
 
 export default async function FitnessAcademyPage() {
   await connection();
@@ -122,37 +130,34 @@ export default async function FitnessAcademyPage() {
         </div>
       </section>
 
-      <section id="equipe" className="border-y border-line bg-ink-2 py-16 lg:py-20">
+      <section id="equipe" className="py-16 lg:py-20">
         <div className="container-site">
           <div className="grid gap-8 lg:grid-cols-[0.8fr_1.2fr] lg:items-center">
             <Reveal>
               <p className="eyebrow mb-3">{S.trainersEyebrow}</p>
               <h2 className="heading-lg">{S.trainersTitle}</h2>
             </Reveal>
-            <Reveal delay={100} className="border border-line bg-ink p-7 sm:p-9">
+            <Reveal delay={100} className="border border-line bg-ink-2 p-7 sm:p-9">
               <p className="leading-relaxed text-mist">{S.trainersText}</p>
             </Reveal>
           </div>
         </div>
       </section>
 
-      <section id="galerie" className="scroll-mt-24 py-16 lg:py-24">
+      <section id="galerie" className="scroll-mt-24 border-y border-line bg-ink-2 py-16 lg:py-24">
         <div className="container-site">
           <Reveal className="mb-9 max-w-3xl">
             <p className="eyebrow mb-3">{experience.galleryEyebrow}</p>
             <h2 className="heading-lg">{experience.galleryTitle}</h2>
             <p className="mt-4 leading-relaxed text-mist">{experience.galleryText}</p>
           </Reveal>
-          <div className="grid gap-3 sm:grid-cols-3">
-            {pilatesPhotos.map((photo, index) => (
-              <Reveal key={photo.src.src} delay={index * 70}>
-                <a href={photo.src.src} target="_blank" rel="noreferrer" className="group relative block aspect-[4/3] overflow-hidden border border-line bg-ink">
-                  <Image src={photo.src} alt={photo.alt} fill sizes="(min-width: 640px) 33vw, 100vw" className="object-cover transition duration-500 group-hover:scale-105" />
-                </a>
-              </Reveal>
-            ))}
-          </div>
-          <Reveal className="mt-6 flex flex-wrap gap-3">
+        </div>
+        {/* Galerie défilante : les trois disciplines de la filière, alternées. */}
+        <Reveal>
+          <GalleryMarquee photos={fitnessGallery} label={experience.galleryTitle} />
+        </Reveal>
+        <div className="container-site">
+          <Reveal className="mt-8 flex flex-wrap gap-3">
             <a href={site.facebook.videos} target="_blank" rel="noreferrer" className="btn btn-ghost">
               <Icon name="play" /> {S.videos}
             </a>
@@ -163,20 +168,31 @@ export default async function FitnessAcademyPage() {
         </div>
       </section>
 
-      <section id="temoignages" className="border-y border-line bg-ink-2 py-16 lg:py-20">
+      <section id="temoignages" className="scroll-mt-24 py-16 lg:py-20">
         <div className="container-site grid gap-8 lg:grid-cols-[0.8fr_1.2fr] lg:items-center">
           <Reveal>
             <p className="eyebrow mb-3">{experience.reviewsEyebrow}</p>
             <h2 className="heading-lg">{experience.reviewsTitle}</h2>
             <p className="mt-4 leading-relaxed text-mist">{experience.reviewsText}</p>
           </Reveal>
-          <Reveal delay={100} className="border border-line bg-ink p-7 sm:p-9">
+          <Reveal delay={100} className="border border-line bg-ink-2 p-7 sm:p-9">
             <p className="leading-relaxed text-mist">{experience.reviewsEmpty}</p>
+            <Link href="/contact" className="mt-5 inline-flex items-center gap-2 font-display text-xs tracking-[0.12em] text-gold uppercase hover:text-bone">
+              {t.home.writeUs} <Icon name="arrow" className="rtl:-scale-x-100" />
+            </Link>
           </Reveal>
+        </div>
+        {/* Témoignages vidéo des stagiaires (mêmes vidéos que la page d'accueil). */}
+        <div className="container-site mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          {site.facebook.testimonialVideoEmbeds.map((url, index) => (
+            <Reveal key={url} delay={index * 120} className="video-card mx-auto w-full max-w-[360px] border border-line bg-ink-2 p-2">
+              <FacebookVideoEmbed url={url} title={t.home.testimonialVideo(index + 1)} />
+            </Reveal>
+          ))}
         </div>
       </section>
 
-      <section id="historique" className="border-b border-line py-12">
+      <section id="historique" className="border-y border-line bg-ink-2 py-12">
         <div className="container-site flex flex-wrap items-center justify-between gap-5">
           <div>
             <p className="eyebrow mb-2">{t.nav.history}</p>

@@ -40,7 +40,6 @@ type Contact = {
 
 const HOMEPAGE_SECTIONS = [
   { id: "hero", label: "Bannière d'accueil" },
-  { id: "stats", label: "Chiffres clés" },
   { id: "promotions", label: "Promotions & certificats" },
   { id: "about", label: "À propos" },
   { id: "videos", label: "Vidéos" },
@@ -344,7 +343,6 @@ function SettingsManager({ initialSettings = {} }: { initialSettings?: Record<st
     contactMessageLabel: "Votre message", contactMessagePlaceholder: "Comment pouvons-nous vous aider ?",
     contactConsentText: "J'accepte que Defenders Fitness Academy utilise ces informations pour me recontacter au sujet de ma demande.",
     contactSubmitLabel: "Envoyer mon message",
-    statsDisciplines: "3", statsVideos: "2", statsPromotions: "7+", statsFacebook: "5904+",
     ...legalDefaults,
   };
   const [values, setValues] = useState<Record<string, string>>({
@@ -359,7 +357,7 @@ function SettingsManager({ initialSettings = {} }: { initialSettings?: Record<st
   const [homepageSections, setHomepageSections] = useState(() => normalizeHomepageSections(initialSettings.homepageSections));
   const [pending, startTransition] = useTransition();
   const [ok, setOk] = useState<boolean | null>(null);
-  const [group, setGroup] = useState<"accueil" | "contact" | "identite" | "coordonnees" | "statistiques" | "legal">("accueil");
+  const [group, setGroup] = useState<"accueil" | "contact" | "identite" | "coordonnees" | "legal">("accueil");
   const [legalKey, setLegalKey] = useState<"mentions" | "privacy" | "cookies">("mentions");
   const moveHomepageSection = (index: number, offset: -1 | 1) => {
     const target = index + offset;
@@ -384,13 +382,12 @@ function SettingsManager({ initialSettings = {} }: { initialSettings?: Record<st
     ["contactEmailLabel", "Libellé e-mail", "contact"], ["contactPhoneLabel", "Libellé téléphone", "contact"],
     ["contactMessageLabel", "Libellé du message", "contact"], ["contactMessagePlaceholder", "Exemple / placeholder du message", "contact"],
     ["contactConsentText", "Texte de consentement", "contact"], ["contactSubmitLabel", "Texte du bouton d'envoi", "contact"],
-    ["statsDisciplines", "Disciplines", "statistiques"], ["statsVideos", "Vidéos", "statistiques"], ["statsPromotions", "Promotions", "statistiques"], ["statsFacebook", "Abonnés Facebook", "statistiques"],
   ];
   return (
     <div>
       <div className="mb-6"><p className="eyebrow text-gold">Configuration du site</p><h2 className="mt-2 font-display text-2xl uppercase text-bone">Paramètres & footer</h2></div>
       <div className="mb-6 flex flex-wrap gap-2 border-b border-line pb-4">
-        {([["accueil", "Zones & ordre accueil"], ["contact", "Fenêtre Nous contacter"], ["identite", "Identité"], ["coordonnees", "Coordonnées & footer"], ["statistiques", "Chiffres clés"], ["legal", "Pages légales"]] as const).map(([key, label]) => (
+        {([["accueil", "Zones & ordre accueil"], ["contact", "Fenêtre Nous contacter"], ["identite", "Identité"], ["coordonnees", "Coordonnées & footer"], ["legal", "Pages légales"]] as const).map(([key, label]) => (
           <button key={key} onClick={() => setGroup(key)} className={`border px-4 py-2 text-xs uppercase tracking-wider ${group === key ? "border-gold bg-gold text-ink" : "border-line text-mist hover:text-bone"}`}>{label}</button>
         ))}
       </div>

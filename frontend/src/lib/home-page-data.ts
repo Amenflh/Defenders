@@ -16,7 +16,7 @@ const videoTitles: Record<string, Record<"fr" | "en" | "ar", string>> = {
   "Une équipe, une formation": { fr: "Une équipe, une formation", en: "One team, one course", ar: "فريق واحد، تكوين واحد" },
 };
 
-const homeSectionIds = ["hero", "stats", "promotions", "about", "videos", "security", "formations", "method", "testimonials", "faq", "cta", "partners", "branches", "highlights"] as const;
+const homeSectionIds = ["hero", "promotions", "about", "videos", "security", "formations", "method", "testimonials", "faq", "cta", "partners", "branches", "highlights"] as const;
 type HomeSectionId = (typeof homeSectionIds)[number];
 
 export async function getHomePageData() {
@@ -58,11 +58,6 @@ export async function getHomePageData() {
   const { brandName, brandDescriptor } = brandIdentity(settings);
   const heroDescription = custom("heroDescription", t.home.heroDescription);
   const heroLead = custom("heroLead", t.home.heroLead);
-  const stats = [
-    [typeof settings.statsDisciplines === "string" ? settings.statsDisciplines : "3", t.home.stats[0]],
-    [typeof settings.statsPromotions === "string" ? settings.statsPromotions : "7+", t.home.stats[1]],
-    [typeof settings.statsFacebook === "string" ? settings.statsFacebook : "5904+", t.home.stats[2]],
-  ];
   const visibleFaqs = isFr && faqsCms.length > 0
     ? faqsCms.map((faq) => ({ question: faq.title, answer: faq.body }))
     : t.home.faqs;
@@ -109,7 +104,6 @@ export async function getHomePageData() {
     brandDescriptor,
     heroDescription,
     heroLead,
-    stats,
     visibleFaqs,
     sectionOrder,
     sectionEnabled,
