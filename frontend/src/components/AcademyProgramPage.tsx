@@ -16,6 +16,10 @@ export type AcademyProgram = {
   topics: string[];
   practical: string;
   poster: string | StaticImageData;
+  posterAlt?: string;
+  /** « portrait » : affiche verticale montrée en entier. Par défaut : logo centré dans un cadre paysage. */
+  posterLayout?: "logo" | "portrait";
+  sourceLink?: { href: string; label: string };
   videoEmbeds?: readonly { url: string; layout: FacebookVideoLayout }[];
   contactHref?: string;
   contactLabel?: string;
@@ -68,9 +72,15 @@ export async function AcademyProgramPage({ program }: { program: AcademyProgram 
           </div>
           <Reveal from="right" delay={100} className="relative overflow-hidden border border-gold/40 bg-ink-2 p-2">
             <div className="absolute inset-0 bg-gradient-to-br from-gold/10 via-transparent to-transparent" aria-hidden="true" />
-            <div className="relative aspect-[4/3] overflow-hidden bg-ink sm:aspect-video">
-              <Image src={program.poster} alt="" fill unoptimized={typeof program.poster === "string"} sizes="(min-width: 1024px) 40vw, 100vw" className="object-contain p-8" />
-            </div>
+            {program.posterLayout === "portrait" ? (
+              <div className="relative mx-auto aspect-[72/102] w-full max-w-md overflow-hidden bg-ink">
+                <Image src={program.poster} alt={program.posterAlt ?? ""} fill preload sizes="(min-width: 1024px) 28rem, 100vw" className="object-cover" />
+              </div>
+            ) : (
+              <div className="relative aspect-[4/3] overflow-hidden bg-ink sm:aspect-video">
+                <Image src={program.poster} alt={program.posterAlt ?? ""} fill unoptimized={typeof program.poster === "string"} sizes="(min-width: 1024px) 40vw, 100vw" className="object-contain p-8" />
+              </div>
+            )}
             <p className="px-4 py-3 font-display text-xs tracking-[0.18em] text-gold uppercase">{program.eyebrow}</p>
           </Reveal>
         </div>
@@ -83,10 +93,14 @@ export async function AcademyProgramPage({ program }: { program: AcademyProgram 
               <p className="eyebrow mb-3">{program.eyebrow}</p>
               <h2 id="program-videos-title" className="heading-lg">{t.pages.formation.videoGalleryTitle}</h2>
             </Reveal>
-            <div className={`grid items-start gap-6 ${program.videoEmbeds.length > 1 ? "md:grid-cols-2" : ""}`}>
+            {/* Cadres identiques : les vidéos de formats différents restent alignées (recadrage « cover »). */}
+            <div className={`grid gap-5 ${program.videoEmbeds.length > 2 ? "sm:grid-cols-2 lg:grid-cols-3" : program.videoEmbeds.length > 1 ? "sm:grid-cols-2" : "mx-auto max-w-xl"}`}>
               {program.videoEmbeds.map(({ url, layout }, index) => (
-                <Reveal key={url} className="mx-auto w-full max-w-2xl overflow-hidden border border-line bg-black p-2">
-                  <FacebookVideoEmbed url={url} layout={layout} title={`${program.title} ${index + 1}`} />
+                <Reveal key={url} delay={index * 110} className="video-card overflow-hidden border border-line bg-ink-2">
+                  <span className="block h-1 w-full bg-gold" aria-hidden="true" />
+                  <div className="relative aspect-square">
+                    <FacebookVideoEmbed url={url} layout={layout} fit="cover" title={`${program.title} ${index + 1}`} />
+                  </div>
                 </Reveal>
               ))}
             </div>
@@ -103,6 +117,11 @@ export async function AcademyProgramPage({ program }: { program: AcademyProgram 
             {program.contactHref && program.contactLabel && (
               <a href={program.contactHref} className="mt-6 inline-flex items-center gap-2 border border-gold/40 px-4 py-3 text-sm text-gold transition-colors hover:bg-gold hover:text-ink">
                 <Icon name="phone" /> {program.contactLabel}
+              </a>
+            )}
+            {program.sourceLink && (
+              <a href={program.sourceLink.href} target="_blank" rel="noreferrer" className="mt-3 flex w-fit items-center gap-2 border border-line px-4 py-3 text-sm text-mist transition-colors hover:border-gold hover:text-bone">
+                <Icon name="facebook" /> {program.sourceLink.label}
               </a>
             )}
           </Reveal>
