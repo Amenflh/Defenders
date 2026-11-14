@@ -172,26 +172,26 @@ export default async function AkTunisianSecurityAcademyPage() {
         </div>
       </section>
 
-      <section id="equipe-pedagogique" className="border-y border-line bg-ink-2 py-16 lg:py-20">
+      <section id="equipe-pedagogique" className="py-16 lg:py-20">
         <div className="container-site grid gap-8 lg:grid-cols-[0.8fr_1.2fr] lg:items-center">
           <Reveal>
             <p className="eyebrow mb-3">{S.trainersEyebrow}</p>
             <h2 className="heading-lg">{S.trainersTitle}</h2>
           </Reveal>
-          <Reveal delay={100} className="border border-line bg-ink p-7 sm:p-9">
+          <Reveal delay={100} className="border border-line bg-ink-2 p-7 sm:p-9">
             <p className="leading-relaxed text-mist">{S.trainersText}</p>
           </Reveal>
         </div>
       </section>
 
-      <section id="galerie" className="border-b border-line py-16 lg:py-20">
+      <section id="galerie" className="border-y border-line bg-ink-2 py-16 lg:py-20">
         <div className="container-site grid gap-8 lg:grid-cols-[0.8fr_1.2fr] lg:items-center">
           <Reveal>
             <p className="eyebrow mb-3">{experience.galleryEyebrow}</p>
             <h2 className="heading-lg">{experience.galleryTitle}</h2>
             <p className="mt-4 leading-relaxed text-mist">{experience.noGalleryText}</p>
           </Reveal>
-          <Reveal delay={100} className="flex min-h-56 flex-wrap items-center justify-center gap-3 border border-dashed border-line bg-ink-2 p-8">
+          <Reveal delay={100} className="flex min-h-56 flex-wrap items-center justify-center gap-3 border border-dashed border-line bg-ink p-8">
             <a href={contact.facebook} target="_blank" rel="noreferrer" className="btn btn-primary">
               <Icon name="facebook" /> {S.profile}
             </a>
@@ -202,20 +202,20 @@ export default async function AkTunisianSecurityAcademyPage() {
         </div>
       </section>
 
-      <section id="temoignages" className="scroll-mt-24 border-b border-line bg-ink-2 py-16 lg:py-20">
+      <section id="temoignages" className="scroll-mt-24 py-16 lg:py-20">
         <div className="container-site grid gap-8 lg:grid-cols-[0.8fr_1.2fr] lg:items-center">
           <Reveal>
             <p className="eyebrow mb-3">{experience.reviewsEyebrow}</p>
             <h2 className="heading-lg">{experience.reviewsTitle}</h2>
             <p className="mt-4 leading-relaxed text-mist">{experience.reviewsText}</p>
           </Reveal>
-          <Reveal delay={100} className="border border-line bg-ink p-7 sm:p-9">
+          <Reveal delay={100} className="border border-line bg-ink-2 p-7 sm:p-9">
             <p className="leading-relaxed text-mist">{experience.reviewsEmpty}</p>
           </Reveal>
         </div>
       </section>
 
-      <section id="historique" className="border-b border-line py-12">
+      <section id="historique" className="border-y border-line bg-ink-2 py-12">
         <div className="container-site flex flex-wrap items-center justify-between gap-5">
           <div>
             <p className="eyebrow mb-2">{t.nav.history}</p>
