@@ -300,6 +300,26 @@ html[lang="ar"] body * {
   box-shadow: 0 26px 60px -30px color-mix(in oklab, var(--color-gold) 60%, transparent);
 }
 
+/* ---------- Recherche du site (SiteSearch.tsx) ---------- */
+.site-search[open] .site-search-panel { animation: search-in 0.35s cubic-bezier(0.2, 0.7, 0.2, 1) both; }
+.site-search[open]::backdrop { animation: search-fade 0.3s ease both; }
+@keyframes search-in {
+  from { opacity: 0; transform: translateY(-16px) scale(0.98); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes search-fade { from { opacity: 0; } }
+.search-kbd {
+  display: inline-grid;
+  min-width: 1.4rem;
+  place-items: center;
+  margin-inline-end: 0.2rem;
+  border: 1px solid var(--color-line);
+  border-radius: 0.3rem;
+  padding: 0.05rem 0.3rem;
+  font-size: 0.65rem;
+  color: var(--color-bone);
+}
+
 /* ---------- Bandeau « page active » sous le header ---------- */
 .dock {
   --dock: var(--color-gold);
@@ -377,7 +397,7 @@ html[lang="ar"] body * {
   html { scroll-behavior: auto; }
   [data-reveal] { opacity: 1; transform: none; transition: none; }
   .marquee-track { animation: none !important; }
-  .video-skeleton, .video-skeleton-play, .video-swap { animation: none !important; }
+  .video-skeleton, .video-skeleton-play, .video-swap, .site-search-panel, .site-search::backdrop { animation: none !important; }
   .video-card:hover { translate: none; }
   *, *::before, *::after {
     animation-duration: 0.01ms !important;

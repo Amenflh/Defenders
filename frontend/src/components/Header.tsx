@@ -12,6 +12,7 @@ import { ThemeToggle } from "./ThemeToggle";
 import { Icon } from "./Icon";
 import { Logo, type BrandIdentity } from "./Logo";
 import { Sidebar } from "./Sidebar";
+import { SiteSearch } from "./SiteSearch";
 
 /** Couleur du bandeau de la rubrique active (jetons du thème : s'adaptent au mode clair). */
 const dockAccent: Partial<Record<NavKey, string>> = {
@@ -104,6 +105,7 @@ export function Header({ user, identity = {} }: { user: HeaderUser | null; ident
           </nav>
 
           <div className="flex shrink-0 items-center gap-2 sm:gap-3">
+            <SiteSearch className="flex h-10 min-w-10 justify-center sm:h-11 sm:min-w-11 2xl:px-3.5" />
             <LanguageSwitcher className="hidden md:flex" />
             <ThemeToggle className="hidden sm:grid" />
             {user?.role !== "admin" && (
