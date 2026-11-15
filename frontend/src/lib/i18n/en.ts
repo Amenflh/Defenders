@@ -40,8 +40,6 @@ export const en: Dictionary = {
     sections: { programmes: "Courses", equipe: "Team", galerie: "Gallery", temoignages: "Testimonials", historique: "History", inscription: "Sign up" },
   },
   common: {
-    pauseVideo: "Pause video",
-    playVideo: "Play video",
     register: "Sign up",
     skip: "Skip to content",
     openMenu: "Open menu",
