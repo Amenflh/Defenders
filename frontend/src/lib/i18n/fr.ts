@@ -39,6 +39,8 @@ export const fr = {
     sections: { programmes: "Formations", equipe: "Équipe", galerie: "Galerie", temoignages: "Témoignages", historique: "Historique", inscription: "Inscription" },
   },
   common: {
+    pauseVideo: "Mettre la vidéo en pause",
+    playVideo: "Lire la vidéo",
     register: "S'inscrire",
     skip: "Aller au contenu",
     openMenu: "Ouvrir le menu",

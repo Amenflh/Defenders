@@ -40,6 +40,8 @@ export const ar: Dictionary = {
     sections: { programmes: "التكوينات", equipe: "الفريق", galerie: "المعرض", temoignages: "الشهادات", historique: "الأرشيف", inscription: "التسجيل" },
   },
   common: {
+    pauseVideo: "إيقاف الفيديو مؤقتًا",
+    playVideo: "تشغيل الفيديو",
     register: "سجّل الآن",
     skip: "الانتقال إلى المحتوى",
     openMenu: "فتح القائمة",
