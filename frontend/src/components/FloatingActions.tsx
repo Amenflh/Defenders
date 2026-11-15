@@ -7,6 +7,7 @@ import { getMyUnreadAction } from "@/app/(site)/chat-actions";
 import { useI18n } from "@/lib/i18n/client";
 import { site } from "@/lib/site";
 import { subscribeToScroll } from "@/lib/scroll-subscription";
+import { AssistantPanel } from "./assistant/AssistantPanel";
 import { ClientChatPanel, OPEN_CHAT_EVENT, type ChatViewer } from "./chat/ClientChatPanel";
 import { Icon } from "./Icon";
 
@@ -44,15 +45,24 @@ export function FloatingActions({ viewer = { role: "guest" } }: { viewer?: ChatV
   const setOpen = (next: boolean) => setOpenedOn(next ? pathname : null);
   const [visible, setVisible] = useState(false);
   const [chatOpen, setChatOpen] = useState(false);
+  const [assistantOpen, setAssistantOpen] = useState(false);
   const [unread, setUnread] = useState(0);
   const isClient = viewer.role === "client";
 
   const openChatPanel = useCallback(() => {
     setOpenedOn(null);
+    setAssistantOpen(false);
     setChatOpen(true);
     setUnread(0);
   }, []);
   const closeChat = useCallback(() => setChatOpen(false), []);
+  const openAssistant = useCallback(() => {
+    setOpenedOn(null);
+    setChatOpen(false);
+    setAssistantOpen(true);
+  }, []);
+  const closeAssistant = useCallback(() => setAssistantOpen(false), []);
+  const panelOpen = chatOpen || assistantOpen;
   const markRead = useCallback(() => setUnread(0), []);
 
   // Ouverture depuis un autre bouton du site, ou au retour de la connexion (?chat=1).
@@ -99,6 +109,7 @@ export function FloatingActions({ viewer = { role: "guest" } }: { viewer?: ChatV
 
   const message = encodeURIComponent(t.floating.whatsappMessage);
   const actions = [
+    { label: t.floating.assistant, onClick: openAssistant, icon: <Icon name="search" width={18} height={18} /> },
     { label: unread ? `${t.floating.chat} (${t.floating.unread(unread)})` : t.floating.chat, onClick: openChatPanel, icon: <Icon name="chat" width={18} height={18} /> },
     { href: `${site.whatsapp.href}?text=${message}`, label: t.floating.whatsapp, external: true, icon: <WhatsAppIcon className="size-5" /> },
     // Messenger : même boîte de réception que les conversations ouvertes depuis les publicités Meta.
@@ -110,7 +121,8 @@ export function FloatingActions({ viewer = { role: "guest" } }: { viewer?: ChatV
   return (
     <>
     {chatOpen && <ClientChatPanel viewer={viewer} onClose={closeChat} onActivity={markRead} />}
-    <div className={`fixed end-4 bottom-4 z-30 flex flex-col items-end gap-3 transition-all duration-500 sm:end-6 sm:bottom-6 ${visible || open || chatOpen || unread > 0 ? "translate-y-0 opacity-100" : "pointer-events-none translate-y-6 opacity-0"}`}>
+    {assistantOpen && <AssistantPanel onClose={closeAssistant} />}
+    <div className={`fixed end-4 bottom-4 z-30 flex flex-col items-end gap-3 transition-all duration-500 sm:end-6 sm:bottom-6 ${visible || open || panelOpen || unread > 0 ? "translate-y-0 opacity-100" : "pointer-events-none translate-y-6 opacity-0"}`}>
       {open && (
         <ul id="floating-actions" className="flex flex-col items-end gap-2 animate-[fade-in_0.25s_ease]">
           {actions.map((a) => {
@@ -132,14 +144,14 @@ export function FloatingActions({ viewer = { role: "guest" } }: { viewer?: ChatV
       )}
       <button
         type="button"
-        onClick={() => (chatOpen ? setChatOpen(false) : setOpen(!open))}
-        aria-expanded={open || chatOpen}
+        onClick={() => (panelOpen ? (setChatOpen(false), setAssistantOpen(false)) : setOpen(!open))}
+        aria-expanded={open || panelOpen}
         aria-controls="floating-actions"
-        aria-label={chatOpen ? t.floating.closeChat : open ? t.floating.closeMenu : `${t.floating.menu}${unread ? ` (${t.floating.unread(unread)})` : ""}`}
-        className={`fab-pulse relative grid size-14 place-items-center rounded-full text-white shadow-[0_12px_32px_rgba(0,0,0,0.45)] transition-transform hover:scale-105 ${open || chatOpen ? "bg-ink-3" : "bg-[#1fa855] animate-[fab-pulse_2.4s_ease-out_infinite]"}`}
+        aria-label={chatOpen ? t.floating.closeChat : assistantOpen ? t.assistant.close : open ? t.floating.closeMenu : `${t.floating.menu}${unread ? ` (${t.floating.unread(unread)})` : ""}`}
+        className={`fab-pulse relative grid size-14 place-items-center rounded-full text-white shadow-[0_12px_32px_rgba(0,0,0,0.45)] transition-transform hover:scale-105 ${open || panelOpen ? "bg-ink-3" : "bg-[#1fa855] animate-[fab-pulse_2.4s_ease-out_infinite]"}`}
       >
-        {open || chatOpen ? <Icon name="close" width={22} height={22} /> : <WhatsAppIcon className="size-7" />}
-        {unread > 0 && !open && !chatOpen && (
+        {open || panelOpen ? <Icon name="close" width={22} height={22} /> : <WhatsAppIcon className="size-7" />}
+        {unread > 0 && !open && !panelOpen && (
           <span aria-hidden="true" className="absolute -top-1 -end-1 grid min-h-6 min-w-6 place-items-center rounded-full border-2 border-ink bg-gold px-1 text-[11px] font-bold text-ink">{unread}</span>
         )}
       </button>
