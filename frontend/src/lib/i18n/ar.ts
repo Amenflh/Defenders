@@ -145,6 +145,7 @@ export const ar: Dictionary = {
     registerAria: "التسجيل في تكوين",
     assistant: "اطرح سؤالًا على المساعد",
     assistantShort: "لديك سؤال؟",
+    social: "شبكاتنا الاجتماعية",
   },
   assistant: {
     title: "مساعد Defenders",

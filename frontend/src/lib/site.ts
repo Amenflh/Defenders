@@ -104,6 +104,11 @@ export const site = {
     footballVideos: ["https://www.facebook.com/share/r/1DGzq17D8M/"],
     footballVideoEmbeds: ["https://www.facebook.com/reel/1818481708830444/"],
   },
+  /** Page LinkedIn : vide tant qu'elle n'est pas renseignée (le bouton est alors masqué). Modifiable dans l'admin. */
+  linkedin: {
+    label: "LinkedIn",
+    href: "",
+  },
   instagram: {
     label: "@defenders_fitness_academy",
     href: "https://www.instagram.com/defenders_fitness_academy",

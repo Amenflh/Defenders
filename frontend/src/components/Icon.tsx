@@ -28,6 +28,12 @@ const paths = {
       <circle cx="17.5" cy="6.5" r="0.6" fill="currentColor" />
     </>
   ),
+  linkedin: (
+    <>
+      <rect x="3" y="3" width="18" height="18" rx="2.5" />
+      <path d="M8 10.5V16M8 7.6v.01M11.5 16v-5.5M11.5 13a2.5 2.5 0 015 0v3" />
+    </>
+  ),
   shield:<path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6l8-3z" />,
   check: <path d="M5 12.5l4.5 4.5L19 7.5" />,
   calendar: (

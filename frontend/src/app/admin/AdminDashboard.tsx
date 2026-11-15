@@ -335,7 +335,7 @@ function SettingsManager({ initialSettings = {} }: { initialSettings?: Record<st
     cookies: "Cookies strictement nécessaires\nLe site n'utilise pas de bandeau publicitaire ni de traçage marketing. Son fonctionnement peut utiliser des mécanismes techniques essentiels au chargement des pages.\n\nServices tiers\nLa carte intégrée et les liens vers les réseaux sociaux sont soumis aux politiques de confidentialité de leurs fournisseurs.\n\nGestion du navigateur\nVous pouvez supprimer ou bloquer les cookies depuis les paramètres de votre navigateur. Certaines fonctionnalités externes peuvent alors ne plus fonctionner normalement.",
   };
   const defaults = {
-    phone: "+216 92 204 005", phone2: "+216 29 039 493", email: "direction-dsp@outlook.com", securityEmail: "akkari-dsp@outlook.com", facebook: "https://www.facebook.com/DefendersFitnessAcademy", instagram: "https://www.instagram.com/defenders_fitness_academy", address: "Avenue Abou Dhabi, 8050 Hammamet, Tunisie", approval: "Agrément n° 21-340-24",
+    phone: "+216 92 204 005", phone2: "+216 29 039 493", email: "direction-dsp@outlook.com", securityEmail: "akkari-dsp@outlook.com", facebook: "https://www.facebook.com/DefendersFitnessAcademy", instagram: "https://www.instagram.com/defenders_fitness_academy", linkedin: "", address: "Avenue Abou Dhabi, 8050 Hammamet, Tunisie", approval: "Agrément n° 21-340-24",
     logoUrl: "", brandName: "Defenders", brandDescriptor: "Academy", certificationLabel: "Centre de formation certifié",
     heroLead: "Formez-vous en", heroDescription: "Des formations certifiantes pour les coachs et les professionnels du sport.", footerTagline: "Des formations certifiantes pour les coachs et les professionnels du sport.", footerGroup: "Defenders Academy",
     contactPopupEnabled: "true", contactPopupButtonLabel: "Nous contacter", contactPopupTitle: "Nous contacter",
@@ -371,7 +371,7 @@ function SettingsManager({ initialSettings = {} }: { initialSettings?: Record<st
   };
   const fields: [keyof typeof defaults, string, string][] = [
     ["phone", "Téléphone principal", "coordonnees"], ["phone2", "Deuxième téléphone", "coordonnees"], ["email", "E-mail principal", "coordonnees"],
-    ["securityEmail", "E-mail sécurité", "coordonnees"], ["facebook", "Lien Facebook", "coordonnees"], ["instagram", "Lien Instagram", "coordonnees"],
+    ["securityEmail", "E-mail sécurité", "coordonnees"], ["facebook", "Lien Facebook", "coordonnees"], ["instagram", "Lien Instagram", "coordonnees"], ["linkedin", "Lien LinkedIn", "coordonnees"],
     ["address", "Adresse", "coordonnees"],
     ["brandName", "Nom principal", "identite"], ["brandDescriptor", "Nom complémentaire", "identite"],
     ["certificationLabel", "Texte de certification", "identite"], ["approval", "Numéro d'agrément", "identite"],

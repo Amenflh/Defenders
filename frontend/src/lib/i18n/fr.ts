@@ -144,6 +144,7 @@ export const fr = {
     registerAria: "S'inscrire à une formation",
     assistant: "Poser une question à l'assistant",
     assistantShort: "Une question ?",
+    social: "Nos réseaux sociaux",
   },
   assistant: {
     title: "Assistant Defenders",
