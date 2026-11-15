@@ -313,6 +313,21 @@ html[lang="ar"] body * {
 .formations-preview-frame { scale: 0.85; transition: scale 0.45s cubic-bezier(0.2, 0.7, 0.2, 1); }
 .formations-preview[data-visible] .formations-preview-frame { scale: 1; }
 
+/* ---------- Signature du footer ---------- */
+.footer-wordmark-text {
+  margin-bottom: -0.12em;
+  font-size: clamp(4rem, 18vw, 17rem);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  text-align: center;
+  white-space: nowrap;
+  color: transparent;
+  background: linear-gradient(180deg, color-mix(in oklab, var(--color-gold) 38%, transparent) 0%, transparent 82%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-stroke: 1px color-mix(in oklab, var(--color-gold) 30%, transparent);
+}
+
 /* ---------- Recherche du site (SiteSearch.tsx) ---------- */
 .site-search[open] .site-search-panel { animation: search-in 0.35s cubic-bezier(0.2, 0.7, 0.2, 1) both; }
 .site-search[open]::backdrop { animation: search-fade 0.3s ease both; }

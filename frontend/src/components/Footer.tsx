@@ -80,6 +80,11 @@ export async function Footer() {
         />
       </div>
 
+      {/* Signature : le nom de la marque en très grand, qui clôt chaque page. */}
+      <div aria-hidden="true" className="footer-wordmark container-site select-none overflow-hidden">
+        <p className="footer-wordmark-text font-display leading-[0.8] uppercase">{brandName}</p>
+      </div>
+
       <div className="border-t border-line">
         <div className="container-site flex flex-col gap-3 py-6 text-xs text-mist sm:flex-row sm:items-center sm:justify-between">
           <p>© {new Date().getFullYear()} {siteName}. {t.common.allRights}</p>
