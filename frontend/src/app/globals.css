@@ -300,6 +300,19 @@ html[lang="ar"] body * {
   box-shadow: 0 26px 60px -30px color-mix(in oklab, var(--color-gold) 60%, transparent);
 }
 
+/* ---------- Index des formations de l'accueil (FormationsIndex.tsx) ---------- */
+.formations-index-title {
+  color: var(--color-bone);
+  transition: color 0.4s, opacity 0.4s, translate 0.5s cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+.formations-index[data-active] .formations-index-row:not([data-current]) .formations-index-title { opacity: 0.3; }
+.formations-index-row[data-current] .formations-index-title { color: var(--color-gold-soft); translate: 0.75rem 0; }
+[dir="rtl"] .formations-index-row[data-current] .formations-index-title { translate: -0.75rem 0; }
+.formations-preview { opacity: 0; transition: opacity 0.3s ease; will-change: transform; }
+.formations-preview[data-visible] { opacity: 1; }
+.formations-preview-frame { scale: 0.85; transition: scale 0.45s cubic-bezier(0.2, 0.7, 0.2, 1); }
+.formations-preview[data-visible] .formations-preview-frame { scale: 1; }
+
 /* ---------- Recherche du site (SiteSearch.tsx) ---------- */
 .site-search[open] .site-search-panel { animation: search-in 0.35s cubic-bezier(0.2, 0.7, 0.2, 1) both; }
 .site-search[open]::backdrop { animation: search-fade 0.3s ease both; }
@@ -398,6 +411,7 @@ html[lang="ar"] body * {
   [data-reveal] { opacity: 1; transform: none; transition: none; }
   .marquee-track { animation: none !important; }
   .video-skeleton, .video-skeleton-play, .video-swap, .site-search-panel, .site-search::backdrop { animation: none !important; }
+  .formations-index-title, .formations-preview-frame { transition: none; translate: none !important; }
   .video-card:hover { translate: none; }
   *, *::before, *::after {
     animation-duration: 0.01ms !important;

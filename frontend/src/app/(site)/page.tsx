@@ -97,7 +97,7 @@ export default async function HomePage({ searchParams }: PageProps<"/">) {
 
       {/* ---------------- LES FILIÈRES ---------------- */}
       <section id="filieres" style={{ order: sectionOrder("branches") }} hidden={!sectionEnabled("branches")} className="py-20 lg:py-24">
-        <BranchesSection t={t} />
+        <BranchesSection t={t} locale={locale} />
       </section>
 
       {/* ---------------- POINTS FORTS : MÉDECINS, EXCLUSIVITÉ ---------------- */}

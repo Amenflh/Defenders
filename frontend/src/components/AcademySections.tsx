@@ -1,12 +1,29 @@
 import Image from "next/image";
 import Link from "next/link";
+import { disciplines } from "@/lib/disciplines";
+import { localizeFormation } from "@/lib/formation-i18n";
+import type { Locale } from "@/lib/i18n/config";
 import type { Dictionary } from "@/lib/i18n/dictionaries";
+import { bannerPhotos, footballPhotos, personalPhotos, pilatesPhotos } from "@/lib/images";
 import { site } from "@/lib/site";
+import { FormationsIndex, type FormationsIndexItem } from "./FormationsIndex";
 import { Icon } from "./Icon";
 import { Reveal } from "./Reveal";
 
 /** Present the three independent organizations without implying a fourth division. */
-export function BranchesSection({ t }: { t: Dictionary }) {
+export function BranchesSection({ t, locale }: { t: Dictionary; locale: Locale }) {
+  const tsa = t.pages.akAcademy;
+  const fitness = (slug: "pilates" | "football" | "personal-training") => localizeFormation(disciplines[slug], locale);
+  // Toutes les formations des trois filières, avec la photo qui les représente le mieux.
+  const formations: FormationsIndexItem[] = [
+    { href: "/formations/pilates", title: fitness("pilates").name, academy: t.nav.fitnessAcademy, detail: fitness("pilates").headline, image: pilatesPhotos[0].src },
+    { href: "/formations/football", title: fitness("football").name, academy: t.nav.fitnessAcademy, detail: fitness("football").headline, image: footballPhotos[1].src },
+    { href: "/personal-training", title: fitness("personal-training").name, academy: t.nav.fitnessAcademy, detail: fitness("personal-training").headline, image: personalPhotos[0].src },
+    { href: "/ak-tunisian-security-academy/formations/k9", title: tsa.k9CourseTitle, academy: t.nav.akAcademy, detail: tsa.k9CourseDuration, image: site.tunisianSecurityAcademy.k9Poster },
+    { href: "/ak-tunisian-security-academy/formations/intervention-initiale", title: tsa.courseTitle, academy: t.nav.akAcademy, detail: tsa.courseDuration, image: bannerPhotos[5].src },
+    { href: "/ak-tunisian-security-academy/formations/protection-rapprochee", title: tsa.closeProtectionTitle, academy: t.nav.akAcademy, detail: tsa.durationToConfirm, image: bannerPhotos[1].src },
+    { href: "/securite#programmes", title: t.search.securityCourse, academy: t.nav.security, detail: t.pages.security.programmeEyebrow, image: bannerPhotos[0].src },
+  ];
   return (
     <div className="container-site">
       <Reveal className="mb-12 max-w-3xl">
@@ -39,6 +56,16 @@ export function BranchesSection({ t }: { t: Dictionary }) {
             </Reveal>
           );
         })}
+      </div>
+
+      <div className="mt-20 lg:mt-28">
+        <Reveal className="mb-8 flex flex-wrap items-end justify-between gap-4">
+          <h3 className="heading-lg">{t.common.allFormations}</h3>
+          <Link href="/formations" className="inline-flex items-center gap-2 text-sm text-gold transition-colors hover:text-bone">
+            {t.nav.formations} <Icon name="arrow" width={16} height={16} className="rtl:-scale-x-100" />
+          </Link>
+        </Reveal>
+        <FormationsIndex items={formations} />
       </div>
     </div>
   );
