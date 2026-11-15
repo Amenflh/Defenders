@@ -109,7 +109,6 @@ export function FloatingActions({ viewer = { role: "guest" } }: { viewer?: ChatV
 
   const message = encodeURIComponent(t.floating.whatsappMessage);
   const actions = [
-    { label: t.floating.assistant, onClick: openAssistant, icon: <Icon name="search" width={18} height={18} /> },
     { label: unread ? `${t.floating.chat} (${t.floating.unread(unread)})` : t.floating.chat, onClick: openChatPanel, icon: <Icon name="chat" width={18} height={18} /> },
     { href: `${site.whatsapp.href}?text=${message}`, label: t.floating.whatsapp, external: true, icon: <WhatsAppIcon className="size-5" /> },
     // Messenger : même boîte de réception que les conversations ouvertes depuis les publicités Meta.
@@ -141,6 +140,18 @@ export function FloatingActions({ viewer = { role: "guest" } }: { viewer?: ChatV
             );
           })}
         </ul>
+      )}
+      {/* Accès direct à l'assistant, toujours visible au-dessus du bouton WhatsApp. */}
+      {!open && !panelOpen && (
+        <button
+          type="button"
+          onClick={openAssistant}
+          aria-label={t.floating.assistant}
+          title={t.floating.assistantShort}
+          className="grid size-14 place-items-center rounded-full bg-gold text-ink shadow-[0_12px_32px_rgba(0,0,0,0.45)] transition-transform hover:scale-105 animate-[fade-in_0.25s_ease]"
+        >
+          <Icon name="sparkle" width={26} height={26} />
+        </button>
       )}
       <button
         type="button"

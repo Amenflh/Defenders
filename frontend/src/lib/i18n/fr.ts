@@ -143,6 +143,7 @@ export const fr = {
     registerHint: "Places limitées",
     registerAria: "S'inscrire à une formation",
     assistant: "Poser une question à l'assistant",
+    assistantShort: "Une question ?",
   },
   assistant: {
     title: "Assistant Defenders",

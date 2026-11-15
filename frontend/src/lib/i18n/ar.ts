@@ -144,6 +144,7 @@ export const ar: Dictionary = {
     registerHint: "الأماكن محدودة",
     registerAria: "التسجيل في تكوين",
     assistant: "اطرح سؤالًا على المساعد",
+    assistantShort: "لديك سؤال؟",
   },
   assistant: {
     title: "مساعد Defenders",

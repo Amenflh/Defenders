@@ -144,6 +144,7 @@ export const en: Dictionary = {
     registerHint: "Limited places",
     registerAria: "Sign up for a course",
     assistant: "Ask the assistant",
+    assistantShort: "Any questions?",
   },
   assistant: {
     title: "Defenders Assistant",
