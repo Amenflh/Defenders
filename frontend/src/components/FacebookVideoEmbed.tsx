@@ -20,6 +20,10 @@ type FacebookVideoEmbedProps = {
    * dans des cadres identiques.
    */
   fit?: "contain" | "cover";
+  /** Faux : la vidéo reste chargée mais en pause (plan en attente dans une rotation de fond). Vrai par défaut. */
+  active?: boolean;
+  /** Appelé à la fin de la vidéo (au lieu de boucler), pour passer au plan suivant. */
+  onEnded?: () => void;
 };
 
 const RATIO: Record<FacebookVideoLayout, number> = { portrait: 9 / 16, square: 1, landscape: 16 / 9 };
@@ -121,7 +125,28 @@ export function FacebookVideoEmbed({
   loop = true,
   background = false,
   fit = "contain",
+  active = true,
+  onEnded,
 }: FacebookVideoEmbedProps) {
+  const activeRef = useRef(active);
+  const onEndedRef = useRef(onEnded);
+  const playerRef = useRef<FacebookPlayer | null>(null);
+  useEffect(() => {
+    onEndedRef.current = onEnded;
+  }, [onEnded]);
+  // Plan activé : reprise depuis le début ; plan désactivé : pause.
+  useEffect(() => {
+    activeRef.current = active;
+    const player = playerRef.current;
+    if (!player) return;
+    if (active) {
+      player.seek(0);
+      player.mute();
+      player.play();
+    } else {
+      player.pause();
+    }
+  }, [active]);
   // Ouvre les connexions vers Facebook dès le rendu de la page : le SDK et le lecteur arrivent plus vite.
   preconnect("https://connect.facebook.net", { crossOrigin: "anonymous" });
   preconnect("https://www.facebook.com");
@@ -147,7 +172,7 @@ export function FacebookVideoEmbed({
     let element: HTMLDivElement | null = null;
 
     const play = () => {
-      if (!player) return;
+      if (!player || !activeRef.current) return;
       player.mute();
       player.play();
     };
@@ -170,14 +195,22 @@ export function FacebookVideoEmbed({
         if (cancelled) return;
         window.clearTimeout(readyTimer);
         player = instance;
+        playerRef.current = instance;
         setReady(true);
         const finished = instance.subscribe("finishedPlaying", () => {
+          if (onEndedRef.current) {
+            onEndedRef.current();
+            return;
+          }
           if (!loop) return;
           instance.seek(0);
           play();
         });
         if (finished) releases.push(finished);
         if (visible) play();
+        else instance.pause();
+        // Lecture automatique du SDK : un plan en attente ne doit pas tourner en arrière-plan.
+        if (!activeRef.current) instance.pause();
       });
 
       readyTimer = window.setTimeout(() => {
@@ -226,6 +259,7 @@ export function FacebookVideoEmbed({
       window.clearTimeout(readyTimer);
       readyCallbacks.delete(id);
       releases.forEach((subscription) => subscription.release());
+      playerRef.current = null;
       element?.remove();
       host.replaceChildren();
     };
@@ -237,7 +271,8 @@ export function FacebookVideoEmbed({
       ? "aspect-square max-w-[480px]"
       : "aspect-video max-w-none";
   // Recadrage « cover » : le lecteur garde son format natif et déborde du cadre, centré (unités de conteneur).
-  const ratio = background ? RATIO.landscape : RATIO[layout];
+  // Format réel de la vidéo : un reel vertical en fond est agrandi à la largeur et recadré en haut / bas.
+  const ratio = RATIO[layout];
   const fillStyle = cover
     ? {
         width: `max(100cqw, calc(100cqh * ${ratio}))`,

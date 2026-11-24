@@ -27,7 +27,8 @@ export function AcademyCourseCard({
   text: string;
   href: string;
   action: string;
-  poster: string | StaticImageData;
+  /** Sans affiche ni vidéo, la carte n'affiche que le texte. */
+  poster?: string | StaticImageData;
   videoSrc?: string;
   videoEmbedUrl?: string;
   videoLayout?: FacebookVideoLayout;
@@ -41,14 +42,14 @@ export function AcademyCourseCard({
   /** Lien secondaire (publication source, programme…), ouvert dans un nouvel onglet. */
   extraLink?: { href: string; label: string };
 }) {
-  const posterSrc = typeof poster === "string" ? poster : poster.src;
+  const posterSrc = poster === undefined ? undefined : typeof poster === "string" ? poster : poster.src;
 
   return (
     <article className={`flex h-full flex-col overflow-hidden border border-line bg-ink-2 ${accentClassName ?? ""}`}>
       <span className="h-1 w-full bg-gold" aria-hidden="true" />
       {videoEmbedUrl ? (
         <FacebookVideoEmbed url={videoEmbedUrl} title={title} layout={videoLayout} loading={priority ? "eager" : "lazy"} />
-      ) : videoSrc ? (
+      ) : videoSrc && posterSrc ? (
         <div className="relative aspect-video overflow-hidden bg-black">
           <HomeHeroVideo src={videoSrc} poster={posterSrc} />
           <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-ink/45 to-transparent" />
@@ -56,7 +57,7 @@ export function AcademyCourseCard({
             <span className="ms-0.5">▶</span>
           </span>
         </div>
-      ) : (
+      ) : poster === undefined ? null : (
         <div className={posterLayout === "portrait"
           ? "relative mx-auto aspect-[72/102] w-full max-w-[360px] overflow-hidden bg-ink"
           : "relative aspect-video overflow-hidden bg-ink"}

@@ -9,6 +9,7 @@ import {
   type HistoryActivity,
 } from "@/lib/history";
 import { getDictionary } from "@/lib/i18n/server";
+import { getHeroClips } from "@/lib/home-page-data";
 
 export async function generateMetadata(): Promise<Metadata> {
   const { t } = await getDictionary();
@@ -17,9 +18,10 @@ export async function generateMetadata(): Promise<Metadata> {
 
 /** Historique des formations : toutes les sessions passées, filtrables par activité (?activite=football). */
 export default async function HistoryPage({ searchParams }: PageProps<"/historique">) {
-  const [{ t }, params] = await Promise.all([getDictionary(), searchParams]);
-  const requestedAcademy = typeof params.academy === "string" ? params.academy : "";
-  const initialAcademy: HistoryAcademy | "all" = ["fitness", "security", "tsa"].includes(requestedAcademy)
+  const [{ t }, params, heroClips] = await Promise.all([getDictionary(), searchParams, getHeroClips()]);
+  // L'ancien filtre « security » (DSP) renvoie vers la Tunisian Security Academy, dont la sécurité fait partie.
+  const requestedAcademy = params.academy === "security" ? "tsa" : typeof params.academy === "string" ? params.academy : "";
+  const initialAcademy: HistoryAcademy | "all" = ["fitness", "tsa"].includes(requestedAcademy)
     ? requestedAcademy as HistoryAcademy
     : "all";
   const requestedActivity = typeof params.activite === "string" ? params.activite : "";
@@ -34,7 +36,7 @@ export default async function HistoryPage({ searchParams }: PageProps<"/historiq
 
   return (
     <>
-      <PageIntro eyebrow={t.history.eyebrow} title={t.history.title}>
+      <PageIntro eyebrow={t.history.eyebrow} title={t.history.title} clips={heroClips}>
         {t.history.intro}
       </PageIntro>
       <section className="py-16 lg:py-20">

@@ -1,4 +1,9 @@
 import "server-only";
+import { cache } from "react";
+import { existsSync } from "node:fs";
+import { join } from "node:path";
+import type { HeroClip } from "@/components/HomeHeroVideo";
+import { pilatesPhotos } from "@/lib/images";
 import { getContactDefaults, apiFetch } from "@/lib/session";
 import { getDictionary } from "@/lib/i18n/server";
 import { localizeFormation } from "@/lib/formation-i18n";
@@ -110,6 +115,35 @@ export async function getHomePageData() {
     inquiryCopy,
   };
 }
+
+/** Vrai si le fichier existe dans /public (évite de demander au navigateur une vidéo absente → erreur console). */
+function publicFileExists(url: string): boolean {
+  if (!url.startsWith("/") || url.startsWith("/uploads/")) return true;
+  try {
+    return existsSync(join(process.cwd(), "public", decodeURIComponent(url)));
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Fond des en-têtes : trois vidéos lues l'une après l'autre (Pilates, Personal Trainer, Football).
+ * Pilates : la vidéo choisie dans l'admin (Médias) ou la vidéo locale. Personal Trainer et Football : les reels
+ * Facebook présentés sur la page Fitness Academy (« Nos formations »). Un fichier /videos/personal-trainer.mp4
+ * ou /videos/football.mp4 déposé dans public/ les remplace (lecture locale, plus rapide).
+ */
+export const getHeroClips = cache(async (): Promise<HeroClip[]> => {
+  const fitness = await getHomeHeroVideo();
+  const clip = (src: string, reel: string, label: string): HeroClip =>
+    publicFileExists(src) ? { type: "video", src, label } : { type: "facebook", url: reel, layout: "portrait", label };
+  return [
+    fitness
+      ? { type: "video", src: fitness, label: "Pilates" }
+      : { type: "photos", images: pilatesPhotos.slice(0, 3).map((photo) => photo.src.src), label: "Pilates" },
+    clip(site.homeHeroVideos.personalTraining, site.facebook.personalTrainingVideoEmbeds[0], "Personal Trainer"),
+    clip(site.homeHeroVideos.football, site.facebook.footballVideoEmbeds[0], "Football"),
+  ];
+});
 
 export async function getHomeHeroVideo(): Promise<string | undefined> {
   const fallback = "/videos/1-Video by defenders_fitness_academy.mp4";
