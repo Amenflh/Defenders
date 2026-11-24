@@ -17,7 +17,7 @@ Documentation projet :
 
 | Composant | Technologies |
 |---|---|
-| Frontend | Next.js 16, React 19, TypeScript, Tailwind CSS 4 (port 3000) |
+| Frontend | Next.js 16, React 19, TypeScript, Tailwind CSS 4 (port 3001) |
 | Animations | GSAP, Anime.js |
 | Interface | Radix UI, composants shadcn-style |
 | Backend | Node.js, Express 5, TypeScript, Zod, Prisma 7 (port 4000) |
@@ -212,7 +212,7 @@ cd backend && npm install && npm run dev
 cd frontend && npm install && npm run dev
 ```
 
-Site : http://localhost:3000 — Admin : http://localhost:3000/admin — Documentation de l'API : http://localhost:4000/api/docs
+Site : http://localhost:3001 — Admin : http://localhost:3001/admin — Documentation de l'API : http://localhost:4000/api/docs
 
 Vérifier la connexion backend ↔ PostgreSQL :
 
