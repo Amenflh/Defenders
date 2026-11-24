@@ -73,18 +73,22 @@ export async function ensureSeedData(): Promise<void> {
   // Ordre d'affichage : les deux agences de recrutement (Bayrak, RITEJ) sont séparées par la Tunisian Security Academy.
   const partners = [
     ["Bayrak El Arab", "Recrutement et accompagnement", "Entretiens, contrats et accompagnement annoncés gratuits. Le recrutement dépend des offres et du profil.", "/pics/partners/Bayrak.jpg", "https://www.facebook.com/bayrakelarabe"],
-    ["Tunisian Security Academy", "Académie partenaire", "Co-partenaire mentionné dans les annonces de recrutement et de formation.", "/pics/partners/TSA-logo.jpg", "https://www.facebook.com/profile.php?id=100077382387038"],
+    ["Tunisian Security Academy", "Académie partenaire", "Co-partenaire mentionné dans les annonces de recrutement et de formation.", "/pics/partners/tsa-logo-eagle.jpg", "https://www.facebook.com/profile.php?id=100077382387038"],
     ["RITEJ Company for Recruitment", "Recrutement à l'étranger", "Agence spécialisée dans le recrutement à l'étranger depuis 2010.", "/pics/partners/RITEJ-embleme.jpg", "https://www.facebook.com/ritejcampanyforrecruitment"],
     ["Sunset Studio Pilates", "Lieu de formation · Lac 1", "Studio partenaire mentionné dans certaines sessions Pilates.", "/pics/partners/Sunset.jpg", "https://www.facebook.com/profile.php?id=61579597566910"],
-    ["Golden Tulip", "Partenaire hôtelier", "Hôtel partenaire de l'académie.", "/pics/partners/golden-tulip.svg", "https://www.goldentulip.com"],
+    ["Golden Tulip", "Partenaire hôtelier", "Hôtel partenaire de l'académie.", "/pics/partners/golden-tulip.jpeg", "https://www.goldentulip.com"],
+    ["Université Ibn Khaldoun", "Partenaire universitaire", "Université partenaire de l'académie.", "/pics/partners/uik.webp", "https://uik.ens.tn"],
   ] as const;
   if (await prisma.cmsItem.count({ where: { section: "partners" } }) === 0) {
     await prisma.cmsItem.createMany({ data: partners.map(([title, subtitle, body, imageUrl, linkUrl], position) => ({ section: "partners", title, subtitle, body, imageUrl, linkUrl, position, active: true })) });
-  } else if (await prisma.cmsItem.count({ where: { section: "partners", title: "Golden Tulip" } }) === 0) {
-    // Base déjà initialisée : on ajoute seulement le nouveau partenaire.
-    const [title, subtitle, body, imageUrl, linkUrl] = partners[4];
-    const last = await prisma.cmsItem.aggregate({ where: { section: "partners" }, _max: { position: true } });
-    await prisma.cmsItem.create({ data: { section: "partners", title, subtitle, body, imageUrl, linkUrl, position: (last._max.position ?? 0) + 1, active: true } });
+  } else {
+    // Base déjà initialisée : nouveau logo Golden Tulip, puis ajout des partenaires manquants.
+    await prisma.cmsItem.updateMany({ where: { section: "partners", imageUrl: "/pics/partners/golden-tulip.svg" }, data: { imageUrl: "/pics/partners/golden-tulip.jpeg" } });
+    for (const [title, subtitle, body, imageUrl, linkUrl] of partners.slice(4)) {
+      if (await prisma.cmsItem.count({ where: { section: "partners", title } }) > 0) continue;
+      const last = await prisma.cmsItem.aggregate({ where: { section: "partners" }, _max: { position: true } });
+      await prisma.cmsItem.create({ data: { section: "partners", title, subtitle, body, imageUrl, linkUrl, position: (last._max.position ?? 0) + 1, active: true } });
+    }
   }
 
   if (await prisma.cmsItem.count({ where: { section: "promotions" } }) === 0) {

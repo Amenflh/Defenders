@@ -27,6 +27,10 @@ export function settingText(settings: SiteSettings, key: string, fallback = ""):
   return typeof value === "string" && value.trim() ? value : fallback;
 }
 
+/** Logo global recadré (carré, centré) et anciens fichiers qu'il remplace. */
+export const ROUND_LOGO = "/pics/logo-defenders-academy-round.png";
+const LEGACY_LOGOS = new Set(["/pics/logo.jpg", "/pics/logo-defenders-academy.jpeg"]);
+
 /**
  * Nom affiché du site : « Defenders Academy » par défaut.
  * L'ancien complément « Fitness Academy » (valeur par défaut de l'admin avant le passage à Defenders Academy)
@@ -36,6 +40,8 @@ export function brandIdentity(settings: SiteSettings) {
   const brandName = settingText(settings, "brandName", "Defenders");
   const savedDescriptor = settingText(settings, "brandDescriptor", "Academy");
   const brandDescriptor = savedDescriptor === "Fitness Academy" ? "Academy" : savedDescriptor;
-  const logoUrl = settingText(settings, "logoUrl") || undefined;
+  const savedLogo = settingText(settings, "logoUrl");
+  // Anciens fichiers du logo (non carrés, rognés dans le cadre rond) : remplacés par la version recadrée.
+  const logoUrl = LEGACY_LOGOS.has(savedLogo) ? ROUND_LOGO : savedLogo || undefined;
   return { brandName, brandDescriptor, logoUrl, siteName: `${brandName} ${brandDescriptor}`.trim() };
 }

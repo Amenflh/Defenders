@@ -15,16 +15,35 @@ const ROLE_TRANSLATIONS: Record<string, { en: string; ar: string }> = {
   "Académie partenaire": { en: "Partner academy", ar: "أكاديمية شريكة" },
   "Lieu de formation · Lac 1": { en: "Training venue · Lac 1", ar: "مكان التكوين · البحيرة 1" },
   "Partenaire hôtelier": { en: "Hotel partner", ar: "شريك فندقي" },
+  "Partenaire universitaire": { en: "University partner", ar: "شريك جامعي" },
 };
 const isTsa = (p: Partner) => /tunisian security academy/i.test(p.name);
+/** Logo officiel de la Tunisian Security Academy (emblème à l'aigle), imposé quelle que soit l'image du CMS. */
+const TSA_LOGO = "/pics/partners/tsa-logo-eagle.jpg";
+
+/** Logos remplacés : les fiches déjà enregistrées dans le CMS pointent encore vers ces anciens fichiers. */
+const REPLACED_LOGOS: Record<string, string> = {
+  "/pics/partners/golden-tulip.svg": "/pics/partners/golden-tulip.jpeg",
+  "/pics/logo.jpg": "/pics/logo-defenders-academy.jpeg",
+  "/pics/partners/TSA-logo.jpg": TSA_LOGO,
+};
+
+/** Partenaires ajoutés au bandeau même s'ils manquent encore dans la liste du CMS. */
+const REQUIRED_PARTNERS = [/golden tulip/i, /ibn khaldoun/i];
 
 /**
  * Ordre d'affichage : les logos des deux agences de recrutement (Bayrak et RITEJ) ne doivent pas se suivre,
- * la Tunisian Security Academy est placée entre les deux. Golden Tulip est ajouté s'il manque à la liste du CMS.
+ * la Tunisian Security Academy est placée entre les deux.
  */
 function arrange(list: Partner[]): Partner[] {
-  const partners = [...list];
-  if (!partners.some((p) => /golden tulip/i.test(p.name))) partners.push(fallbackPartners.find((p) => /golden tulip/i.test(p.name))!);
+  const partners = list.map((p) => {
+    const name = p.name.replace(/^A\.K\s+/i, "");
+    const logo = /tunisian security academy/i.test(name) ? TSA_LOGO : REPLACED_LOGOS[p.logo] ?? p.logo;
+    return { ...p, name, logo };
+  });
+  for (const pattern of REQUIRED_PARTNERS) {
+    if (!partners.some((p) => pattern.test(p.name))) partners.push(fallbackPartners.find((p) => pattern.test(p.name))!);
+  }
   const recruiters = partners.filter(isRecruiter);
   const tsa = partners.find(isTsa);
   if (recruiters.length === 2 && tsa) {
@@ -47,7 +66,7 @@ export function PartnersMarquee({ partners: inputPartners, title = "Nos partenai
     role: partner.subtitle || partner.role || "",
     description: partner.body || partner.description || "",
     href: safeHref(partner.linkUrl || partner.href),
-    logo: partner.imageUrl || partner.logo || "/pics/logo.jpg",
+    logo: partner.imageUrl || partner.logo || "/pics/logo-defenders-academy-round.png",
   })) : fallbackPartners).filter((partner) => partner.name));
   // Deux moitiés identiques : la piste se translate de -50 % pour une boucle sans couture.
   // Copie traduite : les objets de repli sont partagés entre les requêtes, on ne les modifie jamais.

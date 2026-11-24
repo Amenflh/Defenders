@@ -1,5 +1,6 @@
 // Imports statiques : Next.js connaît les dimensions et génère un flou de chargement.
-import logo from "../../public/pics/logo.jpg";
+// Version carrée et centrée du logo : l'original (800×752, marges inégales) était rogné dans le cadre rond.
+import logo from "../../public/pics/logo-defenders-academy-round.png";
 import info from "../../public/pics/info.jpg";
 
 import banner1 from "../../public/pics/banner_images/banner1.jpeg";

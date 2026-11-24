@@ -13,8 +13,10 @@ export function Logo({ compact = false, logoUrl = brand.logo, brandName = site.s
         alt=""
         width={44}
         height={44}
-        unoptimized={typeof logoUrl === "string"}
-        className={`${compact ? "size-10" : "size-10 sm:size-11"} rounded-full object-contain ring-1 ring-white/15 transition-transform duration-500 group-hover:rotate-[360deg]`}
+        // Fichiers locaux : optimisés par Next (format moderne, taille réduite). Logos externes ou SVG : tels quels.
+        unoptimized={typeof logoUrl === "string" && (!logoUrl.startsWith("/") || logoUrl.startsWith("//") || logoUrl.endsWith(".svg"))}
+        priority
+        className={`${compact ? "size-10" : "size-10 sm:size-11"} shrink-0 rounded-full bg-white object-contain ring-1 ring-white/15 transition-transform duration-500 group-hover:rotate-[360deg]`}
       />
       {!compact && (
         <span className="leading-none">
