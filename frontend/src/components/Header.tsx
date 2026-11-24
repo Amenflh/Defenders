@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -38,15 +39,6 @@ export function Header({ user, identity = {} }: { user: HeaderUser | null; ident
   const closeMenu = useCallback(() => setMenuOpen(false), []);
 
   useEffect(() => {
-    const desktop = window.matchMedia("(min-width: 80rem)");
-    const closeOnDesktop = () => {
-      if (desktop.matches) closeMenu();
-    };
-    desktop.addEventListener("change", closeOnDesktop);
-    return () => desktop.removeEventListener("change", closeOnDesktop);
-  }, [closeMenu]);
-
-  useEffect(() => {
     const updateScrollIndicators = () => {
       const scrollY = window.scrollY;
       setScrolled((current) => current === (scrollY > 24) ? current : scrollY > 24);
@@ -65,7 +57,7 @@ export function Header({ user, identity = {} }: { user: HeaderUser | null; ident
         {t.common.skip}
       </a>
       <header
-        className={`fixed inset-x-0 top-0 z-40 transition-[background-color,border-color,backdrop-filter] duration-500 ${
+        className={`site-header fixed inset-x-0 top-0 z-40 transition-[background-color,border-color,backdrop-filter] duration-500 ${
           scrolled ? "border-b border-line bg-ink-2/95 shadow-lg shadow-black/30 backdrop-blur-md" : "border-b border-line/70 bg-ink-2/80 backdrop-blur-md"
         }`}
       >
@@ -83,6 +75,8 @@ export function Header({ user, identity = {} }: { user: HeaderUser | null; ident
               {headerNav.map((item) => {
                 // La rubrique ouverte quitte le menu : elle est présentée dans le bandeau sous le header.
                 const hidden = item === activeItem;
+                // Les deux académies affichent leur logo devant leur nom.
+                const branchLogo = site.branches.find(({ href }) => href === item.href)?.logo;
                 return (
                   <li
                     key={item.href}
@@ -94,8 +88,11 @@ export function Header({ user, identity = {} }: { user: HeaderUser | null; ident
                     <Link
                       href={item.href}
                       tabIndex={hidden ? -1 : undefined}
-                      className="block rounded-full px-3 py-2 font-display text-[0.68rem] tracking-[0.06em] whitespace-nowrap text-mist uppercase transition-colors hover:bg-white/[0.05] hover:text-bone"
+                      className={`flex items-center gap-2 rounded-full py-2 font-display text-[0.68rem] tracking-[0.06em] whitespace-nowrap text-mist uppercase transition-colors hover:bg-white/[0.05] hover:text-bone ${branchLogo ? "ps-1.5 pe-3" : "px-3"}`}
                     >
+                      {branchLogo && (
+                        <Image src={branchLogo} alt="" width={28} height={28} className="size-7 shrink-0 rounded-full bg-white object-contain p-px ring-1 ring-white/20" />
+                      )}
                       {t.nav[item.key]}
                     </Link>
                   </li>
@@ -127,7 +124,7 @@ export function Header({ user, identity = {} }: { user: HeaderUser | null; ident
             )}
             <button
               onClick={() => setMenuOpen(true)}
-              className="grid size-10 place-items-center rounded-full border border-white/20 transition-colors hover:border-bone sm:size-11 xl:hidden"
+              className="grid size-10 place-items-center rounded-full border border-white/20 transition-colors hover:border-gold hover:text-gold sm:size-11"
               aria-label={t.common.openMenu}
               aria-expanded={menuOpen}
               aria-controls="site-sidebar"
