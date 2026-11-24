@@ -43,7 +43,7 @@ const HOMEPAGE_SECTIONS = [
   { id: "promotions", label: "Promotions & certificats" },
   { id: "about", label: "À propos" },
   { id: "videos", label: "Vidéos" },
-  { id: "security", label: "Sécurité protection" },
+  { id: "security", label: "Sécurité (Tunisian Security Academy)" },
   { id: "formations", label: "Formations" },
   { id: "method", label: "Parcours de formation" },
   { id: "testimonials", label: "Témoignages" },
@@ -591,7 +591,7 @@ function FormationManager({ formations }: { formations: Formation[] }) {
         <textarea placeholder="Faits : Libellé | Valeur (une ligne)" rows={3} value={draft.facts} onChange={(e) => setDraft({ ...draft, facts: e.target.value })} className="w-full border border-line bg-ink px-3 py-3" />
         <textarea placeholder="Public concerné : une ligne par profil" rows={3} value={draft.audience} onChange={(e) => setDraft({ ...draft, audience: e.target.value })} className="w-full border border-line bg-ink px-3 py-3" />
         <textarea placeholder="Débouchés : une ligne par débouché" rows={3} value={draft.careers} onChange={(e) => setDraft({ ...draft, careers: e.target.value })} className="w-full border border-line bg-ink px-3 py-3" />
-        <select value={draft.accent} onChange={(e) => setDraft({ ...draft, accent: e.target.value })} className="w-full border border-line bg-ink px-3 py-3"><option value="gold">Beige (par défaut)</option><option value="pilates">Fitness / Pilates — jaune</option><option value="football">Football — rouge</option><option value="personal">Personal Trainer — vert militaire</option></select>
+        <select value={draft.accent} onChange={(e) => setDraft({ ...draft, accent: e.target.value })} className="w-full border border-line bg-ink px-3 py-3"><option value="gold">Beige (par défaut)</option><option value="pilates">Fitness / Pilates — orange</option><option value="football">Football — rouge</option><option value="personal">Personal Trainer — vert militaire</option></select>
         <select value={draft.status} onChange={(e) => setDraft({ ...draft, status: e.target.value })} className="w-full border border-line bg-ink px-3 py-3"><option value="published">Publié</option><option value="draft">Brouillon</option><option value="archived">Archivé</option></select>
         <input type="number" min={0} placeholder="Position" value={draft.position} onChange={(e) => setDraft({ ...draft, position: Number(e.target.value) })} className="w-full border border-line bg-ink px-3 py-3" />
         <div className="flex flex-wrap items-center gap-3">

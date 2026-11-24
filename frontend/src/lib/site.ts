@@ -4,11 +4,13 @@ export const site = {
   descriptor: "Academy",
   tagline: "Sécurité, protection et formations certifiantes pour les professionnels du sport",
   group: "Defenders Academy",
-  /** Les trois filières de Defenders Academy. */
+  /**
+   * Les deux filières de Defenders Academy. La sécurité / protection (DSP) fait partie de la
+   * Tunisian Security Academy : elle n'est jamais présentée comme une filière séparée.
+   */
   branches: [
-    { key: "security", name: "Defenders Security Protection", headerName: "Defenders Security", headerDescriptor: "Protection", href: "/securite", logo: "/pics/partners/DSP-logo.jpg", mark: "DSP", comingSoon: false },
-    { key: "fitness", name: "Defenders Fitness Academy", headerName: "Defenders", headerDescriptor: "Fitness Academy", href: "/fitness-academy", logo: "/pics/logo.jpg", mark: "DFA", comingSoon: false },
-    { key: "tsa", name: "A.K Tunisian Security Academy", headerName: "A.K Tunisian Security", headerDescriptor: "Academy", href: "/ak-tunisian-security-academy", logo: "/pics/partners/TSA-logo.jpg", mark: "TSA", comingSoon: false },
+    { key: "fitness", name: "Defenders Fitness Academy", headerName: "Defenders", headerDescriptor: "Fitness Academy", href: "/fitness-academy", logo: "/pics/logo-fitness-academy.jpg", mark: "DFA", comingSoon: false },
+    { key: "tsa", name: "Tunisian Security Academy", headerName: "Tunisian Security", headerDescriptor: "Academy", href: "/tunisian-security-academy", logo: "/pics/partners/tsa-logo-eagle.jpg", mark: "TSA", comingSoon: false },
   ],
   approval: "Agrément n° 21-340-24",
   phone: { label: "+216 92 204 005", href: "tel:+21692204005" },
@@ -32,6 +34,16 @@ export const site = {
     { url: "https://www.facebook.com/reel/1591488295804767/", layout: "square" },
   ] as { url: string; layout: "portrait" | "square" | "landscape" }[],
   securityHeroVideo: "https://www.facebook.com/reel/1082973183535260/",
+  /**
+   * Vidéos de fond des en-têtes, enchaînées pour montrer les trois formations (Pilates, Football, Personal Trainer).
+   * La vidéo Pilates peut être remplacée depuis l'admin (Médias). Tant que football.mp4 / personal-trainer.mp4
+   * ne sont pas déposés dans public/videos, les reels Facebook des fiches sont lus à la place (voir getHeroClips).
+   */
+  homeHeroVideos: {
+    fitness: "/videos/1-Video by defenders_fitness_academy.mp4",
+    football: "/videos/football.mp4",
+    personalTraining: "/videos/personal-trainer.mp4",
+  },
   tunisianSecurityAcademy: {
     facebook: "https://www.facebook.com/profile.php?id=100077382387038",
     videos: "https://www.facebook.com/100077382387038/videos/",
@@ -132,7 +144,7 @@ export const site = {
       role: "Académie partenaire",
       description: "Mentionnée comme co-partenaire dans l'annonce d'accord publiée avec Bayrak El Arab.",
       href: "https://www.facebook.com/profile.php?id=100077382387038",
-      logo: "/pics/partners/TSA-logo.jpg",
+      logo: "/pics/partners/tsa-logo-eagle.jpg",
     },
     {
       name: "RITEJ Company for Recruitment",
@@ -153,7 +165,14 @@ export const site = {
       role: "Partenaire hôtelier",
       description: "Hôtel partenaire de l'académie.",
       href: "https://www.goldentulip.com",
-      logo: "/pics/partners/golden-tulip.svg",
+      logo: "/pics/partners/golden-tulip.jpeg",
+    },
+    {
+      name: "Université Ibn Khaldoun",
+      role: "Partenaire universitaire",
+      description: "Université partenaire de l'académie.",
+      href: "https://uik.ens.tn",
+      logo: "/pics/partners/uik.webp",
     },
   ],
 } as const;
@@ -165,8 +184,7 @@ export type NavItem = { href: string; key: NavKey };
 export const mainNav: NavItem[] = [
   { href: "/", key: "home" },
   { href: "/fitness-academy", key: "fitnessAcademy" },
-  { href: "/ak-tunisian-security-academy", key: "akAcademy" },
-  { href: "/securite", key: "security" },
+  { href: "/tunisian-security-academy", key: "akAcademy" },
   { href: "/formations", key: "formations" },
   { href: "/#galerie", key: "gallery" },
   { href: "/planning", key: "planning" },

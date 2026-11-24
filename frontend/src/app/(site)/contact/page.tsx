@@ -101,7 +101,7 @@ export default async function ContactPage({ searchParams }: PageProps<"/contact"
             </div>
 
             <div className="overflow-hidden border border-line">
-              <Image src={brand.info} alt={`${site.group} : Defenders Security Protection, A.K Tunisian Security Academy, Defenders Fitness Academy`} sizes="352px" className="w-full" />
+              <Image src={brand.info} alt={`${site.group} : Defenders Security Protection, Tunisian Security Academy, Defenders Fitness Academy`} sizes="352px" className="w-full" />
             </div>
 
             <p className="flex items-center gap-2 text-xs tracking-widest text-mist uppercase">

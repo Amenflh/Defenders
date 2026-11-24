@@ -16,30 +16,15 @@ export type AcademyFooterVariant = {
 };
 
 export function academyFooterVariants(taglines: {
-  security: string;
   fitness: string;
   tsa: string;
-  securityPortal: string;
   tsaFacebook: string;
 }): AcademyFooterVariant[] {
-  const security = site.branches.find(({ key }) => key === "security")!;
   const fitness = site.branches.find(({ key }) => key === "fitness")!;
   const tsa = site.branches.find(({ key }) => key === "tsa")!;
   const contact = site.tunisianSecurityAcademy;
 
   return [
-    {
-      href: security.href,
-      identity: { logoUrl: security.logo, brandName: security.headerName, brandDescriptor: security.headerDescriptor },
-      tagline: taglines.security,
-      address: site.address.lines.join(", "),
-      phone: site.phone.label,
-      phone2: site.phone2.label,
-      email: site.securityEmail.label,
-      facebook: site.securityPortal,
-      facebookLabel: taglines.securityPortal,
-      facebookIcon: "arrow",
-    },
     {
       href: fitness.href,
       identity: { logoUrl: fitness.logo, brandName: fitness.headerName, brandDescriptor: fitness.headerDescriptor },

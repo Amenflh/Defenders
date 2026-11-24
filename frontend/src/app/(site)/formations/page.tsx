@@ -4,13 +4,11 @@ import Link from "next/link";
 import { connection } from "next/server";
 import { AcademyVideoHero } from "@/components/AcademyVideoHero";
 import { AcademyCourseCard } from "@/components/AcademyCourseCard";
-import { FacebookVideoEmbed } from "@/components/FacebookVideoEmbed";
 import { FormationCard } from "@/components/FormationCard";
-import { Icon } from "@/components/Icon";
 import { Reveal } from "@/components/Reveal";
 import { Unavailable } from "@/components/Unavailable";
 import { getFormations } from "@/lib/formations";
-import { getHomeHeroVideo } from "@/lib/home-page-data";
+import { getHeroClips } from "@/lib/home-page-data";
 import { getDictionary } from "@/lib/i18n/server";
 import { site } from "@/lib/site";
 
@@ -21,11 +19,11 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export default async function FormationsPage({ searchParams }: PageProps<"/formations">) {
   await connection();
-  const [formations, { locale, t }, params, heroVideo] = await Promise.all([
+  const [formations, { locale, t }, params, heroClips] = await Promise.all([
     getFormations(),
     getDictionary(),
     searchParams,
-    getHomeHeroVideo(),
+    getHeroClips(),
   ]);
   const requestedAcademy = typeof params.academy === "string" ? params.academy : "";
   const activeAcademy = site.branches.some((branch) => branch.key === requestedAcademy) ? requestedAcademy : "all";
@@ -34,9 +32,6 @@ export default async function FormationsPage({ searchParams }: PageProps<"/forma
       filterAcademy: "Filtrer par académie",
       allAcademies: "Toutes les académies",
       fitnessIntro: "Pilates, coaching football ou Personal Training : choisissez votre spécialité. Ouvrez chaque fiche pour voir le contenu, les vidéos disponibles et les modalités.",
-      securityIntro: "Consultez le programme de formation de DSP, puis contactez l'équipe pour préciser votre besoin.",
-      securityTitle: "Formation professionnelle en sécurité",
-      securityText: "Le programme de Defenders Security Protection présente les spécialités, les contenus annoncés et les informations pratiques. Ouvrez-le pour préparer votre demande auprès de l'équipe.",
       tsaIntro: "Découvrez les parcours en intervention initiale, protection rapprochée et formation K9. Consultez chaque fiche et contactez TSA pour confirmer les prochaines modalités.",
       details: "Voir les détails",
     },
@@ -44,9 +39,6 @@ export default async function FormationsPage({ searchParams }: PageProps<"/forma
       filterAcademy: "Filter by academy",
       allAcademies: "All academies",
       fitnessIntro: "Pilates, football coaching or Personal Training: choose your speciality. Open a course to review its content, available videos and practical details.",
-      securityIntro: "Review DSP's training programme, then contact the team to discuss your requirements.",
-      securityTitle: "Professional Security Training",
-      securityText: "Defenders Security Protection's programme presents its listed specialities, course content and practical information. Review it before contacting the team about your requirements.",
       tsaIntro: "Explore Initial Response, Close Protection and K9 training. Review each course and contact TSA to confirm upcoming arrangements.",
       details: "View course details",
     },
@@ -54,20 +46,15 @@ export default async function FormationsPage({ searchParams }: PageProps<"/forma
       filterAcademy: "تصفية حسب الأكاديمية",
       allAcademies: "كل الأكاديميات",
       fitnessIntro: "اختر اختصاصك: Pilates أو تدريب كرة القدم أو التدريب الشخصي. افتح كل تكوين للاطلاع على المحتوى والفيديوهات والتفاصيل العملية.",
-      securityIntro: "اطّلع على برنامج DSP للتكوين، ثم تواصل مع الفريق لشرح احتياجك.",
-      securityTitle: "التكوين المهني في الأمن",
-      securityText: "يعرض برنامج Defenders Security Protection الاختصاصات والمحتوى والمعلومات العملية المنشورة. اطّلع عليه قبل التواصل مع الفريق بشأن طلبك.",
       tsaIntro: "اكتشف مسارات التدخل الأولي والحماية القريبة وتكوين K9. اطّلع على كل صفحة وتواصل مع TSA للتثبت من الترتيبات القادمة.",
       details: "عرض التفاصيل",
     },
   }[locale];
-  const security = site.branches.find((branch) => branch.key === "security")!;
   const fitness = site.branches.find((branch) => branch.key === "fitness")!;
   const tsa = site.branches.find((branch) => branch.key === "tsa")!;
   const tsaCopy = t.pages.akAcademy;
   const academyFilters = [
     { key: "all", label: copy.allAcademies },
-    { key: "security", label: t.nav.security },
     { key: "fitness", label: t.nav.fitnessAcademy },
     { key: "tsa", label: t.nav.akAcademy },
   ];
@@ -77,9 +64,9 @@ export default async function FormationsPage({ searchParams }: PageProps<"/forma
         eyebrow={t.pages.formationsList.eyebrow}
         title={t.pages.formationsList.title}
         intro={t.pages.formationsList.intro}
-        videoSrc={heroVideo}
+        clips={heroClips}
         poster="/pics/banner_images/banner18.jpeg"
-        logo="/pics/logo.jpg"
+        logo="/pics/logo-defenders-academy-round.png"
         logoAlt={site.name}
         coursesLabel={t.common.formations}
       />
@@ -107,44 +94,13 @@ export default async function FormationsPage({ searchParams }: PageProps<"/forma
       </div>
 
       <div className="container-site space-y-14 py-14 lg:space-y-20 lg:py-20">
-        {(activeAcademy === "all" || activeAcademy === "security") && (
-          <AcademySection branch={security} intro={copy.securityIntro}>
-            <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-              <Reveal className="h-full sm:col-span-2 lg:col-span-1">
-                <AcademyCourseCard
-                  title={copy.securityTitle}
-                  text={copy.securityText}
-                  detail={t.pages.security.programmeEyebrow}
-                  poster="/pics/banner_images/banner18.jpeg"
-                  href="/securite#programmes"
-                  action={copy.details}
-                />
-              </Reveal>
-              {site.securityVideos.slice(0, 2).map(({ url, layout }, index) => (
-                <Reveal key={url} delay={(index + 1) * 90} className="video-card group flex flex-col overflow-hidden border border-line bg-ink-2">
-                  <span className="h-1 w-full bg-gold" aria-hidden="true" />
-                  <div className="relative aspect-square lg:aspect-auto lg:min-h-80 lg:flex-1">
-                    <FacebookVideoEmbed url={url} layout={layout} fit="cover" title={`${t.pages.security.closeProtectionTitle} ${index + 1}`} />
-                  </div>
-                  <div className="flex items-center justify-between gap-3 px-5 py-4">
-                    <p className="font-display text-sm uppercase text-gold-soft">{t.pages.security.closeProtectionTitle}</p>
-                    <a href={url} target="_blank" rel="noreferrer" aria-label={`Facebook · ${t.pages.security.closeProtectionTitle} ${index + 1}`} className="grid size-9 shrink-0 place-items-center rounded-full border border-line text-mist transition-colors hover:border-gold hover:text-gold">
-                      <Icon name="facebook" width={16} height={16} />
-                    </a>
-                  </div>
-                </Reveal>
-              ))}
-            </div>
-          </AcademySection>
-        )}
-
         {(activeAcademy === "all" || activeAcademy === "fitness") && <AcademySection branch={fitness} intro={copy.fitnessIntro}>
           {formations === null ? (
             <Unavailable />
           ) : formations.length > 0 ? (
             <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
               {formations.map((formation, index) => (
-                <Reveal key={formation.slug} delay={(index % 3) * 70}>
+                <Reveal from={(["left", "up", "right"] as const)[index % 3]} key={formation.slug} delay={(index % 3) * 70}>
                 <FormationCard
                   f={formation}
                   priority={index < 3}
@@ -164,11 +120,11 @@ export default async function FormationsPage({ searchParams }: PageProps<"/forma
               title={tsaCopy.courseTitle}
               text={tsaCopy.courseText}
               detail={tsaCopy.courseDuration}
-              poster="/pics/partners/TSA-logo.jpg"
+              poster="/pics/partners/tsa-logo-eagle.jpg"
               videoEmbedUrl={site.tunisianSecurityAcademy.firstResponseVideos[0].embedUrl}
               videoLayout={site.tunisianSecurityAcademy.firstResponseVideos[0].layout}
               accentClassName="accent-intervention"
-              href="/ak-tunisian-security-academy/formations/intervention-initiale"
+              href="/tunisian-security-academy/formations/intervention-initiale"
               action={copy.details}
             />
             <AcademyCourseCard
@@ -180,18 +136,18 @@ export default async function FormationsPage({ searchParams }: PageProps<"/forma
               posterAlt={tsaCopy.k9PosterAlt}
               extraLink={{ href: site.tunisianSecurityAcademy.k9CoursePost, label: tsaCopy.k9CoursePostLink }}
               accentClassName="accent-k9"
-              href="/ak-tunisian-security-academy/formations/k9"
+              href="/tunisian-security-academy/formations/k9"
               action={copy.details}
             />
             <AcademyCourseCard
               title={tsaCopy.closeProtectionTitle}
               text={tsaCopy.closeProtectionText}
               detail={tsaCopy.durationToConfirm}
-              poster="/pics/partners/TSA-logo.jpg"
+              poster="/pics/partners/tsa-logo-eagle.jpg"
               videoEmbedUrl={site.tunisianSecurityAcademy.closeProtectionVideos[0].embedUrl}
               videoLayout={site.tunisianSecurityAcademy.closeProtectionVideos[0].layout}
               accentClassName="accent-protection"
-              href="/ak-tunisian-security-academy/formations/protection-rapprochee"
+              href="/tunisian-security-academy/formations/protection-rapprochee"
               action={copy.details}
             />
           </div>
@@ -219,7 +175,7 @@ function AcademySection({
 }) {
   return (
     <section aria-labelledby={`${branch.key}-formations`}>
-      <Reveal className="mb-7 flex flex-wrap items-center gap-5">
+      <Reveal from="left" className="mb-7 flex flex-wrap items-center gap-5">
         <Image
           src={branch.logo}
           alt=""

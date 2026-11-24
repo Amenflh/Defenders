@@ -7,14 +7,15 @@ import type { FacebookVideoLayout } from "@/components/FacebookVideoEmbed";
 export const HISTORY_PROVISIONAL = true;
 
 export type HistoryActivity = "football" | "pilates" | "personal-training" | "securite" | "tsa";
-export type HistoryAcademy = "fitness" | "security" | "tsa";
+/** Deux académies : la sécurité / protection (DSP) fait partie de la Tunisian Security Academy. */
+export type HistoryAcademy = "fitness" | "tsa";
 type Localized = Record<Locale, string>;
 
 export const HISTORY_ACADEMY_FOR_ACTIVITY: Record<HistoryActivity, HistoryAcademy> = {
   football: "fitness",
   pilates: "fitness",
   "personal-training": "fitness",
-  securite: "security",
+  securite: "tsa",
   tsa: "tsa",
 };
 
@@ -40,8 +41,8 @@ export const ACTIVITY_LABELS: Record<HistoryActivity, Localized> = {
   football: { fr: "Football", en: "Football", ar: "كرة القدم" },
   pilates: { fr: "Fitness · Pilates", en: "Fitness · Pilates", ar: "اللياقة · بيلاتس" },
   "personal-training": { fr: "Personal Trainer", en: "Personal Trainer", ar: "مدرب شخصي" },
-  securite: { fr: "Defenders Security Protection", en: "Defenders Security Protection", ar: "Defenders Security Protection" },
-  tsa: { fr: "Tunisian Security Academy", en: "Tunisian Security Academy", ar: "الأكاديمية التونسية للأمن" },
+  securite: { fr: "TSA · Sécurité & protection", en: "TSA · Security & protection", ar: "TSA · الأمن والحماية" },
+  tsa: { fr: "TSA · Formations", en: "TSA · Courses", ar: "TSA · التكوينات" },
 };
 
 export const HISTORY_STATUS_LABELS: Record<HistoryEntry["status"], Localized> = {

@@ -44,7 +44,7 @@ export function visualFor(slug: string): FormationVisual {
 
 /**
  * Classe CSS qui applique la couleur d'une activité à toute une section (voir globals.css) :
- * football = rouge, fitness / Pilates = jaune, personal trainer = vert militaire. Sinon : beige.
+ * football = rouge, fitness / Pilates = orange, personal trainer = vert militaire. Sinon : beige.
  */
 export function accentClassFor(slugOrAccent: string): string {
   if (/football/.test(slugOrAccent)) return "accent-football";

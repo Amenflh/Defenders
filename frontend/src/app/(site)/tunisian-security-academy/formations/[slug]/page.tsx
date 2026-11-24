@@ -38,7 +38,7 @@ function programFor(slug: ProgramSlug, copy: Awaited<ReturnType<typeof getDictio
       summary: copy.closeProtectionText,
       topics: [],
       practical: copy.closeProtectionPractical,
-      poster: "/pics/partners/TSA-logo.jpg",
+      poster: "/pics/partners/tsa-logo-eagle.jpg",
       videoEmbeds: site.tunisianSecurityAcademy.closeProtectionVideos.map(({ embedUrl, layout }) => ({ url: embedUrl, layout })),
     };
   }
@@ -51,12 +51,12 @@ function programFor(slug: ProgramSlug, copy: Awaited<ReturnType<typeof getDictio
     summary: copy.courseText,
     topics: copy.courseTopics,
     practical: copy.coursePractical,
-    poster: "/pics/partners/TSA-logo.jpg",
+    poster: "/pics/partners/tsa-logo-eagle.jpg",
     videoEmbeds: site.tunisianSecurityAcademy.firstResponseVideos.map(({ embedUrl, layout }) => ({ url: embedUrl, layout })),
   };
 }
 
-export async function generateMetadata({ params }: PageProps<"/ak-tunisian-security-academy/formations/[slug]">): Promise<Metadata> {
+export async function generateMetadata({ params }: PageProps<"/tunisian-security-academy/formations/[slug]">): Promise<Metadata> {
   const { slug } = await params;
   const { t } = await getDictionary();
   if (!isProgramSlug(slug)) return { title: t.common.formations };
@@ -64,7 +64,7 @@ export async function generateMetadata({ params }: PageProps<"/ak-tunisian-secur
   return { title: program.title, description: program.summary };
 }
 
-export default async function TunisianSecurityProgramPage({ params }: PageProps<"/ak-tunisian-security-academy/formations/[slug]">) {
+export default async function TunisianSecurityProgramPage({ params }: PageProps<"/tunisian-security-academy/formations/[slug]">) {
   const { slug } = await params;
   if (!isProgramSlug(slug)) notFound();
   const { t } = await getDictionary();

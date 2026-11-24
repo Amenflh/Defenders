@@ -46,7 +46,6 @@ export function HistoryTimeline({
   const academyFilters: { value: HistoryAcademy | "all"; label: string }[] = [
     { value: "all", label: t.history.allAcademies },
     { value: "fitness", label: t.nav.fitnessAcademy },
-    { value: "security", label: t.nav.security },
     { value: "tsa", label: t.nav.akAcademy },
   ];
 

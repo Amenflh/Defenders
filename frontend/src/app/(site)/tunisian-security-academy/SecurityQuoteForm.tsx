@@ -4,7 +4,7 @@ import { useActionState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { Icon } from "@/components/Icon";
 import { PhoneField } from "@/components/PhoneField";
-import { submitSecurityQuote, type SecurityQuoteField, type SecurityQuoteState } from "./actions";
+import { submitSecurityQuote, type SecurityQuoteField, type SecurityQuoteState } from "./security-actions";
 
 export type SecurityQuoteCopy = {
   title: string;
