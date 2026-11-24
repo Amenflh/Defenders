@@ -1,5 +1,6 @@
 import "server-only";
 import { backendUrl } from "./api";
+import { cachedPublicGet, isCacheablePublicGet } from "./public-cache";
 import { type Accent, visualFor } from "./formation-visuals";
 
 /** Formation telle que renvoyée par l'API (contenu modifiable dans /admin/formations). */
@@ -37,7 +38,9 @@ export type FormationSession = { id: string; title: string; day: number; start: 
 export type FormationDetail = Formation & { trainers: Trainer[]; media: MediaItem[]; sessions: FormationSession[] };
 
 async function get<T>(path: string): Promise<{ status: number; data?: T }> {
-  const res = await fetch(backendUrl(path), { cache: "no-store", signal: AbortSignal.timeout(5000) });
+  const load = () => fetch(backendUrl(path), { cache: "no-store", signal: AbortSignal.timeout(5000) });
+  // Catalogue public : partagé entre visiteurs via le cache mémoire court (voir public-cache.ts).
+  const res = isCacheablePublicGet(path) ? await cachedPublicGet(path, load) : await load();
   return { status: res.status, data: res.ok ? ((await res.json()) as T) : undefined };
 }
 

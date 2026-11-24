@@ -27,14 +27,19 @@ export const config = {
   port: toInt(process.env.PORT, 4000),
   host: process.env.HOST ?? "0.0.0.0",
   /** Origines autorisées à appeler l'API depuis un navigateur (séparées par des virgules). */
-  corsOrigins: (process.env.CORS_ORIGINS ?? "http://localhost:3000")
+  corsOrigins: (process.env.CORS_ORIGINS ?? "http://localhost:3001,http://localhost:3000")
     .split(",")
     .map((o) => o.trim())
     .filter(Boolean),
   /** Chaîne de connexion PostgreSQL : postgres://utilisateur:motdepasse@hôte:5432/base */
   databaseUrl: required("DATABASE_URL"),
+  /**
+   * Connexions PostgreSQL ouvertes par instance de l'API (10 par défaut). Avec plusieurs instances,
+   * garder (instances × DB_POOL_MAX) sous la limite max_connections de PostgreSQL.
+   */
+  dbPoolMax: Math.min(100, Math.max(2, toInt(process.env.DB_POOL_MAX, 10))),
   /** Adresse publique du site (liens dans les e-mails). */
-  siteUrl: (process.env.SITE_URL ?? "http://localhost:3000").replace(/\/+$/, ""),
+  siteUrl: (process.env.SITE_URL ?? "http://localhost:3001").replace(/\/+$/, ""),
   /** Signature des jetons JWT (HS256) : au moins 32 caractères aléatoires. */
   jwt: {
     secret: jwtSecret(),

@@ -1,4 +1,5 @@
 import { backendUrl } from "@/lib/api";
+import { clearPublicCache } from "@/lib/public-cache";
 import { clientIp, getSessionToken } from "@/lib/session";
 
 /**
@@ -34,6 +35,7 @@ export async function POST(request: Request) {
         "x-forwarded-for": await clientIp(),
       },
     });
+    clearPublicCache();
     return new Response(res.body, { status: res.status, headers: { "content-type": res.headers.get("content-type") ?? "application/json" } });
   } catch {
     return Response.json({ error: "L'API ne répond pas. Réessayez dans un instant." }, { status: 502 });

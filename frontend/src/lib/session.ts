@@ -1,6 +1,7 @@
 import "server-only";
 import { cookies, headers } from "next/headers";
 import { backendUrl } from "./api";
+import { cachedPublicGet, clearPublicCache, isCacheablePublicGet } from "./public-cache";
 
 /** Cookie httpOnly contenant le jeton de session (illisible par le JavaScript de la page). */
 export const SESSION_COOKIE = "dfa_session";
@@ -28,11 +29,20 @@ export async function getSessionToken(): Promise<string | undefined> {
   return (await cookies()).get(SESSION_COOKIE)?.value;
 }
 
-/** Appel à l'API avec le jeton de session de l'utilisateur (s'il est connecté). */
+/**
+ * Appel à l'API avec le jeton de session de l'utilisateur (s'il est connecté).
+ * Les lectures publiques (identiques pour tous) passent par un cache mémoire court, voir public-cache.ts.
+ */
 export async function apiFetch(path: string, init: RequestInit = {}): Promise<Response> {
+  const method = (init.method ?? "GET").toUpperCase();
+  if (isCacheablePublicGet(path, method) && !init.headers) {
+    return cachedPublicGet(path, () =>
+      fetch(backendUrl(path), { cache: "no-store", signal: AbortSignal.timeout(8000), headers: { "Content-Type": "application/json" } }),
+    );
+  }
   const token = await getSessionToken();
   const isFormData = typeof FormData !== "undefined" && init.body instanceof FormData;
-  return fetch(backendUrl(path), {
+  const response = await fetch(backendUrl(path), {
     ...init,
     cache: "no-store",
     signal: AbortSignal.timeout(8000),
@@ -43,6 +53,8 @@ export async function apiFetch(path: string, init: RequestInit = {}): Promise<Re
       ...init.headers,
     },
   });
+  if (method !== "GET" && method !== "HEAD") clearPublicCache();
+  return response;
 }
 
 /**
@@ -83,7 +95,7 @@ export async function publicOrigin(): Promise<string> {
   const configured = process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/+$/, "");
   if (configured) return configured;
   const h = await headers();
-  const host = h.get("x-forwarded-host") ?? h.get("host") ?? "localhost:3000";
+  const host = h.get("x-forwarded-host") ?? h.get("host") ?? "localhost:3001";
   const proto = h.get("x-forwarded-proto") ?? (host.startsWith("localhost") ? "http" : "https");
   return `${proto}://${host}`;
 }

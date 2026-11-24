@@ -10,15 +10,19 @@ import "./globals.css";
 const inter = Inter({ variable: "--font-inter", subsets: ["latin"] });
 const oswald = Oswald({ variable: "--font-oswald", subsets: ["latin"], weight: ["400", "500", "600"] });
 // Police arabe : Inter et Oswald ne contiennent pas l'alphabet arabe.
-const cairo = Cairo({ variable: "--font-cairo", subsets: ["arabic", "latin"], weight: ["400", "500", "600", "700"] });
+// Pas de préchargement : elle n'est téléchargée que lorsque le site est affiché en arabe.
+const cairo = Cairo({ variable: "--font-cairo", subsets: ["arabic", "latin"], weight: ["400", "500", "600", "700"], preload: false });
 
 export async function generateMetadata(): Promise<Metadata> {
   const { t } = await getDictionary();
-  return { title: t.meta.title, description: t.meta.description, icons: { icon: "/pics/logo.jpg" } };
+  return { title: t.meta.title, description: t.meta.description, icons: { icon: "/pics/logo-defenders-academy-round.png" } };
 }
 
 export const viewport: Viewport = {
-  themeColor: "#0b0b0c",
+  themeColor: [
+    { media: "(prefers-color-scheme: dark)", color: "#0b0b0c" },
+    { media: "(prefers-color-scheme: light)", color: "#ffffff" },
+  ],
 };
 
 export default async function RootLayout({ children }: LayoutProps<"/">) {
@@ -30,7 +34,7 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
       <body className="flex min-h-dvh flex-col font-sans">
         {/* Sans JavaScript, les animations d'apparition ne doivent jamais masquer le contenu. */}
         <noscript>
-          <style>{`[data-reveal]{opacity:1!important;transform:none!important}`}</style>
+          <style>{`[data-reveal]{opacity:1!important;transform:none!important}[data-wordmark] .footer-wordmark-letter{opacity:1!important;transform:none!important;filter:none!important}`}</style>
         </noscript>
         <I18nProvider locale={locale} theme={theme}>{children}</I18nProvider>
       </body>

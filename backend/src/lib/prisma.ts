@@ -4,7 +4,7 @@ import { config } from "../config.js";
 
 /** Client Prisma unique pour toute l'application (adaptateur PostgreSQL « pg »). */
 export const prisma = new PrismaClient({
-  adapter: new PrismaPg({ connectionString: config.databaseUrl, max: 10, connectionTimeoutMillis: 5_000 }),
+  adapter: new PrismaPg({ connectionString: config.databaseUrl, max: config.dbPoolMax, connectionTimeoutMillis: 5_000, idleTimeoutMillis: 30_000 }),
 });
 
 export type DbStatus =
