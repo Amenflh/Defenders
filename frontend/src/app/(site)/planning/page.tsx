@@ -53,7 +53,7 @@ export default async function PlanningPage() {
                 const daysLeft = date ? Math.round((date.getTime() - today) / DAY_MS) : null;
                 const cover = f.coverUrl ? { src: f.coverUrl, alt: f.name } : visualFor(f.slug).cover;
                 return (
-                  <Reveal as="li" key={f.slug} delay={i * 80} className={`${accentClassFor(f.slug || f.accent)} flex flex-col border border-line bg-ink-2`}>
+                  <Reveal from={(["left", "up", "right"] as const)[i % 3]} as="li" key={f.slug} delay={i * 80} className={`${accentClassFor(f.slug || f.accent)} flex flex-col border border-line bg-ink-2`}>
                     <div className="relative aspect-[16/9] overflow-hidden bg-ink">
                       <Image src={cover.src} alt={cover.alt} fill unoptimized={typeof cover.src === "string"} sizes="(min-width:1280px) 33vw, (min-width:768px) 50vw, 100vw" className="object-cover opacity-70" />
                       <div className="absolute inset-0 bg-gradient-to-t from-ink-2 via-ink-2/30 to-transparent" />

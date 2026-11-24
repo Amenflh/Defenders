@@ -54,29 +54,29 @@ export async function FormationPage({ f: source, others: sourceOthers }: { f: Fo
         <div className={`pointer-events-none absolute -top-40 -right-40 size-[36rem] rounded-full ${accent.bg} opacity-10 blur-3xl`} />
         <div className="container-site grid items-center gap-14 lg:grid-cols-2">
           <div>
-            <Reveal>
+            <Reveal from="left">
               <nav aria-label={p.breadcrumb} className="mb-6 text-xs tracking-[0.2em] text-mist uppercase">
                 <Link href="/" className="hover:text-bone">{t.nav.home}</Link> <span aria-hidden="true">/</span>{" "}
                 <Link href="/formations" className="hover:text-bone">{t.common.formations}</Link> <span aria-hidden="true">/</span>{" "}
                 <span className={accent.text}>{f.name}</span>
               </nav>
             </Reveal>
-            <Reveal delay={80}>
+            <Reveal from="left" delay={80}>
               <h1 className="heading-xl">{f.name}</h1>
               {f.headline && <p className={`mt-4 font-display text-xl tracking-wide uppercase ${accent.text}`}>{f.headline}</p>}
             </Reveal>
             {f.summary && (
-              <Reveal delay={160}>
+              <Reveal from="left" delay={160}>
                 <p className="mt-6 max-w-xl text-lg leading-relaxed text-mist">{f.summary}</p>
               </Reveal>
             )}
             {socialDetails && (
-              <Reveal delay={200}>
+              <Reveal from="left" delay={200}>
                 <p className="mt-5 max-w-xl border-s-2 border-gold/60 bg-ink-2 p-5 text-sm leading-relaxed text-mist">{socialDetails}</p>
               </Reveal>
             )}
             {facts.length > 0 && (
-              <Reveal delay={240}>
+              <Reveal from="left" delay={240}>
                 <dl className="mt-10 grid border-y border-line" style={{ gridTemplateColumns: `repeat(${facts.length}, minmax(0, 1fr))` }}>
                   {facts.map((fact) => (
                     <div key={fact.label} className="border-e border-line py-5 pe-3 last:border-e-0 [&:not(:first-child)]:ps-4">
@@ -87,7 +87,7 @@ export async function FormationPage({ f: source, others: sourceOthers }: { f: Fo
                 </dl>
               </Reveal>
             )}
-            <Reveal delay={320} className="mt-10 flex flex-wrap gap-4">
+            <Reveal from="left" delay={320} className="mt-10 flex flex-wrap gap-4">
               <Link href={`/contact?formation=${f.slug}`} className="btn btn-primary">
                 {t.common.register} <Icon name="arrow" className="rtl:-scale-x-100" />
               </Link>
@@ -123,7 +123,7 @@ export async function FormationPage({ f: source, others: sourceOthers }: { f: Fo
         <section className="border-y border-line bg-ink-2 py-24">
           <div className="container-site grid gap-14 lg:grid-cols-2">
             {f.intro.length > 0 && (
-              <Reveal>
+              <Reveal from="left">
                 <p className="eyebrow mb-3">{p.theFormation}</p>
                 <h2 className="heading-lg mb-6">{p.whatYouLearn}</h2>
                 <div className="space-y-4 text-lg leading-relaxed text-mist">
@@ -134,7 +134,7 @@ export async function FormationPage({ f: source, others: sourceOthers }: { f: Fo
               </Reveal>
             )}
             {f.objectives.length > 0 && (
-              <Reveal delay={120}>
+              <Reveal from="right" delay={120}>
                 <h3 className="mb-6 font-display text-2xl tracking-wide uppercase">{p.objectives}</h3>
                 <ul className="space-y-4">
                   {f.objectives.map((o, i) => (
@@ -154,13 +154,13 @@ export async function FormationPage({ f: source, others: sourceOthers }: { f: Fo
       {f.modules.length > 0 && (
         <section className="py-24">
           <div className="container-site">
-            <Reveal className="mb-12">
+            <Reveal from="left" className="mb-12">
               <p className="eyebrow mb-3">{p.programme}</p>
               <h2 className="heading-lg">{p.modules}</h2>
             </Reveal>
             <ol className="grid gap-px overflow-hidden border border-line bg-line sm:grid-cols-2 lg:grid-cols-3">
               {f.modules.map((m, i) => (
-                <Reveal as="li" key={i} delay={(i % 3) * 100} className="group bg-ink p-8 transition-colors hover:bg-ink-2">
+                <Reveal from={(["left", "up", "right"] as const)[i % 3]} as="li" key={i} delay={(i % 3) * 100} className="group bg-ink p-8 transition-colors hover:bg-ink-2">
                   <span className={`font-display text-sm tracking-[0.3em] ${accent.text}`}>{p.module.toUpperCase()} {String(i + 1).padStart(2, "0")}</span>
                   <h3 className="mt-3 font-display text-2xl tracking-wide uppercase">{m.title}</h3>
                   {m.text && <p className="mt-3 text-sm leading-relaxed text-mist">{m.text}</p>}
@@ -175,7 +175,7 @@ export async function FormationPage({ f: source, others: sourceOthers }: { f: Fo
       {(f.prerequisites.length > 0 || f.levelLabel || f.durationLabel || price) && (
         <section className="border-y border-line bg-ink-2 py-20">
           <div className="container-site grid gap-12 lg:grid-cols-[1fr_1.2fr]">
-            <Reveal>
+            <Reveal from="left">
               <p className="eyebrow mb-3">{p.practical}</p>
               <h2 className="heading-lg">{p.beforeRegister}</h2>
               <dl className="mt-8 grid gap-px border border-line bg-line sm:grid-cols-3">
@@ -191,7 +191,7 @@ export async function FormationPage({ f: source, others: sourceOthers }: { f: Fo
                 ))}
               </dl>
             </Reveal>
-            <Reveal delay={120}>
+            <Reveal from="right" delay={120}>
               <h3 className="mb-6 font-display text-2xl tracking-wide uppercase">{p.prerequisites}</h3>
               {f.prerequisites.length > 0 ? (
                 <ul className="space-y-4">
@@ -234,7 +234,7 @@ export async function FormationPage({ f: source, others: sourceOthers }: { f: Fo
       {f.trainers.length > 0 && (
         <section className="border-t border-line py-24">
           <div className="container-site">
-            <Reveal className="mb-10">
+            <Reveal from="left" className="mb-10">
               <p className="eyebrow mb-3">{p.team}</p>
               <h2 className="heading-lg">{p.trainers}</h2>
             </Reveal>
@@ -273,7 +273,7 @@ export async function FormationPage({ f: source, others: sourceOthers }: { f: Fo
       {/* -------- Galerie défilante : photos du site + images téléversées -------- */}
       {galleryPhotos.length > 0 && (
         <section className="pb-24">
-          <Reveal>
+          <Reveal from="left">
             <GalleryMarquee photos={galleryPhotos} label={p.galleryLabel} />
           </Reveal>
         </section>
@@ -281,7 +281,7 @@ export async function FormationPage({ f: source, others: sourceOthers }: { f: Fo
 
       {/* -------- Public + débouchés -------- */}
       {(f.audience.length > 0 || f.careers.length > 0) && (
-        <section className="bg-bone py-24 text-ink">
+        <section className="border-y border-line bg-ink-2 py-24">
           <div className="container-site grid gap-10 md:grid-cols-2">
             {[
               { title: p.audience, items: f.audience },
@@ -289,12 +289,12 @@ export async function FormationPage({ f: source, others: sourceOthers }: { f: Fo
             ]
               .filter((col) => col.items.length > 0)
               .map((col, i) => (
-                <Reveal key={col.title} delay={i * 120}>
+                <Reveal from={i % 2 === 0 ? "left" : "right"} key={col.title} delay={i * 120}>
                   <h2 className="mb-6 font-display text-3xl tracking-wide uppercase">{col.title}</h2>
                   <ul className="space-y-3">
                     {col.items.map((it, j) => (
-                      <li key={j} className="flex items-center gap-3 border-b border-ink/10 pb-3">
-                        <Icon name="star" width={16} height={16} className="shrink-0" /> {it}
+                      <li key={j} className="group flex items-center gap-3 border-b border-line pb-3 transition-colors hover:text-gold-soft">
+                        <Icon name="star" width={16} height={16} className="shrink-0 text-gold transition-transform duration-300 group-hover:rotate-[72deg] group-hover:scale-110" /> {it}
                       </li>
                     ))}
                   </ul>
@@ -310,7 +310,7 @@ export async function FormationPage({ f: source, others: sourceOthers }: { f: Fo
       {/* -------- Autres formations -------- */}
       <section className="py-24">
         <div className="container-site">
-          <Reveal className="mb-10 flex flex-wrap items-end justify-between gap-6">
+          <Reveal from="left" className="mb-10 flex flex-wrap items-end justify-between gap-6">
             <h2 className="heading-lg">{others.length ? p.discoverAlso : p.readyToStart}</h2>
             <Link href={`/contact?formation=${f.slug}`} className="btn btn-primary">
               {p.requestRegistration} <Icon name="arrow" className="rtl:-scale-x-100" />
@@ -319,7 +319,7 @@ export async function FormationPage({ f: source, others: sourceOthers }: { f: Fo
           {others.length > 0 && (
             <div className="grid gap-6 sm:grid-cols-2">
               {others.map((o, i) => (
-                <Reveal key={o.slug} delay={i * 120}>
+                <Reveal from={(["left", "up", "right"] as const)[i % 3]} key={o.slug} delay={i * 120}>
                   <FormationLink f={o} />
                 </Reveal>
               ))}

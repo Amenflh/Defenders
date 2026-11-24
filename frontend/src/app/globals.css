@@ -2,7 +2,8 @@
 
 /* ------------------------------------------------------------------
    Charte Defenders Academy : noir, blanc et beige.
-   Chaque activité a sa couleur : football = rouge, fitness = jaune,
+   Chaque activité a sa couleur : football = rouge, fitness / Pilates = orange
+   (charte « Pilates X Defenders » : Orange Sunset #D96B27),
    personal trainer = vert militaire. Le jeton « gold » porte l'accent
    courant (beige) ; les pages d'une activité le remplacent par sa couleur
    (classes .accent-football, .accent-pilates, .accent-personal).
@@ -19,8 +20,8 @@
   --color-gold-soft: #e4d4b6;
   --color-beige: #cdb48c;
 
-  /* Fitness / Pilates : jaune */
-  --color-pilates: #f2c230;
+  /* Fitness / Pilates : Orange Sunset de la charte Pilates X Defenders */
+  --color-pilates: #d96b27;
   /* Football : rouge */
   --color-football: #d93a3a;
   /* Personal trainer : vert militaire (éclairci pour rester lisible sur fond noir) */
@@ -52,6 +53,8 @@
   body {
     background: var(--color-ink);
     color: var(--color-bone);
+    /* Les blocs qui entrent par la gauche / la droite ne doivent pas créer de défilement horizontal. */
+    overflow-x: clip;
   }
 
   ::selection {
@@ -66,23 +69,26 @@
 }
 
 /* ------------------------------------------------------------------
-   Version claire (bouton soleil / lune) : fond blanc cassé, texte noir,
-   accent beige foncé pour rester lisible sur fond clair.
+   Version claire (bouton soleil / lune) : blanc franc et gris neutres,
+   texte anthracite, accent bronze profond (contraste AA sur blanc),
+   ombres douces au lieu de bordures marquées.
    Les jetons gardent leur nom : « ink » = fond, « bone » = texte.
+   Les en-têtes vidéo et le pied de page restent sombres (.surface-dark).
    ------------------------------------------------------------------ */
 :root[data-theme="light"] {
   color-scheme: light;
-  --color-ink: #f8f5ef;
-  --color-ink-2: #efe9df;
-  --color-ink-3: #e5ddd0;
-  --color-line: #d6ccbc;
-  --color-bone: #141416;
-  --color-bone-2: #2a2a2e;
-  --color-mist: #5c5a56;
-  --color-gold: #a3824f;
-  --color-gold-soft: #8a6b3d;
+  --color-ink: #ffffff;
+  /* Surfaces alternées et bordures nettement visibles : chaque bloc reste bien séparé sur fond blanc. */
+  --color-ink-2: #f2f0eb;
+  --color-ink-3: #e6e3dc;
+  --color-line: #cfcabf;
+  --color-bone: #16161a;
+  --color-bone-2: #2c2c32;
+  --color-mist: #55555d;
+  --color-gold: #8a6a36;
+  --color-gold-soft: #6e5226;
   --color-beige: #cdb48c;
-  --color-pilates: #c99700;
+  --color-pilates: #b0521a;
   --color-football: #c62828;
   --color-personal: #556b2f;
   --color-k9: #197a75;
@@ -90,15 +96,56 @@
   --color-protection: #70509b;
 }
 :root[data-theme="dark"] { color-scheme: dark; }
-:root[data-theme="light"] :is(.border-white\/20, .border-white\/15) { border-color: rgb(20 20 22 / 0.18); }
-:root[data-theme="light"] .ring-white\/15 { --tw-ring-color: rgb(20 20 22 / 0.15); }
-/* Sur les aplats de couleur (boutons, pastilles), le texte reste noir dans les deux thèmes. */
-:root[data-theme="light"] :is(.bg-gold, .bg-beige, .btn-primary),
-:root[data-theme="light"] :is(.bg-gold, .bg-beige, .btn-primary) .text-ink {
+:root[data-theme="light"] :is(.border-white\/20, .border-white\/15, .border-white\/10, .border-white\/5) { border-color: var(--color-line); }
+:root[data-theme="light"] :is(.border-line\/70, .border-line\/60, .border-line\/50) { border-color: var(--color-line); }
+:root[data-theme="light"] .hover\:bg-white\/\[0\.05\]:hover,
+:root[data-theme="light"] .hover\:bg-white\/\[0\.04\]:hover { background-color: rgb(22 22 26 / 0.05); }:root[data-theme="light"] .ring-white\/15 { --tw-ring-color: rgb(22 22 26 / 0.12); }
+/* Le beige clair garde un texte noir ; sur le bronze (bg-gold, btn-primary), le texte « ink » est blanc. */
+:root[data-theme="light"] .bg-beige,
+:root[data-theme="light"] .bg-beige .text-ink {
   color: #0b0b0c;
 }
+:root[data-theme="light"] body { background: var(--color-ink-2); }
+/* Header : blanc translucide et net, avec un filet et une ombre très légère. */
+:root[data-theme="light"] .site-header {
+  background-color: rgb(255 255 255 / 0.92);
+  box-shadow: 0 1px 0 var(--color-line), 0 6px 20px -14px rgb(22 22 26 / 0.25);
+}
+:root[data-theme="light"] main { background: var(--color-ink); }
+/* Ombres : plus légères et plus nettes qu'en sombre. */
+:root[data-theme="light"] :is(.shadow-black\/30, .shadow-lg, .shadow-2xl) {
+  --tw-shadow-color: rgb(22 22 26 / 0.08);
+  box-shadow: 0 1px 2px rgb(22 22 26 / 0.04), 0 12px 32px -16px rgb(22 22 26 / 0.18);
+}
+/* Cartes : fond blanc, fine bordure et ombre discrète, relief au survol. */
+:root[data-theme="light"] :is(.branch-card, .video-card) {
+  background: #ffffff;
+  border-color: var(--color-line);
+  box-shadow: 0 1px 2px rgb(22 22 26 / 0.04), 0 10px 28px -18px rgb(22 22 26 / 0.22);
+}
+:root[data-theme="light"] :is(.branch-card, .video-card):hover {
+  box-shadow: 0 2px 4px rgb(22 22 26 / 0.05), 0 22px 44px -22px rgb(22 22 26 / 0.3);
+}
+:root[data-theme="light"] .btn-primary:hover { background: var(--color-bone); color: var(--color-ink); }
+
+/* Zones toujours sombres (en-têtes vidéo, pied de page) : la palette sombre y est rétablie dans les deux thèmes. */
+.surface-dark {
+  --color-ink: #0b0b0c;
+  --color-ink-2: #131315;
+  --color-ink-3: #1d1d20;
+  --color-line: #2a2a2e;
+  --color-bone: #f4f2ee;
+  --color-bone-2: #e8e5df;
+  --color-mist: #a1a1a8;
+  --color-gold: #cdb48c;
+  --color-gold-soft: #e4d4b6;
+  color: var(--color-bone);
+  color-scheme: dark;
+}
+:root[data-theme="light"] .surface-dark :is(.border-white\/20, .border-white\/15) { border-color: rgb(255 255 255 / 0.2); }
+:root[data-theme="light"] .surface-dark .btn-primary:hover { background: var(--color-gold-soft); color: var(--color-ink); }
 :root[data-theme="light"] .accent-football { --color-gold-soft: #9f1d1d; }
-:root[data-theme="light"] .accent-pilates { --color-gold-soft: #9c7600; }
+:root[data-theme="light"] .accent-pilates { --color-gold-soft: #9a4512; }
 :root[data-theme="light"] .accent-personal { --color-gold-soft: #3f5222; }
 :root[data-theme="light"] .accent-k9 { --color-gold-soft: #176a66; }
 :root[data-theme="light"] .accent-intervention { --color-gold-soft: #8b4b0d; }
@@ -121,7 +168,7 @@ html[lang="ar"] body * {
 
 /* Accent d'une activité : remplace le beige sur toute la section concernée. */
 .accent-football { --color-gold: var(--color-football); --color-gold-soft: #ef6a6a; }
-.accent-pilates { --color-gold: var(--color-pilates); --color-gold-soft: #f7d766; }
+.accent-pilates { --color-gold: var(--color-pilates); --color-gold-soft: #ec9a62; }
 .accent-personal { --color-gold: var(--color-personal); --color-gold-soft: #9aae66; }
 .accent-k9 { --color-gold: var(--color-k9); --color-gold-soft: #83d2cd; }
 .accent-intervention { --color-gold: var(--color-intervention); --color-gold-soft: #f0b77e; }
@@ -190,9 +237,30 @@ html[lang="ar"] body * {
     font-size: 0.95rem;
     letter-spacing: 0.12em;
     text-transform: uppercase;
-    transition: background-color 0.25s, color 0.25s, border-color 0.25s, transform 0.25s;
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+    transition: background-color 0.25s, color 0.25s, border-color 0.25s, transform 0.3s cubic-bezier(0.2, 0.7, 0.2, 1), box-shadow 0.3s;
   }
-  .btn:active { transform: translateY(1px); }
+  /* Reflet lumineux qui balaie le bouton au survol. */
+  .btn::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background: linear-gradient(110deg, transparent 30%, rgb(255 255 255 / 0.28) 50%, transparent 70%);
+    translate: -120% 0;
+    transition: translate 0.7s cubic-bezier(0.2, 0.7, 0.2, 1);
+    pointer-events: none;
+  }
+  .btn:hover::before { translate: 120% 0; }
+  .btn:hover { transform: translateY(-2px); }
+  .btn:active { transform: translateY(0) scale(0.97); transition-duration: 0.08s; }
+  /* La flèche (dernière icône) avance au survol. */
+  .btn > svg:last-child { transition: translate 0.3s cubic-bezier(0.2, 0.7, 0.2, 1); }
+  .btn:hover > svg:last-child { translate: 4px 0; }
+  [dir="rtl"] .btn:hover > svg:last-child { translate: -4px 0; }
+  .btn-primary:hover { box-shadow: 0 12px 28px -12px color-mix(in oklab, var(--color-gold) 75%, transparent); }
   .btn-primary { background: var(--color-gold); color: var(--color-ink); }
   .btn-primary:hover { background: var(--color-gold-soft); }
   .btn-ghost { border: 1px solid color-mix(in oklab, var(--color-bone) 35%, transparent); color: var(--color-bone); }
@@ -204,15 +272,54 @@ html[lang="ar"] body * {
 /* ---------- Apparition au scroll (composant <Reveal>) ---------- */
 [data-reveal] {
   opacity: 0;
-  transform: translateY(28px);
+  transform: translateY(32px);
   transition:
-    opacity 0.8s cubic-bezier(0.2, 0.7, 0.2, 1),
-    transform 0.8s cubic-bezier(0.2, 0.7, 0.2, 1);
+    opacity 0.9s cubic-bezier(0.2, 0.7, 0.2, 1),
+    transform 0.9s cubic-bezier(0.16, 0.84, 0.24, 1);
   transition-delay: var(--reveal-delay, 0ms);
 }
-[data-reveal="left"] { transform: translateX(-36px); }
-[data-reveal="right"] { transform: translateX(36px); }
-[data-reveal="zoom"] { transform: scale(0.94); }
+/* Entrées latérales : les blocs glissent depuis la gauche ou la droite. */
+[data-reveal="left"] { transform: translateX(-72px); }
+[data-reveal="right"] { transform: translateX(72px); }
+[dir="rtl"] [data-reveal="left"] { transform: translateX(72px); }
+[dir="rtl"] [data-reveal="right"] { transform: translateX(-72px); }
+[data-reveal="zoom"] { transform: scale(0.92); }
+@media (max-width: 640px) {
+  [data-reveal="left"], [dir="rtl"] [data-reveal="right"] { transform: translateX(-36px); }
+  [data-reveal="right"], [dir="rtl"] [data-reveal="left"] { transform: translateX(36px); }
+}
+
+/* Cartes des grilles (ajouté automatiquement par AutoReveal sur toutes les pages). */
+[data-auto-card="lift"] {
+  transition:
+    opacity 0.9s cubic-bezier(0.2, 0.7, 0.2, 1),
+    transform 0.9s cubic-bezier(0.16, 0.84, 0.24, 1),
+    translate 0.45s cubic-bezier(0.2, 0.7, 0.2, 1),
+    border-color 0.3s,
+    box-shadow 0.45s;
+}
+[data-auto-card="lift"]:hover {
+  translate: 0 -5px;
+  border-color: color-mix(in oklab, var(--color-gold) 60%, transparent);
+  box-shadow: 0 22px 50px -30px color-mix(in oklab, var(--color-gold) 55%, transparent);
+}
+[data-auto-card="cell"] { transition: opacity 0.9s cubic-bezier(0.2, 0.7, 0.2, 1), transform 0.9s cubic-bezier(0.16, 0.84, 0.24, 1), background-color 0.3s; }
+[data-auto-card="cell"]:hover { background-color: var(--color-ink-3); }
+
+/* Blocs interactifs : léger soulèvement, bordure dorée et halo au survol. */
+.card-hover {
+  transition:
+    opacity 0.9s cubic-bezier(0.2, 0.7, 0.2, 1),
+    transform 0.9s cubic-bezier(0.16, 0.84, 0.24, 1),
+    translate 0.45s cubic-bezier(0.2, 0.7, 0.2, 1),
+    border-color 0.3s,
+    box-shadow 0.45s;
+}
+.card-hover:hover {
+  translate: 0 -6px;
+  border-color: color-mix(in oklab, var(--color-gold) 65%, transparent);
+  box-shadow: 0 24px 56px -30px color-mix(in oklab, var(--color-gold) 55%, transparent);
+}
 [data-reveal][data-visible="true"] {
   opacity: 1;
   transform: none;
@@ -321,11 +428,29 @@ html[lang="ar"] body * {
   letter-spacing: -0.01em;
   text-align: center;
   white-space: nowrap;
+}
+/* Chaque lettre porte le dégradé (vertical : rendu identique au mot entier) et entre à son tour. */
+.footer-wordmark-letter {
+  display: inline-block;
   color: transparent;
   background: linear-gradient(180deg, color-mix(in oklab, var(--color-gold) 38%, transparent) 0%, transparent 82%);
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-stroke: 1px color-mix(in oklab, var(--color-gold) 30%, transparent);
+  transition:
+    opacity 0.7s cubic-bezier(0.2, 0.7, 0.2, 1),
+    transform 0.9s cubic-bezier(0.16, 0.84, 0.24, 1),
+    filter 0.7s ease;
+  transition-delay: calc(var(--letter-index, 0) * 90ms);
+}
+[data-wordmark="hidden"] .footer-wordmark-letter {
+  opacity: 0;
+  transform: translateY(55%) rotate(6deg);
+  filter: blur(6px);
+}
+@media (prefers-reduced-motion: reduce) {
+  .footer-wordmark-letter { transition: none; }
+  [data-wordmark="hidden"] .footer-wordmark-letter { opacity: 1; transform: none; filter: none; }
 }
 
 /* ---------- Recherche du site (SiteSearch.tsx) ---------- */
@@ -427,7 +552,9 @@ html[lang="ar"] body * {
   .marquee-track { animation: none !important; }
   .video-skeleton, .video-skeleton-play, .video-swap, .site-search-panel, .site-search::backdrop { animation: none !important; }
   .formations-index-title, .formations-preview-frame { transition: none; translate: none !important; }
-  .video-card:hover { translate: none; }
+  .video-card:hover, .card-hover:hover, [data-auto-card="lift"]:hover { translate: none; }
+  .btn:hover, .btn:active { transform: none; }
+  .btn::before { display: none; }
   *, *::before, *::after {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;

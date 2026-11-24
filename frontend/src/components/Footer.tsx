@@ -6,6 +6,7 @@ import { brandIdentity, getPublishedFormations, getSiteSettings } from "@/lib/se
 import { localizeFormation } from "@/lib/formation-i18n";
 import { academyFooterVariants } from "@/lib/academy-footer";
 import { AcademyFooterBrand, AcademyFooterContact } from "./AcademyFooter";
+import { FooterWordmark } from "./FooterWordmark";
 
 export async function Footer() {
   const [settings, formations, { locale, t }] = await Promise.all([getSiteSettings(), getPublishedFormations(), getDictionary()]);
@@ -21,10 +22,8 @@ export async function Footer() {
   const certificationLabel = locale === "fr" && typeof settings.certificationLabel === "string" && settings.certificationLabel ? settings.certificationLabel : t.common.certified;
   const tagline = locale === "fr" && typeof settings.footerTagline === "string" && settings.footerTagline ? settings.footerTagline : t.brand.tagline;
   const academyVariants = academyFooterVariants({
-    security: t.pages.security.metaDescription,
     fitness: t.pages.fitnessAcademy.metaDescription,
     tsa: t.pages.akAcademy.metaDescription,
-    securityPortal: t.pages.security.portal,
     tsaFacebook: t.pages.akAcademy.profile,
   });
 
@@ -82,7 +81,7 @@ export async function Footer() {
 
       {/* Signature : le nom de la marque en très grand, qui clôt chaque page. */}
       <div aria-hidden="true" className="footer-wordmark container-site select-none overflow-hidden">
-        <p className="footer-wordmark-text font-display leading-[0.8] uppercase">{brandName}</p>
+        <FooterWordmark text={brandName} />
       </div>
 
       <div className="border-t border-line">

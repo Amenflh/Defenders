@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { AutoReveal } from "@/components/AutoReveal";
 import { CustomCursor } from "@/components/CustomCursor";
 import { FloatingActions } from "@/components/FloatingActions";
 import { FloatingRegister } from "@/components/FloatingRegister";
@@ -7,12 +8,12 @@ import { Header } from "@/components/Header";
 import { SocialRail } from "@/components/SocialRail";
 import { getCurrentUser } from "@/lib/session";
 import { getDictionary } from "@/lib/i18n/server";
-import { brandIdentity, getSiteSettings } from "@/lib/settings";
+import { ROUND_LOGO, brandIdentity, getSiteSettings } from "@/lib/settings";
 import { site } from "@/lib/site";
 
 export async function generateMetadata(): Promise<Metadata> {
   const [settings, { locale, t }] = await Promise.all([getSiteSettings(), getDictionary()]);
-  const { siteName, logoUrl = "/pics/logo.jpg" } = brandIdentity(settings);
+  const { siteName, logoUrl = ROUND_LOGO } = brandIdentity(settings);
   const description = locale === "fr" && typeof settings.heroDescription === "string" && settings.heroDescription
     ? settings.heroDescription
     : t.home.heroDescription;
@@ -38,6 +39,7 @@ export default async function SiteLayout({ children }: { children: React.ReactNo
         {children}
       </main>
       <Footer />
+      <AutoReveal />
       <CustomCursor />
       <SocialRail
         label={t.floating.social}

@@ -41,31 +41,31 @@ export async function AcademyProgramPage({ program }: { program: AcademyProgram 
         <div className="pointer-events-none absolute -top-40 -end-40 size-[36rem] rounded-full bg-gold opacity-10 blur-3xl" />
         <div className="container-site grid items-center gap-12 lg:grid-cols-[1.05fr_0.95fr]">
           <div>
-            <Reveal>
+            <Reveal from="left">
               <nav aria-label={t.pages.formation.breadcrumb} className="mb-6 flex flex-wrap gap-2 text-xs tracking-[0.16em] text-mist uppercase">
                 <Link href="/" className="hover:text-bone">{t.nav.home}</Link>
                 <span aria-hidden="true">/</span>
-                <Link href="/ak-tunisian-security-academy" className="hover:text-bone">{t.nav.akAcademy}</Link>
+                <Link href="/tunisian-security-academy" className="hover:text-bone">{t.nav.akAcademy}</Link>
                 <span aria-hidden="true">/</span>
                 <span className="text-gold">{program.title}</span>
               </nav>
             </Reveal>
-            <Reveal delay={60}>
+            <Reveal from="left" delay={60}>
               <p className="eyebrow mb-4">{program.eyebrow}</p>
               <h1 className="heading-xl">{program.title}</h1>
               <p className="mt-5 max-w-2xl text-lg leading-relaxed text-mist">{program.summary}</p>
             </Reveal>
-            <Reveal delay={120}>
+            <Reveal from="right" delay={120}>
               <dl className="mt-8 inline-grid min-w-48 border-y border-line py-4">
                 <dt className="text-xs tracking-[0.18em] text-mist uppercase">{t.pages.formation.duration}</dt>
                 <dd className="mt-1 font-display text-xl uppercase text-gold">{program.duration}</dd>
               </dl>
             </Reveal>
-            <Reveal delay={180} className="mt-8 flex flex-wrap gap-3">
-              <Link href="/ak-tunisian-security-academy#inscription" className="btn btn-primary">
+            <Reveal from="left" delay={180} className="mt-8 flex flex-wrap gap-3">
+              <Link href="/tunisian-security-academy#inscription" className="btn btn-primary">
                 {t.common.register} <Icon name="arrow" className="rtl:-scale-x-100" />
               </Link>
-              <Link href="/ak-tunisian-security-academy#programmes" className="btn btn-ghost">
+              <Link href="/tunisian-security-academy#programmes" className="btn btn-ghost">
                 {t.common.formations}
               </Link>
             </Reveal>
@@ -89,14 +89,14 @@ export async function AcademyProgramPage({ program }: { program: AcademyProgram 
       {program.videoEmbeds && program.videoEmbeds.length > 0 && (
         <section className="border-y border-line bg-ink-2 py-12 lg:py-16" aria-labelledby="program-videos-title">
           <div className="container-site">
-            <Reveal className="mb-8">
+            <Reveal from="left" className="mb-8">
               <p className="eyebrow mb-3">{program.eyebrow}</p>
               <h2 id="program-videos-title" className="heading-lg">{t.pages.formation.videoGalleryTitle}</h2>
             </Reveal>
             {/* Cadres identiques : les vidéos de formats différents restent alignées (recadrage « cover »). */}
             <div className={`grid gap-5 ${program.videoEmbeds.length > 2 ? "sm:grid-cols-2 lg:grid-cols-3" : program.videoEmbeds.length > 1 ? "sm:grid-cols-2" : "mx-auto max-w-xl"}`}>
               {program.videoEmbeds.map(({ url, layout }, index) => (
-                <Reveal key={url} delay={index * 110} className="video-card overflow-hidden border border-line bg-ink-2">
+                <Reveal from={(["left", "up", "right"] as const)[index % 3]} key={url} delay={index * 110} className="video-card overflow-hidden border border-line bg-ink-2">
                   <span className="block h-1 w-full bg-gold" aria-hidden="true" />
                   <div className="relative aspect-square">
                     <FacebookVideoEmbed url={url} layout={layout} fit="cover" title={`${program.title} ${index + 1}`} />
@@ -110,7 +110,7 @@ export async function AcademyProgramPage({ program }: { program: AcademyProgram 
 
       <section className="border-y border-line bg-ink-2 py-20 lg:py-24">
         <div className={`container-site grid gap-14 ${program.topics.length ? "lg:grid-cols-2" : ""}`}>
-          <Reveal>
+          <Reveal from="left">
             <p className="eyebrow mb-3">{t.pages.formation.whatYouLearn}</p>
             <h2 className="heading-lg">{program.title}</h2>
             <p className="mt-6 border-s-2 border-gold bg-ink p-5 leading-relaxed text-mist">{program.practical}</p>
@@ -126,7 +126,7 @@ export async function AcademyProgramPage({ program }: { program: AcademyProgram 
             )}
           </Reveal>
           {program.topics.length > 0 && (
-            <Reveal delay={120}>
+            <Reveal from="right" delay={120}>
               <p className="eyebrow mb-3">{t.pages.formation.programme}</p>
               <h2 className="heading-lg mb-8">{t.pages.formation.objectives}</h2>
               <ol className="grid gap-px overflow-hidden border border-line bg-line sm:grid-cols-2">
@@ -149,7 +149,7 @@ export async function AcademyProgramPage({ program }: { program: AcademyProgram 
             <h2 className="font-display text-2xl uppercase">{otherTitle}</h2>
           </div>
           <div className="flex flex-wrap gap-3">
-            <Link href={`/ak-tunisian-security-academy/formations/${otherSlug}`} className="btn btn-primary">
+            <Link href={`/tunisian-security-academy/formations/${otherSlug}`} className="btn btn-primary">
               {t.pages.formation.discover} <Icon name="arrow" className="rtl:-scale-x-100" />
             </Link>
             <Link href="/historique?academy=tsa" className="btn btn-ghost">
