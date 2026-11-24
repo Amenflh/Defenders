@@ -6,6 +6,7 @@ import { intlLocale, type Locale } from "../i18n/config";
 import { dictionaries } from "../i18n/dictionaries";
 import { buildSearchIndex, normalize, prepareIndex, searchIndex } from "../search-index";
 import { site } from "../site";
+import { adviceAnswer, COURSE_FOLLOW_UPS, GREETINGS, isAdviceQuestion, THANKS, topicAnswer, vary, withFollowUps } from "./knowledge";
 
 /**
  * Assistant de recherche sans IA (gratuit, sans service externe) : il repère dans la question
@@ -75,12 +76,17 @@ function detectIntents(tokens: string[]): Intent[] {
   return found;
 }
 
+/** Force de la correspondance entre la question et une formation (longueur cumulée des alias trouvés). */
+function courseScore(tokens: string[], course: Course): number {
+  const joined = ` ${tokens.join(" ")} `;
+  return course.aliases.reduce((n, alias) => n + (joined.includes(` ${alias} `) ? alias.length : 0), 0);
+}
+
 function findCourse(tokens: string[], courses: Course[]): Course | null {
   let best: Course | null = null;
   let bestScore = 0;
-  const joined = ` ${tokens.join(" ")} `;
   for (const course of courses) {
-    const score = course.aliases.reduce((n, alias) => n + (joined.includes(` ${alias} `) ? alias.length : 0), 0);
+    const score = courseScore(tokens, course);
     if (score > bestScore) {
       best = course;
       bestScore = score;
@@ -137,7 +143,7 @@ async function buildCourses(locale: Locale): Promise<Course[]> {
     {
       key: "k9",
       name: tsa.k9CourseTitle,
-      href: "/ak-tunisian-security-academy/formations/k9",
+      href: "/tunisian-security-academy/formations/k9",
       summary: `${tsa.k9CourseText} ${tsa.k9CourseTrainer}.`,
       duration: tsa.k9CourseDuration,
       modules: [...tsa.k9CourseTopics, tsa.k9CoursePractical],
@@ -149,7 +155,7 @@ async function buildCourses(locale: Locale): Promise<Course[]> {
     {
       key: "intervention",
       name: tsa.courseTitle,
-      href: "/ak-tunisian-security-academy/formations/intervention-initiale",
+      href: "/tunisian-security-academy/formations/intervention-initiale",
       summary: `${tsa.courseText} ${tsa.coursePractical}`,
       duration: tsa.courseDuration,
       modules: [...tsa.courseTopics],
@@ -161,7 +167,7 @@ async function buildCourses(locale: Locale): Promise<Course[]> {
     {
       key: "protection",
       name: tsa.closeProtectionTitle,
-      href: "/ak-tunisian-security-academy/formations/protection-rapprochee",
+      href: "/tunisian-security-academy/formations/protection-rapprochee",
       summary: `${tsa.closeProtectionText} ${tsa.closeProtectionPractical}`,
       modules: [],
       audience: [],
@@ -172,7 +178,7 @@ async function buildCourses(locale: Locale): Promise<Course[]> {
     {
       key: "security",
       name: t.search.securityCourse,
-      href: "/securite#programmes",
+      href: "/tunisian-security-academy#securite-programme",
       summary: t.pages.security.programmeText,
       modules: [],
       audience: [],
@@ -231,7 +237,15 @@ function answerForCourse(course: Course, intents: Intent[], locale: Locale): str
   }
   if (intents.includes("price") || intents.includes("date")) parts.push(contactLine(course.key, locale));
   parts.push(link);
-  return parts.join("\n\n");
+  // Relances : les questions pas encore posées sur cette formation.
+  const f = COURSE_FOLLOW_UPS[locale];
+  const followUps = [
+    !intents.includes("price") && f.price(course.name),
+    !intents.includes("date") && f.date(course.name),
+    !intents.includes("program") && course.modules.length > 0 && f.program(course.name),
+    f.register,
+  ].filter((q): q is string => Boolean(q));
+  return withFollowUps(parts.join("\n\n"), followUps);
 }
 
 function contactLine(courseKey: string, locale: Locale) {
@@ -246,11 +260,12 @@ function contactAnswer(locale: Locale) {
   const l = a.labels;
   return `${a.contact}\n${bullets([
     `${l.fitness} : **${site.phone.label}**`,
-    `${l.security} : **${site.phone2.label}**`,
-    `[${l.whatsapp}](${site.whatsapp.href})`,
+    `${l.security} : **${site.phone2.label}** · [${site.securityEmail.label}](${site.securityEmail.href})`,
+    `${l.k9} : **${site.tunisianSecurityAcademy.k9Contact.label}**`,
+    `[${l.whatsapp}](${site.whatsapp.href}) · [Messenger](${site.messenger.href})`,
     `${l.email} : [${site.email.label}](${site.email.href})`,
     `${l.address} : ${site.address.lines.join(", ")} · [${l.directions}](${site.address.href})`,
-  ])}`;
+  ])}\n[${dictionaries[locale].nav.contact}](/contact)`;
 }
 
 function catalogAnswer(courses: Course[], locale: Locale) {
@@ -313,7 +328,7 @@ ${results[0].subtitle}
     }
     results = [...score.values()].sort((x, y) => y.n - x.n).slice(0, 5).map(({ item }) => item);
   }
-  if (!results.length) return a.notFound;
+  if (!results.length) return withFollowUps(a.notFound, [t.assistant.suggestions[0], COURSE_FOLLOW_UPS[locale].advice, t.assistant.suggestions[3]]);
 
   // Une question fréquente correspond : on cite directement sa réponse.
   const top = results[0];
@@ -340,13 +355,28 @@ export async function answer(turns: Turn[], locale: Locale): Promise<string> {
     }
   }
 
+  const f = COURSE_FOLLOW_UPS[locale];
+  const courseIntent = intents.some((i) => COURSE_INTENTS.includes(i));
+
+  // « Quelle formation me conseillez-vous ? » / « je veux entraîner un club, que choisir ? »
+  if (isAdviceQuestion(tokens) && !(course && courseIntent)) return adviceAnswer(tokens, locale);
+  if (course && courseIntent) return answerForCourse(course, intents, locale);
+  // Sujets généraux : agrément, partenaires, suivi médical, recrutement à l'étranger, réseaux…
+  // (« vidéo Pilates » → la fiche Pilates ; « certificat Pilates » → l'agrément et la certification.)
+  const topic = topicAnswer(tokens, question, locale);
+  if (topic && (!course || topic.score > courseScore(tokens, course))) return topic.text;
   if (course) return answerForCourse(course, intents, locale);
-  if (intents.includes("contact")) return contactAnswer(locale);
-  if (intents.includes("register")) return a.register;
+  if (intents.includes("contact")) return withFollowUps(contactAnswer(locale), [f.register, f.advice]);
+  if (intents.includes("register")) return withFollowUps(a.register, [f.advice, catalogQuestion(locale)]);
   if (intents.includes("catalog") || ((intents.includes("price") || intents.includes("date")) && tokens.length <= 4)) {
-    return intents.includes("date") ? `${catalogAnswer(courses, locale)}\n\n[${dictionaries[locale].nav.planning}](/planning)` : catalogAnswer(courses, locale);
+    const list = catalogAnswer(courses, locale);
+    return withFollowUps(intents.includes("date") ? `${list}\n\n[${dictionaries[locale].nav.planning}](/planning)` : list, [f.advice, f.register]);
   }
-  if (intents.includes("thanks") && tokens.length <= 4) return a.thanks;
-  if (intents.includes("hello") && tokens.length <= 3) return a.hello;
+  if (intents.includes("thanks") && tokens.length <= 4) return vary(THANKS[locale]);
+  if (intents.includes("hello") && tokens.length <= 3) return withFollowUps(vary(GREETINGS[locale]), [catalogQuestion(locale), f.advice]);
   return searchAnswer(question, courses, locale);
 }
+
+const COURSE_INTENTS: Intent[] = ["price", "date", "duration", "program", "audience", "careers"];
+
+const catalogQuestion = (locale: Locale) => dictionaries[locale].assistant.suggestions[0];

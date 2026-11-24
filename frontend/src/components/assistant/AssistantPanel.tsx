@@ -38,6 +38,13 @@ function inline(text: string, onNavigate: () => void): ReactNode[] {
   return parts;
 }
 
+/** Sépare la réponse de ses questions de relance (« [[suggest:Q1|Q2]] », ajouté par le serveur). */
+function splitFollowUps(content: string): { body: string; followUps: string[] } {
+  const match = content.match(/\n*\[\[suggest:([^\]]*)\]\]\s*$/);
+  if (!match) return { body: content, followUps: [] };
+  return { body: content.slice(0, match.index).trimEnd(), followUps: match[1].split("|").map((q) => q.trim()).filter(Boolean) };
+}
+
 /** Paragraphes et listes « - » de la réponse. */
 function Answer({ text, onNavigate }: { text: string; onNavigate: () => void }) {
   const blocks: ReactNode[] = [];
@@ -181,20 +188,35 @@ export function AssistantPanel({ onClose }: { onClose: () => void }) {
             </div>
           </div>
         ) : (
-          turns.map((turn, i) =>
-            turn.role === "user" ? (
-              <p key={i} className="ms-auto max-w-[85%] bg-gold/15 px-3.5 py-2.5 whitespace-pre-wrap text-bone">{turn.content}</p>
-            ) : (
-              <div key={i} className={`max-w-[92%] border px-3.5 py-2.5 ${turn.error ? "border-red-400/40 text-mist" : "border-line text-mist"}`}>
-                {turn.content ? <Answer text={turn.content} onNavigate={onClose} /> : <p className="animate-pulse">{a.thinking}</p>}
-                {turn.error && (
-                  <a href={site.whatsapp.href} target="_blank" rel="noreferrer" className="mt-2 inline-block text-xs text-gold underline underline-offset-4">
-                    {a.contactTeam}
-                  </a>
+          turns.map((turn, i) => {
+            if (turn.role === "user") {
+              return <p key={i} className="ms-auto max-w-[85%] bg-gold/15 px-3.5 py-2.5 whitespace-pre-wrap text-bone">{turn.content}</p>;
+            }
+            const { body, followUps } = splitFollowUps(turn.content);
+            const latest = i === turns.length - 1;
+            return (
+              <div key={i} className="space-y-2">
+                <div className={`max-w-[92%] border px-3.5 py-2.5 ${turn.error ? "border-red-400/40 text-mist" : "border-line text-mist"}`}>
+                  {body ? <Answer text={body} onNavigate={onClose} /> : <p className="animate-pulse">{a.thinking}</p>}
+                  {turn.error && (
+                    <a href={site.whatsapp.href} target="_blank" rel="noreferrer" className="mt-2 inline-block text-xs text-gold underline underline-offset-4">
+                      {a.contactTeam}
+                    </a>
+                  )}
+                </div>
+                {/* Questions de relance : seulement sous la dernière réponse, pour continuer la conversation en un clic. */}
+                {latest && !busy && followUps.length > 0 && (
+                  <div className="flex flex-wrap gap-2">
+                    {followUps.map((q) => (
+                      <button key={q} type="button" onClick={() => ask(q)} className="border border-line px-3 py-1.5 text-start text-xs text-bone transition-colors hover:border-gold hover:text-gold">
+                        {q}
+                      </button>
+                    ))}
+                  </div>
                 )}
               </div>
-            ),
-          )
+            );
+          })
         )}
       </div>
 
