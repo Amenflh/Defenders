@@ -22,7 +22,7 @@ const clipKey = (clip: HeroClip) => (clip.type === "video" ? clip.src : clip.typ
 
 /**
  * Fond animé des en-têtes : une seule vidéo en boucle (`src`), ou plusieurs plans (`clips` / `sources`) qui
- * s'enchaînent en fondu. Une vidéo illisible est ignorée. Avec « réduire les animations », seule l'affiche est montrée.
+ * s'enchaînent en fondu. Une vidéo illisible est ignorée. Muette et décorative, elle se lit même quand les animations du système sont coupées.
  */
 /**
  * `poster` : image affichée avant la vidéo. Les en-têtes de page n'en passent pas (fond sombre puis vidéo, sans
@@ -35,11 +35,9 @@ export function HomeHeroVideo({ src, sources, clips, poster }: { src?: string; s
   const [failed, setFailed] = useState<string[]>([]);
   const playable = list.filter((clip) =>
     clip.type === "photos" ? clip.images.length > 0 : clip.type === "facebook" ? Boolean(clip.url) : !failed.includes(clip.src));
-  const [motionAllowed, setMotionAllowed] = useState(false);
   // En-tête sorti de l'écran : tout est mis en pause (processeur, batterie et données économisés).
-  const [onScreen, setOnScreen] = useState(true);
+  const [playing, setPlaying] = useState(true);
   const containerRef = useRef<HTMLDivElement>(null);
-  const playing = motionAllowed && onScreen;
   const [active, setActive] = useState(0);
   const videos = useRef(new Map<string, HTMLVideoElement>());
   const multiple = playable.length > 1;
@@ -52,7 +50,6 @@ export function HomeHeroVideo({ src, sources, clips, poster }: { src?: string; s
   // Reels Facebook chargés au dernier moment : le SDK Facebook (lourd) ne ralentit plus l'ouverture de la page.
   const [mounted, setMounted] = useState<string[]>([]);
   useEffect(() => {
-    if (!motionAllowed) return;
     const add = (key: string) => setMounted((old) => (key && !old.includes(key) ? [...old, key] : old));
     const now = window.setTimeout(() => add(currentKey), 0);
     const soon = window.setTimeout(() => add(nextKey), PRELOAD_NEXT_MS);
@@ -60,20 +57,12 @@ export function HomeHeroVideo({ src, sources, clips, poster }: { src?: string; s
       window.clearTimeout(now);
       window.clearTimeout(soon);
     };
-  }, [currentKey, nextKey, motionAllowed]);
-
-  useEffect(() => {
-    const preference = window.matchMedia("(prefers-reduced-motion: reduce)");
-    const update = () => setMotionAllowed(!preference.matches);
-    update();
-    preference.addEventListener("change", update);
-    return () => preference.removeEventListener("change", update);
-  }, []);
+  }, [currentKey, nextKey]);
 
   useEffect(() => {
     const node = containerRef.current;
     if (!node || !("IntersectionObserver" in window)) return;
-    const observer = new IntersectionObserver(([entry]) => setOnScreen(entry.isIntersecting), { threshold: 0.05 });
+    const observer = new IntersectionObserver(([entry]) => setPlaying(entry.isIntersecting), { threshold: 0.05 });
     observer.observe(node);
     return () => observer.disconnect();
   }, [hasClips]);
@@ -142,7 +131,7 @@ export function HomeHeroVideo({ src, sources, clips, poster }: { src?: string; s
             muted
             playsInline
             // Plan en cours : chargé tout de suite (dès le premier rendu) pour que la vidéo apparaisse sans attente.
-            preload={visible ? "auto" : motionAllowed && index === (current + 1) % playable.length ? "auto" : "metadata"}
+            preload={visible ? "auto" : index === (current + 1) % playable.length ? "auto" : "metadata"}
             onEnded={multiple ? () => setActive((value) => value + 1) : undefined}
             onError={() => {
               // Fichier illisible : le plan est retiré de la rotation (avertissement seulement, ce n'est pas une panne).
