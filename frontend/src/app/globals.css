@@ -326,6 +326,8 @@ html[lang="ar"] body * {
 }
 
 /* ---------- Bandeau défilant : pause au survol ---------- */
+/* La durée du thème est figée sur :root, celle du bandeau est donc reprise ici. */
+.marquee-keep { animation-duration: var(--marquee-duration); }
 .marquee-track:hover,
 .marquee-track:focus-within {
   animation-play-state: paused;
@@ -558,7 +560,9 @@ html[lang="ar"] body * {
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
   [data-reveal] { opacity: 1; transform: none; transition: none; }
-  .marquee-track { animation: none !important; }
+  .marquee-track:not(.marquee-keep) { animation: none !important; }
+  /* Partenaires : bandeau lent, en pause au survol, qui défile même quand les animations du système sont coupées. */
+  .marquee-keep { animation-duration: var(--marquee-duration) !important; animation-iteration-count: infinite !important; }
   .video-skeleton, .video-skeleton-play, .video-swap, .site-search-panel, .site-search::backdrop { animation: none !important; }
   .formation-photo-drift { animation: none; }
   .formations-index-title, .formations-preview-frame { transition: none; translate: none !important; }

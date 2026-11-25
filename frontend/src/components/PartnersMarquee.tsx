@@ -73,7 +73,7 @@ export function PartnersMarquee({ partners: inputPartners, title = "Nos partenai
       </p>
       <div dir="ltr" className="relative overflow-hidden [mask-image:linear-gradient(90deg,transparent,#000_8%,#000_92%,transparent)]">
         <ul
-          className="marquee-track animate-marquee flex w-max"
+          className="marquee-track marquee-keep animate-marquee flex w-max"
           style={{ "--marquee-duration": "35s" } as React.CSSProperties}
         >
           {[...half, ...half].map((partner, i) => {
