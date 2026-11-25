@@ -3,8 +3,7 @@
 import Link from "next/link";
 import { Fragment, useEffect, useRef, useState, type FormEvent, type ReactNode } from "react";
 import { Icon } from "@/components/Icon";
-import { useI18n } from "@/lib/i18n/client";
-import { site } from "@/lib/site";
+import { useI18n, useSiteData } from "@/lib/i18n/client";
 
 type Turn = { role: "user" | "assistant"; content: string; error?: boolean };
 
@@ -76,6 +75,7 @@ function Answer({ text, onNavigate }: { text: string; onNavigate: () => void }) 
  */
 export function AssistantPanel({ onClose }: { onClose: () => void }) {
   const { t } = useI18n();
+  const { contacts } = useSiteData();
   const a = t.assistant;
   const [turns, setTurns] = useState<Turn[]>([]);
   const [input, setInput] = useState("");
@@ -199,7 +199,7 @@ export function AssistantPanel({ onClose }: { onClose: () => void }) {
                 <div className={`max-w-[92%] border px-3.5 py-2.5 ${turn.error ? "border-red-400/40 text-mist" : "border-line text-mist"}`}>
                   {body ? <Answer text={body} onNavigate={onClose} /> : <p className="animate-pulse">{a.thinking}</p>}
                   {turn.error && (
-                    <a href={site.whatsapp.href} target="_blank" rel="noreferrer" className="mt-2 inline-block text-xs text-gold underline underline-offset-4">
+                    <a href={contacts.whatsapp.href} target="_blank" rel="noreferrer" className="mt-2 inline-block text-xs text-gold underline underline-offset-4">
                       {a.contactTeam}
                     </a>
                   )}

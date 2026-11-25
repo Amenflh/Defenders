@@ -13,7 +13,7 @@ export const slugSchema = z
 /** URL déjà prises par des pages du site : une formation à ce slug serait inaccessible. */
 export const RESERVED_SLUGS = new Set([
   "admin", "api", "contact", "cookies", "formations", "login", "logout", "mentions-legales", "mon-espace",
-  "historique", "planning", "politique-de-confidentialite", "register", "securite", "trouver-ma-formation", "uploads",
+  "historique", "planning", "fitness-academy", "tunisian-security-academy", "reglement-interieur", "paiement", "politique-de-confidentialite", "register", "securite", "trouver-ma-formation", "uploads",
   "sitemap.xml", "robots.txt",
 ]);
 
@@ -35,7 +35,44 @@ const mediaUrl = z
   .max(500)
   .refine((v) => /^\/(?!\/)[\w\-./%]+$/.test(v) || /^https:\/\/\S+$/.test(v), "Chemin (/uploads/…) ou URL https attendu");
 
+/** Académies, vidéos et liens, partagés avec l'historique et l'équipe. */
+export const academySchema = z.enum(["fitness", "tsa"], { error: "Académie invalide" });
+export const videosSchema = z
+  .array(z.object({
+    url: z.string().trim().max(500).refine((v) => /^\/(?!\/)\S/.test(v) || /^https:\/\/\S+$/.test(v), "Lien https:// ou chemin /… attendu"),
+    title: z.string().trim().max(160).default(""),
+    layout: z.enum(["portrait", "square", "landscape"]).default("portrait"),
+  }))
+  .max(20, "20 vidéos maximum");
+export const optionalLink = z.string().trim().max(1000).refine((v) => v === "" || /^https?:\/\/\S+$/.test(v) || /^\/(?!\/)\S*$/.test(v), "Lien https:// ou chemin /… attendu");
+
+const formationTranslation = z.object({
+  name: z.string().trim().max(80),
+  headline: z.string().trim().max(160),
+  summary: z.string().trim().max(600),
+  durationLabel: z.string().trim().max(60),
+  location: z.string().trim().max(120),
+  practical: z.string().trim().max(1500),
+  intro: lines(6, 1200),
+  objectives: lines(20),
+  prerequisites: lines(20),
+  audience: lines(20),
+  careers: lines(20),
+  modules: z.array(z.object({ title: line(80), text: z.string().trim().max(400) })).max(30),
+  facts: z.array(z.object({ label: line(40), value: line(60) })).max(6),
+}).partial();
+
 const formationFields = {
+  academy: academySchema,
+  location: z.string().trim().max(120, "120 caractères maximum"),
+  practical: z.string().trim().max(1500, "1500 caractères maximum"),
+  contactPhone: z.string().trim().max(30, "30 caractères maximum").regex(/^[+\d\s().-]*$/, "Numéro invalide"),
+  sourceUrl: optionalLink,
+  coverIsPoster: z.boolean(),
+  videos: videosSchema,
+  translations: z.object({ en: formationTranslation, ar: formationTranslation }).partial(),
+  /** Formateurs présentés sur la page (identifiants). */
+  trainerIds: z.array(z.number().int().positive()).max(30),
   slug: formationSlugSchema,
   name: z.string({ error: "Le nom est requis" }).trim().min(2, "2 caractères minimum").max(80, "80 caractères maximum"),
   headline: z.string().trim().max(160, "160 caractères maximum"),
@@ -54,7 +91,7 @@ const formationFields = {
   facts: z.array(z.object({ label: line(40), value: line(60) })).max(6, "6 chiffres clés maximum"),
   coverUrl: mediaUrl.or(z.literal("")).nullable(),
   galleryUrls: z.array(mediaUrl).max(30, "30 images maximum"),
-  accent: z.enum(["gold", "pilates", "football", "personal"]),
+  accent: z.enum(["gold", "pilates", "football", "personal", "intervention", "k9", "protection"]),
   /** Date unique de la prochaine session (AAAA-MM-JJ), ou null si elle n'est pas encore fixée. */
   nextSessionDate: z.iso.date("Date invalide (AAAA-MM-JJ)").transform((v) => new Date(`${v}T00:00:00Z`)).nullable(),
 };

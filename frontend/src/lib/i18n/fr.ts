@@ -36,7 +36,7 @@ export const fr = {
     youAreHere: "Vous êtes ici",
     sectionsNav: "Sections de la page",
     backToTop: "Revenir en haut de la page",
-    sections: { programmes: "Formations", equipe: "Équipe", galerie: "Galerie", temoignages: "Témoignages", historique: "Historique", inscription: "Inscription" },
+    sections: { programmes: "Formations", equipe: "Équipe", galerie: "Galerie", temoignages: "Témoignages", historique: "Historique", services: "Services", inscription: "Inscription" },
   },
   common: {
     register: "S'inscrire",

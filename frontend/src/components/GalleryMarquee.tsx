@@ -1,5 +1,7 @@
 import Image from "next/image";
-import type { DynamicPhoto } from "@/lib/disciplines";
+import type { StaticImageData } from "next/image";
+
+export type DynamicPhoto = { src: StaticImageData | string; alt: string };
 
 type Props = {
   photos: DynamicPhoto[];
@@ -48,9 +50,9 @@ export function GalleryMarquee({ photos, label, duration }: Props) {
                 // Les images entrent à l'écran par animation : en « lazy », elles resteraient vides.
                 loading="eager"
                 placeholder={remote ? "empty" : "blur"}
-                unoptimized={remote}
+                unoptimized={remote && !String(photo.src).startsWith("/pics/")}
                 sizes="(min-width: 1024px) 40vw, 70vw"
-                className="object-cover transition duration-700 group-hover:scale-105"
+                className="formation-photo-drift object-cover transition duration-700 group-hover:scale-105"
               />
               <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent" />
             </li>

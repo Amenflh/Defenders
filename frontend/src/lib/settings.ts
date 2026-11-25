@@ -1,5 +1,9 @@
 import "server-only";
 import { cache } from "react";
+import { contactsFrom, type Contacts } from "./contacts";
+import { localize, type Translations } from "./formation-i18n";
+import type { Locale } from "./i18n/config";
+import type { TextOverrides } from "./i18n/overrides";
 import { apiFetch } from "./session";
 
 export type SiteSettings = Record<string, unknown>;
@@ -13,6 +17,32 @@ export const getSiteSettings = cache(async (): Promise<SiteSettings> => {
   if (!res?.ok) return {};
   return ((await res.json()) as { value: SiteSettings }).value ?? {};
 });
+
+/** Coordonnées et liens du site (admin › Paramètres), identiques sur toutes les pages. */
+export const getContacts = cache(async (): Promise<Contacts> => contactsFrom(await getSiteSettings()));
+
+/** Textes du site modifiés dans l'admin, par langue. */
+export const getTextOverrides = cache(async (): Promise<Partial<Record<Locale, TextOverrides>>> => {
+  const res = await apiFetch("/api/content/settings/texts").catch(() => null);
+  if (!res?.ok) return {};
+  return ((await res.json()) as { value: Partial<Record<Locale, TextOverrides>> }).value ?? {};
+});
+
+export type CmsItem = { id: number; title: string; subtitle: string; body: string; imageUrl: string; linkUrl: string; academy: "fitness" | "tsa" | null; translations?: Translations };
+
+/** Contenus publiés d'une rubrique de l'admin (FAQ, témoignages, promotions, partenaires), dans la langue du visiteur. */
+export const getCmsItems = cache(async (section: "faq" | "testimonials" | "promotions" | "partners", locale: Locale): Promise<CmsItem[]> => {
+  const res = await apiFetch(`/api/content/items/${section}`).catch(() => null);
+  if (!res?.ok) return [];
+  return ((await res.json()) as { items: CmsItem[] }).items.map((item) => localize(item, locale));
+});
+
+/** Questions fréquentes : celles de l'admin ; en anglais et en arabe, seulement celles qui sont traduites. */
+export async function getFaqs(locale: Locale, fallback: readonly { question: string; answer: string }[]): Promise<{ question: string; answer: string }[]> {
+  const items = await getCmsItems("faq", locale);
+  const shown = locale === "fr" ? items : items.filter((item) => String(item.translations?.[locale]?.title ?? "").trim());
+  return shown.length ? shown.map((item) => ({ question: item.title, answer: item.body })) : fallback.map(({ question, answer }) => ({ question, answer }));
+}
 
 /** Formations publiées (liste légère), partagées entre la page et le pied de page. */
 export const getPublishedFormations = cache(async <T = { id: number; slug: string; name: string }>(): Promise<T[]> => {

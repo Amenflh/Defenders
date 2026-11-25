@@ -1,3 +1,4 @@
+import type { Contacts } from "@/lib/contacts";
 import { site } from "@/lib/site";
 import type { BrandIdentity } from "@/components/Logo";
 
@@ -15,26 +16,26 @@ export type AcademyFooterVariant = {
   instagram?: string;
 };
 
-export function academyFooterVariants(taglines: {
+export function academyFooterVariants(contacts: Contacts, taglines: {
   fitness: string;
   tsa: string;
   tsaFacebook: string;
 }): AcademyFooterVariant[] {
   const fitness = site.branches.find(({ key }) => key === "fitness")!;
   const tsa = site.branches.find(({ key }) => key === "tsa")!;
-  const contact = site.tunisianSecurityAcademy;
+  const contact = contacts.tunisianSecurityAcademy;
 
   return [
     {
       href: fitness.href,
       identity: { logoUrl: fitness.logo, brandName: fitness.headerName, brandDescriptor: fitness.headerDescriptor },
       tagline: taglines.fitness,
-      address: site.address.lines.join(", "),
-      phone: site.phone.label,
-      phone2: site.phone2.label,
-      email: site.email.label,
-      facebook: site.facebook.href,
-      instagram: site.instagram.href,
+      address: contacts.address.lines.join(", "),
+      phone: contacts.phone.label,
+      phone2: contacts.phone2.label,
+      email: contacts.email.label,
+      facebook: contacts.facebook.href,
+      instagram: contacts.instagram.href,
     },
     {
       href: tsa.href,
@@ -46,6 +47,7 @@ export function academyFooterVariants(taglines: {
       email: contact.email.label,
       facebook: contact.facebook,
       facebookLabel: taglines.tsaFacebook,
+      instagram: contact.instagram || undefined,
     },
   ];
 }

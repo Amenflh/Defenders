@@ -57,6 +57,12 @@ model AuthSession {
 
 // ───────────────────────────── Formations ─────────────────────────────
 
+/// Académies de Defenders Academy (la sécurité / protection fait partie de la TSA).
+enum Academy {
+  fitness
+  tsa
+}
+
 enum FormationStatus {
   draft
   published
@@ -95,6 +101,20 @@ model Formation {
   coverUrl      String?         @map("cover_url")
   galleryUrls   Json            @default("[]") @map("gallery_urls")
   accent        String          @default("gold")
+  academy       Academy         @default(fitness)
+  /// Lieu de la formation (texte libre).
+  location      String          @default("")
+  /// Informations pratiques (certificats, hébergement, modalités…).
+  practical     String          @default("")
+  contactPhone  String          @default("") @map("contact_phone")
+  /// Publication ou programme officiel (lien externe).
+  sourceUrl     String          @default("") @map("source_url")
+  /// Le visuel est une affiche : montrée en entier, jamais recadrée.
+  coverIsPoster Boolean         @default(false) @map("cover_is_poster")
+  /// Vidéos (Facebook ou fichier) : [{ "url": "…", "title": "…", "layout": "portrait|square|landscape" }]
+  videos        Json            @default("[]")
+  /// Traductions : { "en": { "name": "…" }, "ar": { … } } ; un champ absent s'affiche en français.
+  translations  Json            @default("{}")
   /// Date unique de la prochaine session (affichée dans le planning).
   nextSessionDate DateTime?     @map("next_session_date") @db.Date
   createdAt     DateTime        @default(now()) @map("created_at") @db.Timestamptz(6)
@@ -116,6 +136,11 @@ model Trainer {
   title     String   @default("")
   bio       String   @default("")
   photoUrl  String?  @map("photo_url")
+  /// Académie où le formateur est présenté ; vide : les deux.
+  academy      Academy?
+  position     Int      @default(0)
+  active       Boolean  @default(true)
+  translations Json     @default("{}")
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
 
   formations       FormationTrainer[]
@@ -277,7 +302,10 @@ model Media {
   storageKey  String?   @unique @map("storage_key")
   mimeType    String    @default("") @map("mime_type")
   sizeBytes   Int       @default(0) @map("size_bytes")
+  /// Emplacement : galerie, temoignage, accueil (vidéo de fond), videos (section Vidéos de l'accueil)…
   category    String    @default("")
+  academy     Academy?
+  position    Int       @default(0)
   formationId Int?      @map("formation_id")
   createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
 
@@ -285,6 +313,7 @@ model Media {
 
   @@index([category])
   @@index([formationId])
+  @@index([academy, category])
   @@map("media")
 }
 
@@ -308,11 +337,44 @@ model CmsItem {
   linkUrl   String   @default("") @map("link_url")
   position  Int      @default(0)
   active    Boolean  @default(true)
+  academy      Academy?
+  translations Json     @default("{}")
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
 
   @@index([section, position])
   @@map("cms_items")
+}
+
+// ───────────────────────────── Historique ─────────────────────────────
+
+/// Historique des formations (frise de la page Historique), géré dans l'admin.
+model HistoryEntry {
+  id              Int       @id @default(autoincrement())
+  academy         Academy
+  /// Slug de la formation ou nom libre de l'activité (filtre de la page).
+  activity        String    @default("")
+  date            DateTime? @db.Date
+  /// course : programme annoncé ; completed : session réalisée.
+  status          String    @default("course")
+  title           String
+  description     String    @default("")
+  place           String    @default("")
+  participants    Int?
+  medicalFollowUp Boolean   @default(false) @map("medical_follow_up")
+  /// URL d'images.
+  photos          Json      @default("[]")
+  videos          Json      @default("[]")
+  /// Liens : [{ "url": "…", "label": "…" }]
+  sources         Json      @default("[]")
+  translations    Json      @default("{}")
+  position        Int       @default(0)
+  active          Boolean   @default(true)
+  createdAt       DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt       DateTime  @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  @@index([academy, date])
+  @@map("history_entries")
 }
 
 // ───────────────────────────── Discussion client ↔ équipe ─────────────────────────────

@@ -1,54 +1,45 @@
 import Image from "next/image";
 import Link from "next/link";
+import { ACADEMY_PATH, formationHref } from "@/lib/academies";
+import { getGallery } from "@/lib/academy-content";
 import { accentClassFor, visualFor } from "@/lib/formation-visuals";
 import { formatPrice, keyFacts, type Formation, type FormationDetail } from "@/lib/formations";
 import { intlLocale } from "@/lib/i18n/config";
 import { localizeFormation } from "@/lib/formation-i18n";
 import { getDictionary } from "@/lib/i18n/server";
-import { site } from "@/lib/site";
 import { GalleryMarquee } from "./GalleryMarquee";
 import { VideoCarousel } from "./VideoCarousel";
 import { FormationHighlights, FormationHistoryLink } from "./FormationExtras";
 import { Icon } from "./Icon";
 import { Reveal } from "./Reveal";
+import { TrainerCards } from "./TrainerCards";
 
-/** Page détaillée d'une formation (#17) : contenu issu de l'API, modifiable dans l'espace admin. */
+/** Page détaillée d'une formation, identique pour les deux académies : tout le contenu vient de l'espace admin. */
 export async function FormationPage({ f: source, others: sourceOthers }: { f: FormationDetail; others: Formation[] }) {
   const { locale, t } = await getDictionary();
   const p = t.pages.formation;
   const f = localizeFormation(source, locale);
   const others = sourceOthers.map((o) => localizeFormation(o, locale));
-  const { accent, photos } = visualFor(f.slug);
-  const [defaultHero, ...defaultGallery] = photos;
+  const { accent, photos } = visualFor(f.accent);
+  const [defaultHero] = photos;
+  const academyName = f.academy === "tsa" ? t.nav.akAcademy : t.nav.fitnessAcademy;
+  const academyHref = ACADEMY_PATH[f.academy];
   const uploadedImages = f.media.filter((m) => m.type === "image" && m.url !== f.coverUrl);
   const galleryUrls = f.galleryUrls.filter((url) => url !== f.coverUrl);
   const videos = f.media.filter((m) => m.type === "video");
-  const socialVideos = f.slug === "pilates"
-    ? { title: p.pilatesVideosTitle, embedUrls: site.facebook.pilatesVideoEmbeds, labels: [p.pilatesVideo1, p.pilatesVideo2] }
-    : f.slug === "personal-training"
-      ? { title: p.personalTrainingVideosTitle, embedUrls: site.facebook.personalTrainingVideoEmbeds, labels: [p.personalTrainingVideo1, p.personalTrainingVideo2, p.personalTrainingVideo3] }
-      : f.slug === "football"
-      ? { title: p.footballVideosTitle, embedUrls: site.facebook.footballVideoEmbeds, labels: [p.footballVideo1] }
-      : null;
-  const socialDetails = f.slug === "pilates"
-    ? p.pilatesVideoDetails
-    : f.slug === "personal-training"
-      ? p.personalTrainingVideoDetails
-      : f.slug === "football"
-      ? p.footballVideoDetails
-      : null;
-  const carouselVideos = socialVideos?.embedUrls.map((url, i) => ({ url, title: socialVideos.labels[i] ?? `${f.name} · ${i + 1}` })) ?? [];
-  // Galerie défilante : photos du site (toutes si les vidéos occupent le héro), puis images ajoutées dans l'admin.
-  const galleryPhotos = [
-    ...(carouselVideos.length > 0 && !f.coverUrl ? [defaultHero, ...defaultGallery] : defaultGallery),
+  const carouselVideos = f.videos.map((video, i) => ({ ...video, title: video.title || `${f.name} · ${i + 1}` }));
+  // Galerie défilante : images de la formation, sinon celles de l'académie (admin › Médias).
+  const ownPhotos = [
+    ...(carouselVideos.length > 0 && f.coverUrl && !f.coverIsPoster ? [{ src: f.coverUrl, alt: p.imageAlt(f.name) }] : []),
     ...galleryUrls.map((url) => ({ src: url, alt: p.imageAlt(f.name) })),
     ...uploadedImages.map((m) => ({ src: m.url, alt: m.title || p.imageAlt(f.name) })),
   ];
-  const facts = keyFacts(f);
+  const galleryPhotos = galleryUrls.length + uploadedImages.length > 0 ? ownPhotos : (await getGallery(f.academy)).photos;
+  const facts = keyFacts(f, { duration: p.duration, level: p.level, price: p.price, location: t.pages.akAcademy.locationTitle });
   const price = formatPrice(f.priceTnd);
 
   return (
-    <div className={accentClassFor(f.slug)}>
+    <div className={`branch-theme ${accentClassFor(f.accent)}`}>
       {/* -------- Héro -------- */}
       <section className="relative overflow-hidden pt-32 pb-20 lg:pt-40 lg:pb-28">
         <div className={`pointer-events-none absolute -top-40 -right-40 size-[36rem] rounded-full ${accent.bg} opacity-10 blur-3xl`} />
@@ -57,7 +48,7 @@ export async function FormationPage({ f: source, others: sourceOthers }: { f: Fo
             <Reveal from="left">
               <nav aria-label={p.breadcrumb} className="mb-6 text-xs tracking-[0.2em] text-mist uppercase">
                 <Link href="/" className="hover:text-bone">{t.nav.home}</Link> <span aria-hidden="true">/</span>{" "}
-                <Link href="/formations" className="hover:text-bone">{t.common.formations}</Link> <span aria-hidden="true">/</span>{" "}
+                <Link href={academyHref} className="hover:text-bone">{academyName}</Link> <span aria-hidden="true">/</span>{" "}
                 <span className={accent.text}>{f.name}</span>
               </nav>
             </Reveal>
@@ -70,9 +61,9 @@ export async function FormationPage({ f: source, others: sourceOthers }: { f: Fo
                 <p className="mt-6 max-w-xl text-lg leading-relaxed text-mist">{f.summary}</p>
               </Reveal>
             )}
-            {socialDetails && (
+            {f.practical && (
               <Reveal from="left" delay={200}>
-                <p className="mt-5 max-w-xl border-s-2 border-gold/60 bg-ink-2 p-5 text-sm leading-relaxed text-mist">{socialDetails}</p>
+                <p className="mt-5 max-w-xl border-s-2 border-gold/60 bg-ink-2 p-5 text-sm leading-relaxed text-mist">{f.practical}</p>
               </Reveal>
             )}
             {facts.length > 0 && (
@@ -95,19 +86,33 @@ export async function FormationPage({ f: source, others: sourceOthers }: { f: Fo
                 <Icon name="calendar" /> {t.nav.planning}
               </Link>
             </Reveal>
+            {(f.contactPhone || f.sourceUrl) && (
+              <Reveal from="left" delay={360} className="mt-5 flex flex-wrap gap-x-6 gap-y-3 text-sm">
+                {f.contactPhone && (
+                  <a href={`tel:${f.contactPhone.replace(/[^\d+]/g, "")}`} className="inline-flex items-center gap-2 text-gold hover:text-bone">
+                    <Icon name="phone" width={16} height={16} /> <span dir="ltr">{f.contactPhone}</span>
+                  </a>
+                )}
+                {f.sourceUrl && (
+                  <a href={f.sourceUrl} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 text-gold hover:text-bone">
+                    <Icon name={/facebook\.com/i.test(f.sourceUrl) ? "facebook" : "file"} width={16} height={16} /> {/facebook\.com/i.test(f.sourceUrl) ? t.pages.akAcademy.k9CoursePostLink : t.pages.security.download}
+                  </a>
+                )}
+              </Reveal>
+            )}
           </div>
 
-          <Reveal from="right" delay={150} className="relative">
+          <Reveal from="right" delay={150} className={`relative ${f.coverIsPoster && carouselVideos.length === 0 ? "mx-auto w-full max-w-md" : ""}`}>
             {carouselVideos.length > 0 ? (
               <VideoCarousel videos={carouselVideos} labels={{ previous: p.previousVideo, next: p.nextVideo, upNext: p.upNext }} />
             ) : (
               <>
                 <div className={`absolute -inset-3 border ${accent.border} opacity-40`} aria-hidden="true" />
-                <div className="relative aspect-[4/5] overflow-hidden bg-ink-3">
+                <div className={`relative overflow-hidden bg-ink-3 ${f.coverIsPoster ? "aspect-[72/102]" : "aspect-[4/5]"}`}>
                   {f.coverUrl ? (
-                    <Image src={f.coverUrl} alt={p.imageAlt(f.name)} fill preload unoptimized sizes="(min-width: 1024px) 45vw, 100vw" className="object-cover" />
+                    <Image src={f.coverUrl} alt={p.imageAlt(f.name)} fill preload unoptimized={!f.coverUrl.startsWith("/pics/")} sizes="(min-width: 1024px) 45vw, 100vw" className={f.coverIsPoster ? "object-contain" : "formation-photo-drift object-cover"} />
                   ) : (
-                    <Image src={defaultHero.src} alt={defaultHero.alt} fill preload placeholder="blur" sizes="(min-width: 1024px) 45vw, 100vw" className="object-cover" />
+                    <Image src={defaultHero.src} alt={defaultHero.alt} fill preload placeholder="blur" sizes="(min-width: 1024px) 45vw, 100vw" className="formation-photo-drift object-cover" />
                   )}
                 </div>
               </>
@@ -121,7 +126,7 @@ export async function FormationPage({ f: source, others: sourceOthers }: { f: Fo
       {/* -------- Présentation + objectifs -------- */}
       {(f.intro.length > 0 || f.objectives.length > 0) && (
         <section className="border-y border-line bg-ink-2 py-24">
-          <div className="container-site grid gap-14 lg:grid-cols-2">
+          <div className={`container-site grid gap-14 ${f.intro.length > 0 && f.objectives.length > 0 ? "lg:grid-cols-2" : ""}`}>
             {f.intro.length > 0 && (
               <Reveal from="left">
                 <p className="eyebrow mb-3">{p.theFormation}</p>
@@ -135,8 +140,9 @@ export async function FormationPage({ f: source, others: sourceOthers }: { f: Fo
             )}
             {f.objectives.length > 0 && (
               <Reveal from="right" delay={120}>
-                <h3 className="mb-6 font-display text-2xl tracking-wide uppercase">{p.objectives}</h3>
-                <ul className="space-y-4">
+                <p className={f.intro.length > 0 ? "hidden" : "eyebrow mb-3"}>{p.theFormation}</p>
+                <h3 className={`mb-6 uppercase ${f.intro.length > 0 ? "font-display text-2xl tracking-wide" : "heading-lg"}`}>{f.intro.length > 0 ? p.objectives : p.whatYouLearn}</h3>
+                <ul className={f.intro.length > 0 ? "space-y-4" : "grid gap-x-10 gap-y-4 md:grid-cols-2"}>
                   {f.objectives.map((o, i) => (
                     <li key={i} className="flex gap-4 border-b border-line pb-4">
                       <Icon name="check" className={`mt-0.5 shrink-0 ${accent.text}`} />
@@ -172,21 +178,22 @@ export async function FormationPage({ f: source, others: sourceOthers }: { f: Fo
       )}
 
       {/* -------- Infos pratiques : prérequis, niveau, durée, tarif -------- */}
-      {(f.prerequisites.length > 0 || f.levelLabel || f.durationLabel || price) && (
+      {(f.prerequisites.length > 0 || f.levelLabel || f.durationLabel || f.location || price) && (
         <section className="border-y border-line bg-ink-2 py-20">
           <div className="container-site grid gap-12 lg:grid-cols-[1fr_1.2fr]">
             <Reveal from="left">
               <p className="eyebrow mb-3">{p.practical}</p>
               <h2 className="heading-lg">{p.beforeRegister}</h2>
-              <dl className="mt-8 grid gap-px border border-line bg-line sm:grid-cols-3">
+              <dl className="mt-8 grid grid-cols-2 gap-px border border-line bg-line">
                 {[
-                  [p.level, f.levelLabel],
                   [p.duration, f.durationLabel],
+                  [t.pages.akAcademy.locationTitle, f.location],
+                  [p.level, f.levelLabel],
                   [p.price, price],
                 ].map(([label, value]) => (
                   <div key={label} className="bg-ink p-5">
                     <dt className="text-[0.65rem] tracking-[0.2em] text-mist uppercase">{label}</dt>
-                    <dd className="mt-1 font-display text-lg tracking-wide uppercase">{value ?? p.onRequest}</dd>
+                    <dd className="mt-1 font-display text-lg tracking-wide break-words uppercase">{value || p.onRequest}</dd>
                   </div>
                 ))}
               </dl>
@@ -212,7 +219,7 @@ export async function FormationPage({ f: source, others: sourceOthers }: { f: Fo
 
       {/* -------- Date de la prochaine session (une seule date par formation) -------- */}
       <section className="py-16">
-        <div className="container-site flex flex-col items-start justify-between gap-6 border border-line bg-ink-2 p-7 sm:flex-row sm:items-center">
+        <div className="container-site"><div className="flex flex-col items-start justify-between gap-6 border border-line bg-ink-2 p-6 sm:flex-row sm:items-center sm:p-7">
           <div className="flex items-center gap-5">
             <span className="grid size-14 shrink-0 place-items-center bg-gold text-ink"><Icon name="calendar" /></span>
             <div>
@@ -227,7 +234,7 @@ export async function FormationPage({ f: source, others: sourceOthers }: { f: Fo
           <Link href="/planning" className="btn btn-ghost shrink-0">
             <Icon name="calendar" /> {p.fullPlanning}
           </Link>
-        </div>
+        </div></div>
       </section>
 
       {/* -------- Formateurs -------- */}
@@ -238,20 +245,7 @@ export async function FormationPage({ f: source, others: sourceOthers }: { f: Fo
               <p className="eyebrow mb-3">{p.team}</p>
               <h2 className="heading-lg">{p.trainers}</h2>
             </Reveal>
-            <ul className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-              {f.trainers.map((trainer) => (
-                <li key={trainer.id} className="border border-line bg-ink-2 p-6">
-                  {trainer.photoUrl && (
-                    <div className="relative mb-5 aspect-square overflow-hidden bg-ink-3">
-                      <Image src={trainer.photoUrl} alt={trainer.name} fill unoptimized sizes="(min-width: 1024px) 30vw, 90vw" className="object-cover" />
-                    </div>
-                  )}
-                  <h3 className="font-display text-2xl tracking-wide uppercase">{trainer.name}</h3>
-                  {trainer.title && <p className={`mt-1 text-sm ${accent.text}`}>{trainer.title}</p>}
-                  {trainer.bio && <p className="mt-3 text-sm leading-relaxed text-mist">{trainer.bio}</p>}
-                </li>
-              ))}
-            </ul>
+            <TrainerCards trainers={f.trainers.map((trainer) => localizeFormation(trainer, locale))} />
           </div>
         </section>
       )}
@@ -332,14 +326,14 @@ export async function FormationPage({ f: source, others: sourceOthers }: { f: Fo
 }
 
 function FormationLink({ f }: { f: Formation }) {
-  const { cover } = visualFor(f.slug);
+  const { cover } = visualFor(f.accent);
   return (
-    <Link href={`/formations/${f.slug}`} className="group flex items-center gap-6 border border-line bg-ink-2 p-5 transition-colors hover:border-bone/40">
+    <Link href={formationHref(f)} className="group flex items-center gap-6 border border-line bg-ink-2 p-5 transition-colors hover:border-bone/40">
       <div className="relative size-24 shrink-0 overflow-hidden">
         {f.coverUrl ? (
-          <Image src={f.coverUrl} alt="" fill unoptimized sizes="96px" className="object-cover transition duration-500 group-hover:scale-110" />
+          <Image src={f.coverUrl} alt="" fill unoptimized={!f.coverUrl.startsWith("/pics/")} sizes="96px" className={`transition duration-500 group-hover:scale-110 ${f.coverIsPoster ? "object-contain" : "formation-photo-drift object-cover"}`} />
         ) : (
-          <Image src={cover.src} alt="" fill sizes="96px" className="object-cover transition duration-500 group-hover:scale-110" />
+          <Image src={cover.src} alt="" fill sizes="96px" className="formation-photo-drift object-cover transition duration-500 group-hover:scale-110" />
         )}
       </div>
       <div className="min-w-0">

@@ -71,7 +71,7 @@ export function SecurityQuoteForm({ copy }: { copy: SecurityQuoteCopy }) {
       <div className="hidden" aria-hidden="true">
         <label>Website <input type="text" name="website" tabIndex={-1} autoComplete="off" /></label>
       </div>
-      <div className="grid gap-5 sm:grid-cols-2">
+      <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
         <TextField name="firstName" label={copy.firstName} required value={value("firstName")} error={fieldError("firstName")} />
         <TextField name="lastName" label={copy.lastName} required value={value("lastName")} error={fieldError("lastName")} />
         <TextField name="companyName" label={copy.companyName} value={value("companyName")} error={fieldError("companyName")} />

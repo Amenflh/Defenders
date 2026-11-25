@@ -1,6 +1,7 @@
 import type { Prisma } from "../generated/prisma/client.js";
 import { prisma } from "../lib/prisma.js";
 import { seedAdmin } from "../modules/auth/auth.service.js";
+import { markSeedStep, seedDynamicContent, seedStepDone } from "./dynamic-content.js";
 import { FORMATION_CONTENT } from "./formation-content.js";
 
 type SampleSession = Omit<Prisma.TrainingSessionCreateManyInput, "formationId"> & { formation: string };
@@ -27,9 +28,20 @@ const SAMPLE_PLANNING: SampleSession[] = [
   { formation: "personal-training", title: "Évaluation pratique", dayOfWeek: 7, startTime: "10:00", endTime: "12:00", format: "evaluation", level: "tous_niveaux" },
 ];
 
-/** Données de référence, idempotent : peut être lancé à chaque démarrage. */
+/**
+ * Données de départ, lancé à chaque démarrage : chaque étape n'est faite qu'une fois. Un contenu supprimé
+ * dans l'admin (formation, partenaire, question…) ne revient donc pas au redémarrage.
+ */
 export async function ensureSeedData(): Promise<void> {
   await seedAdmin();
+  if (!(await seedStepDone("base"))) {
+    await seedBase();
+    await markSeedStep("base");
+  }
+  await seedDynamicContent();
+}
+
+async function seedBase(): Promise<void> {
   await seedFormationContent();
 
   const defaultSettings = {

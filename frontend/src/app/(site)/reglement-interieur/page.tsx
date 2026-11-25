@@ -2,18 +2,18 @@ import type { Metadata } from "next";
 import { PageIntro } from "@/components/PageIntro";
 import { getDictionary } from "@/lib/i18n/server";
 import { dirFor } from "@/lib/i18n/config";
-import { internalRules } from "@/lib/internal-rules";
-import { site } from "@/lib/site";
+import { getContacts } from "@/lib/settings";
 
 export async function generateMetadata(): Promise<Metadata> {
-  const { locale } = await getDictionary();
-  const rules = internalRules[locale];
+  const { t } = await getDictionary();
+  const rules = t.internalRules;
   return { title: rules.title, description: rules.description };
 }
 
 export default async function InternalRulesPage() {
   const { locale, t } = await getDictionary();
-  const rules = internalRules[locale];
+  const contacts = await getContacts();
+  const rules = t.internalRules;
 
   return (
     <>
@@ -37,7 +37,7 @@ export default async function InternalRulesPage() {
             ))}
           </ol>
           <a
-            href={site.documents.rules}
+            href={contacts.documents.rules}
             target="_blank"
             rel="noreferrer"
             className="inline-flex text-gold hover:text-bone"

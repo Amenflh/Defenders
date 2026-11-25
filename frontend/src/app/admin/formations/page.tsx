@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Icon } from "@/components/Icon";
+import { ACADEMY_NAME, formationHref } from "@/lib/academies";
 import { formatPrice } from "@/lib/formations";
 import { listAdminFormations } from "./data";
 import { FormationRowActions } from "./FormationRowActions";
@@ -53,15 +54,16 @@ export default async function AdminFormationsPage() {
                     <h2 className="font-display text-2xl tracking-wide uppercase">{f.name}</h2>
                     <span className={`border px-2 py-0.5 text-[0.65rem] tracking-[0.15em] uppercase ${status.tone}`}>{status.label}</span>
                   </div>
-                  <p className="mt-1 font-mono text-xs text-mist">/formations/{f.slug}</p>
+                  <p className="mt-1 text-xs text-gold">{ACADEMY_NAME[f.academy]}</p>
+                  <p className="mt-1 font-mono text-xs break-all text-mist">{formationHref(f)}</p>
                   {f.headline && <p className="mt-3 text-sm text-mist">{f.headline}</p>}
                   <p className="mt-3 text-xs tracking-[0.1em] text-mist uppercase">
                     {[f.durationLabel, f.levelLabel, formatPrice(f.priceTnd)].filter(Boolean).join(" · ") || "Infos pratiques à compléter"}
                     {" · "}
-                    {f.registrationCount} demande(s) · {f.sessionCount} créneau(x) · ordre {f.position}
+                    {f.nextSessionDate ? `session le ${new Date(f.nextSessionDate).toLocaleDateString("fr-FR", { timeZone: "UTC" })}` : "date à fixer"} · {f.registrationCount} demande(s) · ordre {f.position}
                   </p>
                 </div>
-                <FormationRowActions id={f.id} name={f.name} slug={f.slug} status={f.status} registrationCount={f.registrationCount} />
+                <FormationRowActions id={f.id} name={f.name} href={formationHref(f)} status={f.status} registrationCount={f.registrationCount} />
               </li>
             );
           })}

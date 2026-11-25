@@ -289,6 +289,7 @@ export const pagesEn: Dictionary["pages"] = {
           corps: ["Mindful movement", "Posture, core, flexibility, breathing"],
           terrain: ["The pitch and the team", "Physical preparation, players, clubs"],
           coaching: ["One-to-one coaching", "Transforming a client's physique"],
+          securite: ["Security and protection", "Close protection, first response, K9"],
           indecis: ["I don't know yet", "Show me what suits me"],
         },
       },

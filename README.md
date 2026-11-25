@@ -34,16 +34,20 @@ Le site marketing est public. Les espaces protégés nécessitent une connexion 
 |---|---|---|
 | Connexion (admin et clients, même formulaire) | `/login` | public |
 | Création de compte client | `/register` | public |
-| Accueil, liste et détail des formations, planning | `/`, `/formations`, `/formations/<slug>`, `/planning` | public |
-| Anciennes pages de formation | `/pilates`, `/football`, `/personal-training` | public |
+| Accueil, liste des formations, planning, historique | `/`, `/formations`, `/planning`, `/historique` | public |
+| Académies | `/fitness-academy`, `/tunisian-security-academy` | public |
+| Détail d'une formation (même adresse pour les deux académies) | `/<académie>/formations/<slug>` | public |
+| Anciennes adresses (redirigées) | `/formations/<slug>`, `/<slug>` | public |
 | Inscription à une formation (pré-remplie, liée au compte) | `/contact` | public |
 | Formulaire d'inscription en popup | `/contact?popup=1` | public |
-| Defenders Security Protection | `/securite` | public |
 | Mentions légales, confidentialité, cookies | `/mentions-legales`, `/politique-de-confidentialite`, `/cookies` | public |
 | Suivi de ses inscriptions | `/mon-espace` | client |
 | Tableau de bord des demandes | `/admin` | admin |
-| Gestion des formations (contenu, statut) | `/admin/formations` | admin |
-| Envoi et gestion des images et vidéos | `/admin/medias` | admin |
+| Formations des deux académies (contenu, vidéos, traductions, statut) | `/admin/formations` | admin |
+| Historique | `/admin/historique` | admin |
+| Équipe pédagogique | `/admin/equipe` | admin |
+| Galeries, témoignages vidéo, vidéos de fond, bandeau de l'accueil | `/admin/medias` | admin |
+| Tous les textes du site (français, anglais, arabe) | `/admin/textes` | admin |
 
 `/robots.txt`, `/sitemap.xml` et les médias (`/pics`, `/video`, `/uploads`) restent publics.
 
@@ -67,7 +71,9 @@ Spécification brute : `/api/docs/openapi.json`. En production, activer avec `AP
 | GET | `/api/formations` · `/api/formations/:slug` | Formations publiées · détail (contenu, formateurs, créneaux, médias) |
 | GET · POST | `/api/admin/formations` | Toutes les formations · création (admin) |
 | GET · PATCH · DELETE | `/api/admin/formations/:id` | Détail · modification partielle · suppression (409 si des inscriptions existent : archiver) (admin) |
-| GET | `/api/media?type=&category=&formation=` | Galerie publique |
+| GET | `/api/history?academy=` · `/api/trainers?academy=` | Historique · équipe pédagogique |
+| GET · POST · PATCH · DELETE | `/api/admin/history[/:id]` · `/api/admin/trainers[/:id]` | Gestion de l'historique et de l'équipe (admin) |
+| GET | `/api/media?type=&category=&academy=&formation=` | Galerie publique |
 | POST | `/api/admin/media/images` · `/videos` | Téléversement (multipart, champ `file`) : JPG/PNG/WebP 5 Mo · MP4/WebM 100 Mo (admin) |
 | GET · PATCH · DELETE | `/api/admin/media` · `/api/admin/media/:id` | Liste · modification · suppression du média et de son fichier (admin) |
 | GET · POST | `/api/me/chat?after=` | Discussion du client connecté avec l'équipe : lecture (marque lu) · envoi (20 messages / min) |
@@ -288,9 +294,10 @@ Ils ne demandent aucune installation : `cd frontend && npm test`.
 
 ## Personnalisation
 
-- Coordonnées, réseaux sociaux et partenaires : `frontend/src/lib/site.ts`
-- Contenu des formations : espace admin › Formations (stocké en base) ; couleurs et photos par défaut : `frontend/src/lib/formation-visuals.ts`
-- Images et vidéos : espace admin › Médias
-- Planning : créneaux **d'exemple** insérés dans `training_sessions` (`backend/src/db/seed.ts`), à remplacer par le vrai
+- Tout le contenu se modifie dans l'espace admin, en trois langues : formations, historique, équipe, galeries,
+  témoignages, FAQ, partenaires, promotions, coordonnées (Paramètres), textes des pages et ordre des sections de l'accueil.
+- Données de départ (`backend/src/db/seed.ts`, `dynamic-content.ts`, `initial-content.ts`) : insérées **une seule fois**.
+  Un contenu supprimé dans l'admin ne revient pas au redémarrage (étapes notées dans `site_settings`, clé `seed`).
+- Valeurs par défaut des coordonnées : `frontend/src/lib/site.ts` ; textes d'origine : `frontend/src/lib/i18n/`
 - Médias : `frontend/public/pics/` et `frontend/public/pics/banner_images/`
 - En production (HTTPS) : définir `COOKIE_SECURE=true` pour le frontend

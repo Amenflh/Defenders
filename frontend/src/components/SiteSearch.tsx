@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useId, useMemo, useRef, useState, useSyncExternalStore, type KeyboardEvent } from "react";
-import { useI18n } from "@/lib/i18n/client";
+import { useI18n, useSiteData } from "@/lib/i18n/client";
 import { buildSearchIndex, prepareIndex, searchIndex, type SearchGroup, type SearchIcon, type SearchItem } from "@/lib/search-index";
 import { Icon } from "./Icon";
 
@@ -17,7 +17,7 @@ const ICONS: Record<SearchIcon, Parameters<typeof Icon>[0]["name"]> = {
   mail: "mail",
   pin: "pin",
 };
-const SUGGESTED = ["formation-pilates", "formation-football", "formation-personal-training", "formation-k9", "page-planning", "page-quiz", "contact-whatsapp"];
+const SUGGESTED = ["page-planning", "page-quiz", "contact-whatsapp"];
 
 const noopSubscribe = () => () => {};
 
@@ -26,7 +26,8 @@ const noopSubscribe = () => () => {};
  * L'index est construit dans la langue courante, sans requête réseau : les résultats s'affichent à chaque frappe.
  */
 export function SiteSearch({ className = "" }: { className?: string }) {
-  const { locale, t } = useI18n();
+  const { t } = useI18n();
+  const data = useSiteData();
   const router = useRouter();
   const dialogRef = useRef<HTMLDialogElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -37,10 +38,10 @@ export function SiteSearch({ className = "" }: { className?: string }) {
   // Raccourci affiché selon le système (⌘ sur Mac) ; « Ctrl » au rendu serveur.
   const isMac = useSyncExternalStore(noopSubscribe, () => /mac|iphone|ipad/i.test(navigator.userAgent), () => false);
 
-  const index = useMemo(() => prepareIndex(buildSearchIndex(t, locale)), [t, locale]);
+  const index = useMemo(() => prepareIndex(buildSearchIndex(t, data)), [t, data]);
   const results = useMemo<SearchItem[]>(() => {
     if (query.trim()) return searchIndex(index, query);
-    return SUGGESTED.map((id) => index.find((item) => item.id === id)).filter((item): item is (typeof index)[number] => !!item);
+    return [...index.filter((item) => item.group === "formations").slice(0, 5).map((item) => item.id), ...SUGGESTED].map((id) => index.find((item) => item.id === id)).filter((item): item is (typeof index)[number] => !!item);
   }, [index, query]);
   const grouped = useMemo(
     () => GROUP_ORDER.map((group) => ({ group, items: results.filter((item) => item.group === group) })).filter(({ items }) => items.length),

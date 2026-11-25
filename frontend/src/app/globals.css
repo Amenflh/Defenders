@@ -331,6 +331,15 @@ html[lang="ar"] body * {
   animation-play-state: paused;
 }
 
+/* ---------- Mouvement doux des photos de formation ---------- */
+.formation-photo-drift {
+  animation: formation-photo-drift 14s ease-in-out infinite alternate;
+}
+@keyframes formation-photo-drift {
+  from { object-position: 38% 44%; }
+  to { object-position: 62% 56%; }
+}
+
 /* ---------- Vidéos Facebook (SDK) : le lecteur remplit toujours son cadre ---------- */
 .fb-embed-host > .fb-video,
 .fb-embed-host > .fb-video > span,
@@ -551,6 +560,7 @@ html[lang="ar"] body * {
   [data-reveal] { opacity: 1; transform: none; transition: none; }
   .marquee-track { animation: none !important; }
   .video-skeleton, .video-skeleton-play, .video-swap, .site-search-panel, .site-search::backdrop { animation: none !important; }
+  .formation-photo-drift { animation: none; }
   .formations-index-title, .formations-preview-frame { transition: none; translate: none !important; }
   .video-card:hover, .card-hover:hover, [data-auto-card="lift"]:hover { translate: none; }
   .btn:hover, .btn:active { transform: none; }
@@ -603,4 +613,61 @@ html[lang="ar"] body * {
   0% { box-shadow: 0 0 0 0 rgba(37, 211, 102, 0.45); }
   70% { box-shadow: 0 0 0 16px rgba(37, 211, 102, 0); }
   100% { box-shadow: 0 0 0 0 rgba(37, 211, 102, 0); }
+}
+
+/* Les blocs animés (arrivée par la droite ou la gauche) ne doivent jamais décaler la page, même en arabe
+   ou après un saut vers une ancre : le « clip » du body est reporté sur la fenêtre, qui reste défilable. */
+body > main, body > footer { overflow-x: clip; }
+
+/* ---------- Accueil « Ce qui nous distingue » ---------- */
+@property --hl-angle {
+  syntax: "<angle>";
+  inherits: false;
+  initial-value: 0deg;
+}
+/* Liseré doré qui tourne autour de la carte vedette. */
+.hl-glow {
+  background: conic-gradient(from var(--hl-angle), var(--color-line) 0 58%, var(--color-gold) 78%, color-mix(in oklab, var(--color-gold) 30%, white) 84%, var(--color-gold) 90%, var(--color-line) 100%);
+  box-shadow: 0 30px 90px -50px color-mix(in oklab, var(--color-gold) 80%, transparent);
+  animation: hl-turn 7s linear infinite;
+}
+@keyframes hl-turn { to { --hl-angle: 360deg; } }
+.hl-grid {
+  background-image: linear-gradient(color-mix(in oklab, var(--color-gold) 9%, transparent) 1px, transparent 1px), linear-gradient(90deg, color-mix(in oklab, var(--color-gold) 9%, transparent) 1px, transparent 1px);
+  background-size: 44px 44px;
+  mask-image: radial-gradient(ellipse at 85% 50%, #000 0%, transparent 65%);
+}
+.hl-paper { transform: perspective(900px) rotateY(-9deg) rotateX(3deg); transition: transform 0.7s cubic-bezier(0.2, 0.7, 0.2, 1); }
+[dir="rtl"] .hl-paper { transform: perspective(900px) rotateY(9deg) rotateX(3deg); }
+.group:hover .hl-paper, .hl-paper:focus-visible { transform: perspective(900px) rotateY(0) rotateX(0) scale(1.04); }
+.hl-shine {
+  background: linear-gradient(115deg, transparent 38%, rgb(255 255 255 / 0.75) 50%, transparent 62%) no-repeat 180% 0 / 250% 100%;
+  animation: hl-shine 5s ease-in-out infinite;
+}
+@keyframes hl-shine { 0%, 55% { background-position: 180% 0; } 100% { background-position: -80% 0; } }
+.hl-seal { transform-origin: 60px 60px; animation: hl-seal 18s linear infinite; }
+@keyframes hl-seal { to { transform: rotate(360deg); } }
+.hl-pulse::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border: 2px solid var(--color-gold);
+  border-radius: 9999px;
+  animation: hl-pulse 1.8s ease-out infinite;
+}
+@keyframes hl-pulse { from { opacity: 0.8; scale: 1; } to { opacity: 0; scale: 1.7; } }
+.hl-ecg { stroke-dasharray: 22 78; animation: hl-ecg 2.6s linear infinite; }
+@keyframes hl-ecg { from { stroke-dashoffset: 100; } to { stroke-dashoffset: 0; } }
+.hl-number {
+  color: transparent;
+  background: linear-gradient(100deg, var(--color-gold) 30%, color-mix(in oklab, var(--color-gold) 25%, white) 50%, var(--color-gold) 70%) 0 0 / 250% 100%;
+  background-clip: text;
+  animation: hl-number 6s linear infinite;
+}
+@keyframes hl-number { from { background-position: 125% 0; } to { background-position: -125% 0; } }
+:root[data-theme="light"] .hl-number { background-image: linear-gradient(100deg, var(--color-gold) 30%, color-mix(in oklab, var(--color-gold) 60%, black) 50%, var(--color-gold) 70%); }
+@media (prefers-reduced-motion: reduce) {
+  .hl-glow, .hl-shine, .hl-seal, .hl-pulse::after, .hl-ecg, .hl-number { animation: none; }
+  .hl-ecg { stroke-dasharray: none; }
+  .hl-paper { transform: none; transition: none; }
 }

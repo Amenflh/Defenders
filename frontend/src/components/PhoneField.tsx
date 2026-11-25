@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useId, useMemo, useRef, useState } from "react";
 import { COUNTRIES, flagUrl, PRIORITY_COUNTRIES, type Country } from "@/lib/countries";
 import { useI18n } from "@/lib/i18n/client";
 
@@ -29,7 +29,8 @@ export function PhoneField({ name, label, required, defaultValue = "", error }: 
   const [query, setQuery] = useState("");
   const boxRef = useRef<HTMLDivElement>(null);
   const searchRef = useRef<HTMLInputElement>(null);
-  const id = `f-${name}`;
+  // Identifiant unique : une page peut contenir deux formulaires (devis et inscription).
+  const id = `f-${name}-${useId()}`;
 
   const names = useMemo(() => {
     try {

@@ -62,33 +62,31 @@ export function Header({ user, identity = {} }: { user: HeaderUser | null; ident
         }`}
       >
         <div className="container-site flex h-16 items-center justify-between gap-3 sm:h-[4.5rem] xl:gap-5">
-          <div className="flex min-w-0 shrink-0 items-center gap-2 sm:gap-3">
+          <div className="flex min-w-0 items-center gap-2 sm:shrink-0 sm:gap-3">
             <span className="shrink-0 sm:hidden"><Logo compact {...identity} /></span>
             <span className="hidden shrink-0 sm:inline-flex"><Logo {...identity} /></span>
-            <span className="max-w-24 truncate font-display text-[0.62rem] tracking-[0.12em] uppercase sm:hidden">
-              {identity.brandName ?? site.shortName} {identity.brandDescriptor ?? site.descriptor}
+            <span className="min-w-0 font-display text-xs leading-tight tracking-[0.12em] uppercase min-[350px]:block sm:hidden max-[349px]:hidden">
+              <span className="block truncate font-semibold">{identity.brandName ?? site.shortName}</span>
+              <span className="block truncate text-[0.6rem] tracking-[0.2em] text-mist">{identity.brandDescriptor ?? site.descriptor}</span>
             </span>
           </div>
 
           <nav aria-label={t.common.mainNav} className="hidden min-w-0 xl:block">
             <ul className="flex items-center gap-1">
               {headerNav.map((item) => {
-                // La rubrique ouverte quitte le menu : elle est présentée dans le bandeau sous le header.
-                const hidden = item === activeItem;
+                const active = item === activeItem;
                 // Les deux académies affichent leur logo devant leur nom.
                 const branchLogo = site.branches.find(({ href }) => href === item.href)?.logo;
                 return (
-                  <li
-                    key={item.href}
-                    aria-hidden={hidden || undefined}
-                    className={`overflow-hidden transition-[max-width,opacity,transform] duration-500 ease-[cubic-bezier(0.2,0.7,0.2,1)] ${
-                      hidden ? "max-w-0 -translate-y-2 opacity-0" : "max-w-56 opacity-100"
-                    }`}
-                  >
+                  <li key={item.href}>
                     <Link
                       href={item.href}
-                      tabIndex={hidden ? -1 : undefined}
-                      className={`flex items-center gap-2 rounded-full py-2 font-display text-[0.68rem] tracking-[0.06em] whitespace-nowrap text-mist uppercase transition-colors hover:bg-white/[0.05] hover:text-bone ${branchLogo ? "ps-1.5 pe-3" : "px-3"}`}
+                      aria-current={active ? "page" : undefined}
+                      className={`flex items-center gap-2 rounded-full py-2 font-display text-[0.68rem] tracking-[0.06em] whitespace-nowrap uppercase transition-colors ${branchLogo ? "ps-1.5 pe-3" : "px-3"} ${
+                        active
+                          ? "bg-gold/10 text-gold ring-1 ring-inset ring-gold/30"
+                          : "text-mist hover:bg-white/[0.05] hover:text-bone"
+                      }`}
                     >
                       {branchLogo && (
                         <Image src={branchLogo} alt="" width={28} height={28} className="size-7 shrink-0 rounded-full bg-white object-contain p-px ring-1 ring-white/20" />

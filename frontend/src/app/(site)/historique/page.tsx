@@ -1,13 +1,9 @@
 import type { Metadata } from "next";
+import { connection } from "next/server";
 import { HistoryTimeline } from "@/components/HistoryTimeline";
 import { PageIntro } from "@/components/PageIntro";
-import {
-  ACTIVITY_LABELS,
-  HISTORY_ACADEMY_FOR_ACTIVITY,
-  historyFor,
-  type HistoryAcademy,
-  type HistoryActivity,
-} from "@/lib/history";
+import type { Academy } from "@/lib/academies";
+import { getHistory } from "@/lib/academy-content";
 import { getDictionary } from "@/lib/i18n/server";
 import { getHeroClips } from "@/lib/home-page-data";
 
@@ -16,23 +12,15 @@ export async function generateMetadata(): Promise<Metadata> {
   return { title: t.history.metaTitle, description: t.history.intro };
 }
 
-/** Historique des formations : toutes les sessions passées, filtrables par activité (?activite=football). */
+/** Historique des formations (admin › Historique), filtrable par académie et par formation (?academy=tsa&activite=k9). */
 export default async function HistoryPage({ searchParams }: PageProps<"/historique">) {
-  const [{ t }, params, heroClips] = await Promise.all([getDictionary(), searchParams, getHeroClips()]);
+  await connection();
+  const [{ t }, params, heroClips, entries] = await Promise.all([getDictionary(), searchParams, getHeroClips(), getHistory()]);
   // L'ancien filtre « security » (DSP) renvoie vers la Tunisian Security Academy, dont la sécurité fait partie.
-  const requestedAcademy = params.academy === "security" ? "tsa" : typeof params.academy === "string" ? params.academy : "";
-  const initialAcademy: HistoryAcademy | "all" = ["fitness", "tsa"].includes(requestedAcademy)
-    ? requestedAcademy as HistoryAcademy
-    : "all";
-  const requestedActivity = typeof params.activite === "string" ? params.activite : "";
-  const isActivity = Object.prototype.hasOwnProperty.call(ACTIVITY_LABELS, requestedActivity);
-  const selectedActivity = isActivity ? requestedActivity as HistoryActivity : "all";
-  const initial: HistoryActivity | "all" =
-    selectedActivity !== "all" &&
-    initialAcademy !== "all" &&
-    HISTORY_ACADEMY_FOR_ACTIVITY[selectedActivity] !== initialAcademy
-      ? "all"
-      : selectedActivity;
+  const requested = params.academy === "security" ? "tsa" : params.academy;
+  const academy: Academy | "all" = requested === "fitness" || requested === "tsa" ? requested : "all";
+  const activity = typeof params.activite === "string" ? params.activite : "";
+  const filter = entries.some((e) => e.activity === activity && (academy === "all" || e.academy === academy)) ? activity : "all";
 
   return (
     <>
@@ -41,13 +29,7 @@ export default async function HistoryPage({ searchParams }: PageProps<"/historiq
       </PageIntro>
       <section className="py-16 lg:py-20">
         <div className="container-site">
-          <HistoryTimeline
-            key={`${initialAcademy}-${initial}`}
-            entries={historyFor()}
-            showFilters
-            initialFilter={initial}
-            initialAcademy={initialAcademy}
-          />
+          <HistoryTimeline key={`${academy}-${filter}`} entries={entries} showFilters initialFilter={filter} initialAcademy={academy} />
         </div>
       </section>
     </>

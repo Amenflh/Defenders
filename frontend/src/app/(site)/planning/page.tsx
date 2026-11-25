@@ -5,12 +5,13 @@ import { connection } from "next/server";
 import { Icon } from "@/components/Icon";
 import { PageIntro } from "@/components/PageIntro";
 import { Reveal } from "@/components/Reveal";
+import { formationHref } from "@/lib/academies";
 import { accentClassFor, visualFor } from "@/lib/formation-visuals";
 import { getFormations, type Formation } from "@/lib/formations";
 import { intlLocale } from "@/lib/i18n/config";
 import { getDictionary } from "@/lib/i18n/server";
 import { localizeFormation } from "@/lib/formation-i18n";
-import { site } from "@/lib/site";
+import { getContacts } from "@/lib/settings";
 
 export async function generateMetadata(): Promise<Metadata> {
   const { t } = await getDictionary();
@@ -31,7 +32,7 @@ function byDate(a: Formation, b: Formation) {
 export default async function PlanningPage() {
   // Rendu à chaque requête : les formations viennent de l'API et BACKEND_URL est lu à l'exécution.
   await connection();
-  const [list, { locale, t }] = await Promise.all([getFormations(), getDictionary()]);
+  const [list, { locale, t }, contacts] = await Promise.all([getFormations(), getDictionary(), getContacts()]);
   const formations = (list ?? []).slice().sort(byDate).map((f) => localizeFormation(f, locale));
   const today = new Date(new Date().toISOString().slice(0, 10) + "T00:00:00Z").getTime();
   const day = new Intl.DateTimeFormat(intlLocale[locale], { day: "2-digit", timeZone: "UTC" });
@@ -51,11 +52,11 @@ export default async function PlanningPage() {
               {formations.map((f, i) => {
                 const date = f.nextSessionDate ? new Date(`${f.nextSessionDate}T00:00:00Z`) : null;
                 const daysLeft = date ? Math.round((date.getTime() - today) / DAY_MS) : null;
-                const cover = f.coverUrl ? { src: f.coverUrl, alt: f.name } : visualFor(f.slug).cover;
+                const cover = f.coverUrl ? { src: f.coverUrl, alt: f.name } : visualFor(f.accent).cover;
                 return (
-                  <Reveal from={(["left", "up", "right"] as const)[i % 3]} as="li" key={f.slug} delay={i * 80} className={`${accentClassFor(f.slug || f.accent)} flex flex-col border border-line bg-ink-2`}>
+                  <Reveal from={(["left", "up", "right"] as const)[i % 3]} as="li" key={f.slug} delay={i * 80} className={`${accentClassFor(f.accent)} flex flex-col border border-line bg-ink-2`}>
                     <div className="relative aspect-[16/9] overflow-hidden bg-ink">
-                      <Image src={cover.src} alt={cover.alt} fill unoptimized={typeof cover.src === "string"} sizes="(min-width:1280px) 33vw, (min-width:768px) 50vw, 100vw" className="object-cover opacity-70" />
+                      <Image src={cover.src} alt={cover.alt} fill unoptimized={typeof cover.src === "string"} sizes="(min-width:1280px) 33vw, (min-width:768px) 50vw, 100vw" className={`opacity-70 ${f.coverIsPoster ? "object-contain p-4" : "object-cover"}`} />
                       <div className="absolute inset-0 bg-gradient-to-t from-ink-2 via-ink-2/30 to-transparent" />
                       <span className="absolute inset-x-0 top-0 h-1 bg-gold" />
                       <h2 className="absolute inset-x-0 bottom-0 p-5 font-display text-2xl tracking-wide uppercase">{f.name}</h2>
@@ -88,7 +89,7 @@ export default async function PlanningPage() {
                         <Link href={`/contact?formation=${f.slug}`} className="btn btn-primary !px-4 !py-2.5 !text-xs">
                           {t.planning.register} <Icon name="arrow" width={16} height={16} className="rtl:-scale-x-100" />
                         </Link>
-                        <Link href={`/formations/${f.slug}`} className="btn btn-ghost !px-4 !py-2.5 !text-xs">
+                        <Link href={formationHref(f)} className="btn btn-ghost !px-4 !py-2.5 !text-xs">
                           {t.planning.details}
                         </Link>
                       </div>
@@ -104,7 +105,7 @@ export default async function PlanningPage() {
               <p className="mx-auto mt-3 max-w-md text-mist">{t.planning.unavailableText}</p>
               <div className="mt-6 flex flex-wrap justify-center gap-4">
                 <Link href="/contact" className="btn btn-primary">{t.home.contactUs}</Link>
-                <a href={site.phone.href} className="btn btn-ghost">{site.phone.label}</a>
+                <a href={contacts.phone.href} className="btn btn-ghost" dir="ltr">{contacts.phone.label}</a>
               </div>
             </div>
           )}

@@ -3,11 +3,8 @@ import Image from "next/image";
 import Link from "next/link";
 import { connection } from "next/server";
 import { AcademyVideoHero } from "@/components/AcademyVideoHero";
-import { AcademyCourseCard } from "@/components/AcademyCourseCard";
-import { FormationCard } from "@/components/FormationCard";
+import { AcademyProgrammes } from "@/components/AcademyBlocks";
 import { Reveal } from "@/components/Reveal";
-import { Unavailable } from "@/components/Unavailable";
-import { getFormations } from "@/lib/formations";
 import { getHeroClips } from "@/lib/home-page-data";
 import { getDictionary } from "@/lib/i18n/server";
 import { site } from "@/lib/site";
@@ -19,8 +16,7 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export default async function FormationsPage({ searchParams }: PageProps<"/formations">) {
   await connection();
-  const [formations, { locale, t }, params, heroClips] = await Promise.all([
-    getFormations(),
+  const [{ locale, t }, params, heroClips] = await Promise.all([
     getDictionary(),
     searchParams,
     getHeroClips(),
@@ -33,26 +29,22 @@ export default async function FormationsPage({ searchParams }: PageProps<"/forma
       allAcademies: "Toutes les académies",
       fitnessIntro: "Pilates, coaching football ou Personal Training : choisissez votre spécialité. Ouvrez chaque fiche pour voir le contenu, les vidéos disponibles et les modalités.",
       tsaIntro: "Découvrez les parcours en intervention initiale, protection rapprochée et formation K9. Consultez chaque fiche et contactez TSA pour confirmer les prochaines modalités.",
-      details: "Voir les détails",
     },
     en: {
       filterAcademy: "Filter by academy",
       allAcademies: "All academies",
       fitnessIntro: "Pilates, football coaching or Personal Training: choose your speciality. Open a course to review its content, available videos and practical details.",
       tsaIntro: "Explore Initial Response, Close Protection and K9 training. Review each course and contact TSA to confirm upcoming arrangements.",
-      details: "View course details",
     },
     ar: {
       filterAcademy: "تصفية حسب الأكاديمية",
       allAcademies: "كل الأكاديميات",
       fitnessIntro: "اختر اختصاصك: Pilates أو تدريب كرة القدم أو التدريب الشخصي. افتح كل تكوين للاطلاع على المحتوى والفيديوهات والتفاصيل العملية.",
       tsaIntro: "اكتشف مسارات التدخل الأولي والحماية القريبة وتكوين K9. اطّلع على كل صفحة وتواصل مع TSA للتثبت من الترتيبات القادمة.",
-      details: "عرض التفاصيل",
     },
   }[locale];
   const fitness = site.branches.find((branch) => branch.key === "fitness")!;
   const tsa = site.branches.find((branch) => branch.key === "tsa")!;
-  const tsaCopy = t.pages.akAcademy;
   const academyFilters = [
     { key: "all", label: copy.allAcademies },
     { key: "fitness", label: t.nav.fitnessAcademy },
@@ -95,74 +87,17 @@ export default async function FormationsPage({ searchParams }: PageProps<"/forma
 
       <div className="container-site space-y-14 py-14 lg:space-y-20 lg:py-20">
         {(activeAcademy === "all" || activeAcademy === "fitness") && <AcademySection branch={fitness} intro={copy.fitnessIntro}>
-          {formations === null ? (
-            <Unavailable />
-          ) : formations.length > 0 ? (
-            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-              {formations.map((formation, index) => (
-                <Reveal from={(["left", "up", "right"] as const)[index % 3]} key={formation.slug} delay={(index % 3) * 70}>
-                <FormationCard
-                  f={formation}
-                  priority={index < 3}
-                  videoUrl={fitnessCourseVideos[formation.slug]?.embedUrl}
-                />
-                </Reveal>
-              ))}
-            </div>
-          ) : (
-            <p className="border border-line bg-ink-2 p-6 text-mist">{t.pages.formationsList.emptyText}</p>
-          )}
+          <AcademyProgrammes academy="fitness" priority />
         </AcademySection>}
 
         {(activeAcademy === "all" || activeAcademy === "tsa") && <AcademySection branch={tsa} intro={copy.tsaIntro}>
-          <div className="grid gap-5 lg:grid-cols-3">
-            <AcademyCourseCard
-              title={tsaCopy.courseTitle}
-              text={tsaCopy.courseText}
-              detail={tsaCopy.courseDuration}
-              poster="/pics/partners/tsa-logo-eagle.jpg"
-              videoEmbedUrl={site.tunisianSecurityAcademy.firstResponseVideos[0].embedUrl}
-              videoLayout={site.tunisianSecurityAcademy.firstResponseVideos[0].layout}
-              accentClassName="accent-intervention"
-              href="/tunisian-security-academy/formations/intervention-initiale"
-              action={copy.details}
-            />
-            <AcademyCourseCard
-              title={tsaCopy.k9CourseTitle}
-              text={tsaCopy.k9CourseText}
-              detail={tsaCopy.k9CourseDuration}
-              poster={site.tunisianSecurityAcademy.k9Poster}
-              posterLayout="portrait"
-              posterAlt={tsaCopy.k9PosterAlt}
-              extraLink={{ href: site.tunisianSecurityAcademy.k9CoursePost, label: tsaCopy.k9CoursePostLink }}
-              accentClassName="accent-k9"
-              href="/tunisian-security-academy/formations/k9"
-              action={copy.details}
-            />
-            <AcademyCourseCard
-              title={tsaCopy.closeProtectionTitle}
-              text={tsaCopy.closeProtectionText}
-              detail={tsaCopy.durationToConfirm}
-              poster="/pics/partners/tsa-logo-eagle.jpg"
-              videoEmbedUrl={site.tunisianSecurityAcademy.closeProtectionVideos[0].embedUrl}
-              videoLayout={site.tunisianSecurityAcademy.closeProtectionVideos[0].layout}
-              accentClassName="accent-protection"
-              href="/tunisian-security-academy/formations/protection-rapprochee"
-              action={copy.details}
-            />
-          </div>
+          <AcademyProgrammes academy="tsa" />
         </AcademySection>}
 
       </div>
     </div>
   );
 }
-
-const fitnessCourseVideos: Record<string, { embedUrl: string } | undefined> = {
-  pilates: { embedUrl: site.facebook.pilatesVideoEmbeds[0] },
-  football: { embedUrl: site.facebook.footballVideoEmbeds[0] },
-  "personal-training": { embedUrl: site.facebook.personalTrainingVideoEmbeds[0] },
-};
 
 function AcademySection({
   branch,

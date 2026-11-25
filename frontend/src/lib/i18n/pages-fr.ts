@@ -288,6 +288,7 @@ export const pagesFr = {
           corps: ["Le corps en conscience", "Posture, gainage, souplesse, respiration"],
           terrain: ["Le terrain et l'équipe", "Préparation physique, joueurs, clubs"],
           coaching: ["Le coaching individuel", "Transformer le physique d'un client"],
+          securite: ["La sécurité et la protection", "Protection rapprochée, première intervention, K9"],
           indecis: ["Je ne sais pas encore", "Montrez-moi ce qui me correspond"],
         },
       },

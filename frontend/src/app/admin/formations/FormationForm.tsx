@@ -2,13 +2,12 @@
 
 import Link from "next/link";
 import { useActionState, useEffect, useRef, useState } from "react";
+import { ACADEMIES, ACADEMY_NAME, ACCENTS, formationHref, type Academy } from "@/lib/academies";
+import { ImageUpload } from "../ImageUpload";
 import { saveFormation, type FormationFormState } from "./actions";
 
-export type FormationFormValues = Record<
-  | "name" | "slug" | "headline" | "summary" | "status" | "level" | "durationLabel" | "priceTnd" | "position" | "coverUrl"
-  | "nextSessionDate" | "intro" | "objectives" | "prerequisites" | "audience" | "careers" | "modules" | "facts",
-  string
->;
+/** Valeurs texte du formulaire ; les traductions sont nommées « en.name », « ar.name »… */
+export type FormationFormValues = Record<string, string>;
 
 const STATUS_OPTIONS = [
   { value: "draft", label: "Brouillon (invisible sur le site)" },
@@ -32,12 +31,14 @@ export function FormationForm({
   id,
   initial,
   images,
+  trainers,
 }: {
   /** null : création. */
   id: number | null;
   initial: FormationFormValues;
   /** Images téléversées, proposées comme visuel principal. */
   images: { url: string; title: string }[];
+  trainers: { id: number; name: string }[];
 }) {
   const [state, action, pending] = useActionState<FormationFormState, FormData>(saveFormation.bind(null, id), { status: "idle", attempt: 0 });
   const values = (state.status === "error" && state.values) || initial;
@@ -45,6 +46,10 @@ export function FormationForm({
   const statusRef = useRef<HTMLDivElement>(null);
   const [slug, setSlug] = useState(initial.slug);
   const [slugTouched, setSlugTouched] = useState(id !== null);
+  const [academy, setAcademy] = useState<Academy>(values.academy === "tsa" ? "tsa" : "fitness");
+  const [cover, setCover] = useState(values.coverUrl);
+  const galleryRef = useRef<HTMLTextAreaElement>(null);
+  const selectedTrainers = new Set(values.trainerIds.split(","));
 
   useEffect(() => {
     if (state.status !== "idle") statusRef.current?.focus();
@@ -64,6 +69,16 @@ export function FormationForm({
 
       <Section title="Identité">
         <div className="grid gap-5 sm:grid-cols-2">
+          <Field label="Académie" name="academy" required error={err("academy")}>
+            <select id="academy" name="academy" value={academy} onChange={(e) => setAcademy(e.target.value as Academy)} className="input">
+              {ACADEMIES.map((a) => <option key={a} value={a}>{ACADEMY_NAME[a]}</option>)}
+            </select>
+          </Field>
+          <Field label="Couleur" name="accent" error={err("accent")}>
+            <select id="accent" name="accent" defaultValue={values.accent} className="input">
+              {ACCENTS.map((a) => <option key={a.value} value={a.value}>{a.label}</option>)}
+            </select>
+          </Field>
           <Field label="Nom" name="name" required error={err("name")}>
             <input
               id="name"
@@ -75,7 +90,7 @@ export function FormationForm({
               className="input"
             />
           </Field>
-          <Field label="Identifiant d'URL" name="slug" required error={err("slug")} hint={`Adresse : /formations/${slug || "…"}`}>
+          <Field label="Identifiant d'URL" name="slug" required error={err("slug")} hint={`Adresse : ${formationHref({ slug: slug || "…", academy })}`}>
             <input
               id="slug"
               name="slug"
@@ -126,16 +141,63 @@ export function FormationForm({
           <Field label="Tarif (DT)" name="priceTnd" error={err("priceTnd")} hint="Vide : « Nous consulter »">
             <input id="priceTnd" name="priceTnd" inputMode="decimal" defaultValue={values.priceTnd} className="input" />
           </Field>
-          <Field label="Visuel principal" name="coverUrl" error={err("coverUrl")} hint="Images envoyées dans l'onglet Médias">
-            <select id="coverUrl" name="coverUrl" defaultValue={values.coverUrl} className="input">
-              <option value="">Visuel par défaut</option>
-              {values.coverUrl && !images.some((i) => i.url === values.coverUrl) && <option value={values.coverUrl}>{values.coverUrl}</option>}
-              {images.map((i) => (
-                <option key={i.url} value={i.url}>{i.title || i.url}</option>
-              ))}
-            </select>
+          <Field label="Lieu" name="location" error={err("location")} hint="Ex. Hammamet">
+            <input id="location" name="location" defaultValue={values.location} maxLength={120} className="input" />
+          </Field>
+          <Field label="Téléphone de renseignement" name="contactPhone" error={err("contactPhone")} hint="Facultatif">
+            <input id="contactPhone" name="contactPhone" type="tel" defaultValue={values.contactPhone} maxLength={30} className="input" />
+          </Field>
+          <Field label="Publication ou programme (lien)" name="sourceUrl" error={err("sourceUrl")} hint="Facebook, PDF…">
+            <input id="sourceUrl" name="sourceUrl" defaultValue={values.sourceUrl} maxLength={1000} className="input" />
           </Field>
         </div>
+        <Field label="Informations pratiques" name="practical" error={err("practical")} hint="Certificats, hébergement, modalités… (1500 caractères max.)">
+          <textarea id="practical" name="practical" defaultValue={values.practical} maxLength={1500} rows={4} className="input" />
+        </Field>
+      </Section>
+
+      <Section title="Images et vidéos">
+        <div className="grid gap-5 lg:grid-cols-2">
+          <Field label="Visuel principal" name="coverUrl" error={err("coverUrl")} hint="Choisissez une image des Médias ou importez-en une">
+            <div className="space-y-2">
+              <select id="coverUrl" name="coverUrl" value={cover} onChange={(e) => setCover(e.target.value)} className="input">
+                <option value="">Visuel par défaut</option>
+                {cover && !images.some((i) => i.url === cover) && <option value={cover}>{cover}</option>}
+                {images.map((i) => (
+                  <option key={i.url} value={i.url}>{i.title || i.url}</option>
+                ))}
+              </select>
+              <ImageUpload label="Importer une image" url={cover} onUploaded={setCover} />
+              <label className="flex items-center gap-3 text-sm text-mist">
+                <input type="checkbox" name="coverIsPoster" defaultChecked={values.coverIsPoster === "on"} className="size-4 accent-[var(--color-gold)]" />
+                C&apos;est une affiche : la montrer en entier
+              </label>
+            </div>
+          </Field>
+          <Field label="Galerie de la formation" name="galleryUrls" error={err("galleryUrls")} hint="Une adresse d'image par ligne. Vide : galerie de l'académie">
+            <div className="space-y-2">
+              <textarea ref={galleryRef} id="galleryUrls" name="galleryUrls" defaultValue={values.galleryUrls} rows={6} className="input font-mono text-sm" />
+              <ImageUpload label="Ajouter une image à la galerie" onUploaded={(url) => {
+                if (galleryRef.current) galleryRef.current.value = [galleryRef.current.value.trim(), url].filter(Boolean).join("\n");
+              }} />
+            </div>
+          </Field>
+        </div>
+        <Field label="Vidéos" name="videos" error={err("videos")} hint="Une par ligne : lien Facebook, Instagram, YouTube ou fichier | titre | portrait, square ou landscape. La première s'affiche sur la carte.">
+          <textarea id="videos" name="videos" defaultValue={values.videos} rows={4} className="input font-mono text-sm" />
+        </Field>
+        {trainers.length > 0 && (
+          <fieldset>
+            <legend className="mb-3 text-sm font-medium">Formateurs</legend>
+            <div className="flex flex-wrap gap-x-6 gap-y-3">
+              {trainers.map((trainer) => (
+                <label key={trainer.id} className="flex items-center gap-2 text-sm text-mist">
+                  <input type="checkbox" name="trainerIds" value={trainer.id} defaultChecked={selectedTrainers.has(String(trainer.id))} className="size-4 accent-[var(--color-gold)]" /> {trainer.name}
+                </label>
+              ))}
+            </div>
+          </fieldset>
+        )}
       </Section>
 
       <Section title="Contenu de la page">
@@ -164,18 +226,49 @@ export function FormationForm({
         </Field>
       </Section>
 
+      <TranslationFields lang="en" title="Traduction anglaise" values={values} />
+      <TranslationFields lang="ar" title="Traduction arabe" values={values} />
+
       <div className="sticky bottom-0 z-10 -mx-4 flex flex-wrap items-center gap-3 border-t border-line bg-ink/95 px-4 py-4 backdrop-blur">
         <button type="submit" disabled={pending} className="btn btn-primary disabled:opacity-60">
           {pending ? "Enregistrement…" : id ? "Enregistrer les modifications" : "Créer la formation"}
         </button>
         <Link href="/admin/formations" className="btn btn-ghost">Retour à la liste</Link>
         {id && values.status === "published" && (
-          <Link href={`/formations/${initial.slug}`} target="_blank" className="ml-auto text-sm text-mist underline hover:text-bone">
+          <Link href={formationHref({ slug: initial.slug, academy: initial.academy as Academy })} target="_blank" className="ml-auto text-sm text-mist underline hover:text-bone">
             Voir la page publique
           </Link>
         )}
       </div>
     </form>
+  );
+}
+
+const TRANSLATED: [string, string, number][] = [
+  ["name", "Nom", 1], ["headline", "Accroche", 1], ["summary", "Résumé", 3], ["durationLabel", "Durée", 1], ["location", "Lieu", 1], ["practical", "Informations pratiques", 4],
+  ["intro", "Présentation", 5], ["objectives", "Objectifs (un par ligne)", 5], ["prerequisites", "Prérequis (un par ligne)", 3], ["audience", "Public (un par ligne)", 3],
+  ["careers", "Débouchés (un par ligne)", 3], ["modules", "Programme : Titre | description", 5], ["facts", "Chiffres clés : Libellé | valeur", 3],
+];
+
+/** Textes d'une autre langue : un champ vide s'affiche en français. */
+function TranslationFields({ lang, title, values }: { lang: "en" | "ar"; title: string; values: FormationFormValues }) {
+  return (
+    <details className="border border-line bg-ink-2 p-6">
+      <summary className="cursor-pointer font-display text-lg tracking-[0.12em] uppercase">{title}</summary>
+      <p className="mt-2 text-xs text-mist">Un champ laissé vide s&apos;affiche en français.</p>
+      <div className="mt-5 grid gap-5 lg:grid-cols-2">
+        {TRANSLATED.map(([name, label, rows]) => {
+          const key = `${lang}.${name}`;
+          return (
+            <Field key={key} label={label} name={key}>
+              {rows === 1
+                ? <input id={key} name={key} dir={lang === "ar" ? "rtl" : "ltr"} defaultValue={values[key] ?? ""} className="input" />
+                : <textarea id={key} name={key} dir={lang === "ar" ? "rtl" : "ltr"} rows={rows} defaultValue={values[key] ?? ""} className="input" />}
+            </Field>
+          );
+        })}
+      </div>
+    </details>
   );
 }
 

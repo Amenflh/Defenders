@@ -1,8 +1,53 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useRef, useState } from "react";
-import { refreshMedia } from "./actions";
+import { useRef, useState, useTransition } from "react";
+import { ACADEMIES, ACADEMY_NAME, MEDIA_CATEGORIES } from "@/lib/academies";
+import { addMediaLink, refreshMedia } from "./actions";
+
+/** Emplacement et académie d'un média (envoi, lien et modification). */
+export function PlacementFields({ category = "galerie", academy = "", position, disabled }: { category?: string; academy?: string; position?: number; disabled?: boolean }) {
+  const known = MEDIA_CATEGORIES.some((c) => c.value === category);
+  return (
+    <>
+      <select name="category" defaultValue={category} aria-label="Emplacement" disabled={disabled} className="input !py-2 text-sm">
+        {!known && <option value={category}>{category}</option>}
+        {MEDIA_CATEGORIES.map((c) => <option key={c.value} value={c.value}>{c.label}</option>)}
+      </select>
+      <select name="academy" defaultValue={academy} aria-label="Académie" disabled={disabled} className="input !py-2 text-sm">
+        <option value="">Les deux académies</option>
+        {ACADEMIES.map((a) => <option key={a} value={a}>{ACADEMY_NAME[a]}</option>)}
+      </select>
+      {position !== undefined && <input name="position" type="number" min={0} max={9999} defaultValue={position} aria-label="Ordre d'affichage" title="Ordre d'affichage" disabled={disabled} className="input !py-2 text-sm" />}
+    </>
+  );
+}
+
+/** Vidéo Facebook, Instagram, YouTube ou image déjà en ligne : on colle simplement son lien. */
+export function MediaLinkForm() {
+  const router = useRouter();
+  const formRef = useRef<HTMLFormElement>(null);
+  const [pending, startTransition] = useTransition();
+  const [message, setMessage] = useState<{ tone: "ok" | "error"; text: string } | null>(null);
+  return (
+    <form ref={formRef} action={(form) => startTransition(async () => {
+      const res = await addMediaLink(form);
+      setMessage(res.ok ? { tone: "ok", text: "Média ajouté." } : { tone: "error", text: res.message ?? "Échec" });
+      if (res.ok) formRef.current?.reset();
+      router.refresh();
+    })} className="space-y-3 border border-line bg-ink-2 p-6" aria-busy={pending}>
+      <select name="type" defaultValue="video" aria-label="Type" className="input !py-2 text-sm">
+        <option value="video">Vidéo</option>
+        <option value="image">Image</option>
+      </select>
+      <input name="url" required placeholder="https://www.facebook.com/reel/…" aria-label="Lien" className="input !py-2 text-sm" />
+      <input name="title" maxLength={120} placeholder="Titre (facultatif)" aria-label="Titre" className="input !py-2 text-sm" />
+      <PlacementFields disabled={pending} />
+      <button type="submit" disabled={pending} className="btn btn-primary disabled:opacity-60">{pending ? "Ajout…" : "Ajouter"}</button>
+      {message && <p role={message.tone === "error" ? "alert" : "status"} className={`text-sm ${message.tone === "ok" ? "text-football" : "text-red-300"}`}>{message.text}</p>}
+    </form>
+  );
+}
 
 const LIMITS = {
   image: { accept: "image/jpeg,image/png,image/webp", label: "JPG, PNG ou WebP", maxMb: 5 },
@@ -94,11 +139,8 @@ export function MediaUploader({ formations }: { formations: { id: number; name: 
           <input id="title" name="title" maxLength={120} placeholder="Ex. Promotion Pilates 2026" disabled={busy} className="input" />
         </div>
         <div className="space-y-2">
-          <label htmlFor="category" className="block text-sm font-medium">Catégorie de galerie</label>
-          <input id="category" name="category" maxLength={40} list="categories" placeholder="Ex. promotions" disabled={busy} className="input" />
-          <datalist id="categories">
-            {["promotions", "certifications", "terrain", "studio", "evenements"].map((c) => <option key={c} value={c} />)}
-          </datalist>
+          <p className="block text-sm font-medium">Emplacement et académie</p>
+          <PlacementFields disabled={busy} />
         </div>
         <div className="space-y-2 md:col-span-2">
           <label htmlFor="formationId" className="block text-sm font-medium">Formation associée</label>

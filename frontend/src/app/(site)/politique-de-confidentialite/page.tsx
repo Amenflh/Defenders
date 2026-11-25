@@ -1,8 +1,7 @@
 import type { Metadata } from "next";
 import { PageIntro } from "@/components/PageIntro";
 import { getDictionary } from "@/lib/i18n/server";
-import { getSiteSettings } from "@/lib/settings";
-import { site } from "@/lib/site";
+import { getContacts, getSiteSettings } from "@/lib/settings";
 
 export async function generateMetadata(): Promise<Metadata> {
   const { t } = await getDictionary();
@@ -10,7 +9,7 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function PrivacyPage() {
-  const [settings, { locale, t }] = await Promise.all([getSiteSettings(), getDictionary()]);
+  const [settings, { locale, t }, contacts] = await Promise.all([getSiteSettings(), getDictionary(), getContacts()]);
   const L = t.pages.legal;
   // Le texte personnalisé dans l'admin est rédigé en français : il n'est affiché qu'en français.
   const text = locale === "fr" && typeof settings.privacy === "string" && settings.privacy ? settings.privacy : "";
@@ -27,7 +26,7 @@ export default async function PrivacyPage() {
                 <Section key={title} title={title}><p>{body}</p></Section>
               ))}
               <Section title={L.privacy.rightsTitle}>
-                <p>{L.privacy.rights} <a href={site.email.href} className="text-gold hover:text-bone">{site.email.label}</a>.</p>
+                <p>{L.privacy.rights} <a href={contacts.email.href} className="text-gold hover:text-bone">{contacts.email.label}</a>.</p>
               </Section>
             </>
           )}

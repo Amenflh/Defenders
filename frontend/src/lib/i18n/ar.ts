@@ -37,7 +37,7 @@ export const ar: Dictionary = {
     youAreHere: "أنت هنا",
     sectionsNav: "أقسام الصفحة",
     backToTop: "العودة إلى أعلى الصفحة",
-    sections: { programmes: "التكوينات", equipe: "الفريق", galerie: "المعرض", temoignages: "الشهادات", historique: "الأرشيف", inscription: "التسجيل" },
+    sections: { programmes: "التكوينات", equipe: "الفريق", galerie: "المعرض", temoignages: "الشهادات", historique: "الأرشيف", services: "الخدمات", inscription: "التسجيل" },
   },
   common: {
     register: "سجّل الآن",

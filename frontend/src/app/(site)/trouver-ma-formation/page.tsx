@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { connection } from "next/server";
 import { PageIntro } from "@/components/PageIntro";
 import { Unavailable } from "@/components/Unavailable";
+import { formationHref } from "@/lib/academies";
 import { visualFor } from "@/lib/formation-visuals";
 import { formatPrice, getFormations } from "@/lib/formations";
 import { localizeFormation } from "@/lib/formation-i18n";
@@ -19,16 +20,17 @@ export default async function FindFormationPage() {
   const [formations, { locale, t }] = await Promise.all([getFormations(), getDictionary()]);
 
   const options: QuizFormation[] = (formations ?? []).map((f) => {
-    const { cover, accent } = visualFor(f.slug);
+    const { cover, accent } = visualFor(f.accent);
     // Textes affichés dans la langue du visiteur ; l'analyse des réponses se fait sur le contenu français d'origine.
     const shown = localizeFormation(f, locale);
     return {
       slug: f.slug,
+      href: formationHref(f),
       name: shown.name,
       headline: shown.headline,
       summary: shown.summary,
       text: [f.name, f.headline, f.summary, ...f.intro, ...f.objectives, ...f.audience, ...f.careers, ...f.modules.map((m) => `${m.title} ${m.text}`)].join(" "),
-      details: [f.durationLabel, f.levelLabel, formatPrice(f.priceTnd)].filter(Boolean).join(" · "),
+      details: [shown.durationLabel, shown.location, f.levelLabel, formatPrice(f.priceTnd)].filter(Boolean).join(" · "),
       coverUrl: f.coverUrl || null,
       cover: cover.src,
       accentBg: accent.bg,

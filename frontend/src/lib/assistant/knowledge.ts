@@ -79,9 +79,9 @@ type Topic = {
 };
 
 const fitnessCourses: L = {
-  fr: "[Pilates](/formations/pilates), [Football](/formations/football) et [Personal Trainer](/personal-training)",
-  en: "[Pilates](/formations/pilates), [Football](/formations/football) and [Personal Trainer](/personal-training)",
-  ar: "[بيلاتس](/formations/pilates) و[كرة القدم](/formations/football) و[المدرب الشخصي](/personal-training)",
+  fr: "[Pilates](/fitness-academy/formations/pilates), [Football](/fitness-academy/formations/football) et [Personal Trainer](/fitness-academy/formations/personal-training)",
+  en: "[Pilates](/fitness-academy/formations/pilates), [Football](/fitness-academy/formations/football) and [Personal Trainer](/fitness-academy/formations/personal-training)",
+  ar: "[بيلاتس](/fitness-academy/formations/pilates) و[كرة القدم](/fitness-academy/formations/football) و[المدرب الشخصي](/fitness-academy/formations/personal-training)",
 };
 const tsaCourses: L = {
   fr: "[Intervention initiale](/tunisian-security-academy/formations/intervention-initiale), [Protection rapprochée](/tunisian-security-academy/formations/protection-rapprochee), [K9](/tunisian-security-academy/formations/k9) et la [sécurité & protection](/tunisian-security-academy#securite)",
@@ -345,17 +345,17 @@ const GOALS: { key: string; words: string[]; text: L }[] = [
   {
     key: "football",
     words: ["football", "foot", "entraineur", "club", "equipe", "joueurs", "terrain", "soccer", "coach football", "team", "players", "كره", "القدم", "فريق", "نادي"],
-    text: { fr: "[Football](/formations/football) — pour entraîner une équipe ou un club", en: "[Football](/formations/football) — to coach a team or club", ar: "[كرة القدم](/formations/football) — لتدريب فريق أو نادٍ" },
+    text: { fr: "[Football](/fitness-academy/formations/football) — pour entraîner une équipe ou un club", en: "[Football](/fitness-academy/formations/football) — to coach a team or club", ar: "[كرة القدم](/fitness-academy/formations/football) — لتدريب فريق أو نادٍ" },
   },
   {
     key: "personal",
     words: ["salle", "musculation", "fitness", "clients", "coach sportif", "perte de poids", "remise en forme", "gym", "personal", "weight", "قاعه", "رياضه", "مدرب شخصي", "لياقه"],
-    text: { fr: "[Personal Trainer](/personal-training) — pour coacher des clients en salle ou à domicile", en: "[Personal Trainer](/personal-training) — to coach clients in the gym or at home", ar: "[المدرب الشخصي](/personal-training) — لتدريب الحرفاء في القاعة أو في المنزل" },
+    text: { fr: "[Personal Trainer](/fitness-academy/formations/personal-training) — pour coacher des clients en salle ou à domicile", en: "[Personal Trainer](/fitness-academy/formations/personal-training) — to coach clients in the gym or at home", ar: "[المدرب الشخصي](/fitness-academy/formations/personal-training) — لتدريب الحرفاء في القاعة أو في المنزل" },
   },
   {
     key: "pilates",
     words: ["pilates", "posture", "dos", "souplesse", "gainage", "studio", "reformer", "rehabilitation", "flexibility", "بيلاتس", "مرونه", "الظهر"],
-    text: { fr: "[Pilates](/formations/pilates) — pour enseigner le Pilates Matwork & Reformer", en: "[Pilates](/formations/pilates) — to teach Pilates Matwork & Reformer", ar: "[بيلاتس](/formations/pilates) — لتدريس بيلاتس على البساط وعلى جهاز Reformer" },
+    text: { fr: "[Pilates](/fitness-academy/formations/pilates) — pour enseigner le Pilates Matwork & Reformer", en: "[Pilates](/fitness-academy/formations/pilates) — to teach Pilates Matwork & Reformer", ar: "[بيلاتس](/fitness-academy/formations/pilates) — لتدريس بيلاتس على البساط وعلى جهاز Reformer" },
   },
   {
     key: "security",

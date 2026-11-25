@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { ChatThread } from "@/components/chat/ChatThread";
 import { Icon } from "@/components/Icon";
 import { PageIntro } from "@/components/PageIntro";
+import { getFormations } from "@/lib/formations";
 import { STATUS_CLIENT_LABELS, TRAINING_LABELS } from "@/lib/labels";
 import { formatSize, millimesToTnd, type ClientResource, type MyPayment, type MyReferral, type PaymentConfig } from "@/lib/program";
 import { apiFetch, getCurrentUser, publicOrigin } from "@/lib/session";
@@ -43,7 +44,8 @@ export default async function MonEspacePage({ searchParams }: PageProps<"/mon-es
   const { locale } = await getDictionary();
   const A = accountDictionaries[locale];
   const dateFmt = new Intl.DateTimeFormat(intlLocale[locale], { dateStyle: "medium", timeStyle: "short", timeZone: "Africa/Tunis" });
-  const trainingName = (slug: string) => localizeFormation({ slug, name: TRAINING_LABELS[slug] ?? slug }, locale).name;
+  const formationNames = new Map(((await getFormations()) ?? []).map((f) => [f.slug, localizeFormation(f, locale).name]));
+  const trainingName = (slug: string) => formationNames.get(slug) ?? TRAINING_LABELS[slug] ?? slug;
   const banner = typeof paiement === "string" && paiement in PAYMENT_TONES ? { tone: PAYMENT_TONES[paiement], text: A.payment[paiement as keyof typeof A.payment] } : undefined;
 
   const online = user !== "unavailable";
@@ -62,7 +64,7 @@ export default async function MonEspacePage({ searchParams }: PageProps<"/mon-es
   // Supports regroupés par formation (« Tous les stagiaires » pour les supports généraux).
   const groups = new Map<string, ClientResource[]>();
   for (const r of resourcesData?.resources ?? []) {
-    const key = r.formation ? localizeFormation({ slug: r.formation.slug, name: r.formation.name }, locale).name : A.allTrainees;
+    const key = r.formation ? (formationNames.get(r.formation.slug) ?? r.formation.name) : A.allTrainees;
     groups.set(key, [...(groups.get(key) ?? []), r]);
   }
 

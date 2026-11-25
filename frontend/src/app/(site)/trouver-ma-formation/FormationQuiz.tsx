@@ -4,12 +4,12 @@ import Image, { type StaticImageData } from "next/image";
 import Link from "next/link";
 import { useMemo, useRef, useState } from "react";
 import { Icon } from "@/components/Icon";
-import { site } from "@/lib/site";
-import { useI18n } from "@/lib/i18n/client";
+import { useI18n, useSiteData } from "@/lib/i18n/client";
 import type { Dictionary } from "@/lib/i18n/dictionaries";
 
 export type QuizFormation = {
   slug: string;
+  href: string;
   name: string;
   headline: string;
   summary: string;
@@ -35,6 +35,7 @@ const QUESTIONS: Question[] = [
       { value: "corps", label: "Le corps en conscience", hint: "Posture, gainage, souplesse, respiration", keywords: ["pilates", "posture", "souplesse", "gainage", "respiration", "reformer", "mat", "renforcement profond"], slugs: ["pilates"] },
       { value: "terrain", label: "Le terrain et l'équipe", hint: "Préparation physique, joueurs, clubs", keywords: ["football", "terrain", "equipe", "joueur", "club", "preparation physique", "match"], slugs: ["football"] },
       { value: "coaching", label: "Le coaching individuel", hint: "Transformer le physique d'un client", keywords: ["personal", "coaching", "individuel", "client", "musculation", "transformation", "nutrition", "programme personnalise"], slugs: ["personal-training"] },
+      { value: "securite", label: "La sécurité et la protection", hint: "Protection rapprochée, première intervention, K9", keywords: ["securite", "protection", "intervention", "gardiennage", "menaces", "evacuation", "chien", "k9", "escorte"], slugs: ["intervention-initiale", "protection-rapprochee", "k9", "securite-protection"] },
       { value: "indecis", label: "Je ne sais pas encore", hint: "Montrez-moi ce qui me correspond", keywords: [] },
     ],
   },
@@ -229,10 +230,11 @@ function Cover({ f, sizes, priority }: { f: QuizFormation; sizes: string; priori
 
 function Results({ questions, results, answers, onRestart, titleRef }: { questions: Question[]; results: Result[]; answers: Record<string, string>; onRestart: () => void; titleRef: React.RefObject<HTMLHeadingElement | null> }) {
   const q = useI18n().t.pages.quiz;
+  const { contacts } = useSiteData();
   const matched = results[0]?.score > 0;
   const [best, ...others] = results;
   const summary = questions.map((question) => question.options.find((o) => o.value === answers[question.id])?.label).filter(Boolean).join(", ");
-  const whatsapp = `${site.whatsapp.href}?text=${encodeURIComponent(q.whatsapp(summary, matched ? best.formation.name : null))}`;
+  const whatsapp = `${contacts.whatsapp.href}?text=${encodeURIComponent(q.whatsapp(summary, matched ? best.formation.name : null))}`;
 
   return (
     <div className="animate-[fade-in_0.4s_ease]" aria-live="polite">
@@ -267,7 +269,7 @@ function Results({ questions, results, answers, onRestart, titleRef }: { questio
               <Link href={`/contact?formation=${encodeURIComponent(best.formation.slug)}`} className="btn btn-primary">
                 {q.register} <Icon name="arrow" className="rtl:-scale-x-100" />
               </Link>
-              <Link href={`/formations/${best.formation.slug}`} className="btn btn-ghost">{q.seeProgramme}</Link>
+              <Link href={best.formation.href} className="btn btn-ghost">{q.seeProgramme}</Link>
             </div>
           </div>
         </article>
@@ -278,7 +280,7 @@ function Results({ questions, results, answers, onRestart, titleRef }: { questio
           <h3 className="mt-14 mb-6 font-display text-xl tracking-wide uppercase text-mist">{matched ? q.alsoLike : q.ourFormations}</h3>
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {(matched ? others : results).map(({ formation: f }) => (
-              <Link key={f.slug} href={`/formations/${f.slug}`} className="group relative block aspect-[4/3] overflow-hidden border border-line bg-ink">
+              <Link key={f.slug} href={f.href} className="group relative block aspect-[4/3] overflow-hidden border border-line bg-ink">
                 <Cover f={f} sizes="(min-width: 1024px) 33vw, 100vw" />
                 <div className="absolute inset-0 bg-gradient-to-t from-ink via-ink/50 to-transparent" />
                 <div className="absolute inset-x-0 bottom-0 p-6">

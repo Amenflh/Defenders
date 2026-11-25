@@ -4,7 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useRef } from "react";
 import { logoutAction } from "@/app/(auth)/actions";
-import { useI18n } from "@/lib/i18n/client";
+import { useI18n, useSiteData } from "@/lib/i18n/client";
 import { site, type NavKey } from "@/lib/site";
 import { LanguageSwitcher } from "./LanguageSwitcher";
 import { ThemeToggle } from "./ThemeToggle";
@@ -38,6 +38,7 @@ export function Sidebar({ open, onClose, pathname, user, identity = {} }: Props)
   const closeRef = useRef<HTMLButtonElement>(null);
   const sidebarRef = useRef<HTMLElement>(null);
   const { locale, t } = useI18n();
+  const { contacts } = useSiteData();
   const c = COPY[locale];
 
   useEffect(() => {
@@ -216,9 +217,9 @@ export function Sidebar({ open, onClose, pathname, user, identity = {} }: Props)
             <h2 id="sidebar-contact" className={sectionTitle}>{c.quick}</h2>
             <div className="grid grid-cols-3 gap-2">
               {[
-                { href: site.phone.href, label: t.common.contact, icon: "phone" as const },
-                { href: site.whatsapp.href, label: "WhatsApp", icon: "chat" as const, external: true },
-                { href: site.email.href, label: "E-mail", icon: "mail" as const },
+                { href: contacts.phone.href, label: t.common.contact, icon: "phone" as const },
+                { href: contacts.whatsapp.href, label: "WhatsApp", icon: "chat" as const, external: true },
+                { href: contacts.email.href, label: "E-mail", icon: "mail" as const },
               ].map((action) => (
                 <a
                   key={action.href}
@@ -231,14 +232,14 @@ export function Sidebar({ open, onClose, pathname, user, identity = {} }: Props)
                 </a>
               ))}
             </div>
-            <a href={site.address.href} target="_blank" rel="noreferrer" className="mt-3 flex items-start gap-2.5 px-1 text-xs leading-relaxed text-mist hover:text-bone">
-              <Icon name="pin" width={16} height={16} className="mt-0.5 shrink-0 text-gold" /> {site.address.lines.join(", ")}
+            <a href={contacts.address.href} target="_blank" rel="noreferrer" className="mt-3 flex items-start gap-2.5 px-1 text-xs leading-relaxed text-mist hover:text-bone">
+              <Icon name="pin" width={16} height={16} className="mt-0.5 shrink-0 text-gold" /> {contacts.address.lines.join(", ")}
             </a>
             <div className="mt-3 flex items-center gap-2 px-1">
               {[
-                { href: site.facebook.href, icon: "facebook" as const, label: "Facebook" },
-                { href: site.instagram.href, icon: "instagram" as const, label: "Instagram" },
-                ...(site.linkedin.href ? [{ href: site.linkedin.href, icon: "linkedin" as const, label: "LinkedIn" }] : []),
+                { href: contacts.facebook.href, icon: "facebook" as const, label: "Facebook" },
+                { href: contacts.instagram.href, icon: "instagram" as const, label: "Instagram" },
+                ...(contacts.linkedin.href ? [{ href: contacts.linkedin.href, icon: "linkedin" as const, label: "LinkedIn" }] : []),
               ].map((social) => (
                 <a
                   key={social.label}

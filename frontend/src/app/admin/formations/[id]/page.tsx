@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { getAdminFormation, listImages, toFormValues } from "../data";
+import { getAdminFormation, listImages, listTrainers, toFormValues } from "../data";
 import { FormationForm } from "../FormationForm";
 
 export const metadata: Metadata = { title: "Modifier une formation · Espace admin" };
@@ -9,7 +9,7 @@ export const metadata: Metadata = { title: "Modifier une formation · Espace adm
 export default async function EditFormationPage({ params, searchParams }: PageProps<"/admin/formations/[id]">) {
   const id = Number((await params).id);
   if (!Number.isInteger(id) || id <= 0) notFound();
-  const [formation, images, { cree }] = await Promise.all([getAdminFormation(id), listImages(), searchParams]);
+  const [formation, images, trainers, { cree }] = await Promise.all([getAdminFormation(id), listImages(), listTrainers(), searchParams]);
   if (formation === "not-found") notFound();
 
   if (formation === null) {
@@ -33,7 +33,7 @@ export default async function EditFormationPage({ params, searchParams }: PagePr
           Formation créée en brouillon. Complétez son contenu puis passez son statut à « Publiée ».
         </p>
       )}
-      <FormationForm id={formation.id} initial={toFormValues(formation)} images={images} />
+      <FormationForm id={formation.id} initial={toFormValues(formation)} images={images} trainers={trainers} />
     </section>
   );
 }

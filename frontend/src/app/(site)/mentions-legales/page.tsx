@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { PageIntro } from "@/components/PageIntro";
 import { getDictionary } from "@/lib/i18n/server";
-import { getSiteSettings } from "@/lib/settings";
+import { getContacts, getSiteSettings } from "@/lib/settings";
 import { site } from "@/lib/site";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -10,7 +10,7 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function LegalPage() {
-  const [settings, { locale, t }] = await Promise.all([getSiteSettings(), getDictionary()]);
+  const [settings, { locale, t }, contacts] = await Promise.all([getSiteSettings(), getDictionary(), getContacts()]);
   const L = t.pages.legal;
   // Le texte personnalisé dans l'admin est rédigé en français : il n'est affiché qu'en français.
   const text = locale === "fr" && typeof settings.mentions === "string" && settings.mentions ? settings.mentions : "";
@@ -22,11 +22,11 @@ export default async function LegalPage() {
           {text ? <p className="whitespace-pre-line">{text}</p> : (
             <>
               <LegalSection title={L.mentions.publisher}>
-                <p>{site.name}<br />{site.address.lines.join(" — ")}</p>
+                <p>{site.name}<br />{contacts.address.lines.join(" — ")}</p>
               </LegalSection>
               <LegalSection title={L.mentions.contact}>
-                <p><a href={site.phone.href} className="text-bone hover:text-gold" dir="ltr">{site.phone.label}</a><br />
-                  <a href={site.email.href} className="text-bone hover:text-gold">{site.email.label}</a></p>
+                <p><a href={contacts.phone.href} className="text-bone hover:text-gold" dir="ltr">{contacts.phone.label}</a><br />
+                  <a href={contacts.email.href} className="text-bone hover:text-gold">{contacts.email.label}</a></p>
               </LegalSection>
               {L.mentions.sections.map(([title, body]) => (
                 <LegalSection key={title} title={title}><p>{body}</p></LegalSection>

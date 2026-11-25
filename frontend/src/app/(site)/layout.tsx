@@ -8,8 +8,7 @@ import { Header } from "@/components/Header";
 import { SocialRail } from "@/components/SocialRail";
 import { getCurrentUser } from "@/lib/session";
 import { getDictionary } from "@/lib/i18n/server";
-import { ROUND_LOGO, brandIdentity, getSiteSettings } from "@/lib/settings";
-import { site } from "@/lib/site";
+import { ROUND_LOGO, brandIdentity, getContacts, getSiteSettings } from "@/lib/settings";
 
 export async function generateMetadata(): Promise<Metadata> {
   const [settings, { locale, t }] = await Promise.all([getSiteSettings(), getDictionary()]);
@@ -27,8 +26,8 @@ export async function generateMetadata(): Promise<Metadata> {
 
 /** Site marketing public. Les layouts enfants protégent les espaces client et administrateur. */
 export default async function SiteLayout({ children }: { children: React.ReactNode }) {
-  const [user, settings, { t }] = await Promise.all([getCurrentUser(), getSiteSettings(), getDictionary()]);
-  const link = (key: "facebook" | "instagram" | "linkedin") => (typeof settings[key] === "string" && settings[key] ? settings[key] : site[key].href);
+  const [user, settings, { t }, contacts] = await Promise.all([getCurrentUser(), getSiteSettings(), getDictionary(), getContacts()]);
+  const link = (key: "facebook" | "instagram" | "linkedin") => contacts[key].href;
   const { logoUrl, brandName, brandDescriptor } = brandIdentity(settings);
   const identity = { logoUrl, brandName, brandDescriptor };
 

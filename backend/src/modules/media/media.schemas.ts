@@ -4,11 +4,17 @@ const formationId = z
   .union([z.literal(""), z.literal("null"), z.null(), z.coerce.number().int().positive()])
   .transform((v) => (typeof v === "number" ? v : null));
 
+/** Académie concernée ; vide : les deux. */
+const academy = z.union([z.literal(""), z.null(), z.enum(["fitness", "tsa"])]).transform((v) => v || null);
+const position = z.coerce.number().int().min(0).max(9999);
+
 /** Champs texte envoyés avec le fichier (multipart : tout arrive en chaîne). */
 export const uploadFieldsSchema = z.object({
   title: z.string().trim().max(120, "120 caractères maximum").default(""),
   category: z.string().trim().toLowerCase().max(40, "40 caractères maximum").default(""),
   formationId: formationId.optional().default(null),
+  academy: academy.optional().default(null),
+  position: position.optional().default(0),
 });
 
 /** Média déjà hébergé (fichier de /public, /uploads ou URL https) ajouté sans téléversement. */
@@ -22,6 +28,8 @@ export const linkMediaSchema = z.object({
   title: z.string().trim().max(120, "120 caractères maximum").default(""),
   category: z.string().trim().toLowerCase().max(40, "40 caractères maximum").default(""),
   formationId: formationId.optional().default(null),
+  academy: academy.optional().default(null),
+  position: position.optional().default(0),
 });
 
 export const updateMediaSchema = z
@@ -29,6 +37,8 @@ export const updateMediaSchema = z
     title: z.string().trim().max(120, "120 caractères maximum"),
     category: z.string().trim().toLowerCase().max(40, "40 caractères maximum"),
     formationId: formationId,
+    academy,
+    position,
   })
   .partial()
   .refine((v) => Object.keys(v).length > 0, "Aucune modification envoyée");
@@ -36,6 +46,7 @@ export const updateMediaSchema = z
 export const listQuerySchema = z.object({
   type: z.enum(["image", "video"]).optional(),
   category: z.string().trim().toLowerCase().max(40).optional(),
+  academy: z.enum(["fitness", "tsa"]).optional(),
   formation: z.string().regex(/^[a-z0-9-]{1,60}$/).optional(),
 });
 

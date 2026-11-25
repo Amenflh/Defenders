@@ -1,45 +1,37 @@
 "use client";
 
-import { uploadFile } from "./uploadFile";
 import { useEffect, useState, useTransition } from "react";
-import Image from "next/image";
+import Link from "next/link";
 import { logoutAction } from "@/app/(auth)/actions";
 import { Logo } from "@/components/Logo";
-import { AVAILABILITY_LABELS, PROFILE_LABELS, STATUS_LABELS, TRAINING_LABELS, dateFmt } from "@/lib/labels";
+import { AVAILABILITY_LABELS, PROFILE_LABELS, STATUS_LABELS, dateFmt } from "@/lib/labels";
 import { StatusSelect } from "./StatusSelect";
 import { AnalyticsOverview } from "./AnalyticsOverview";
 import { ChatInbox } from "./ChatInbox";
 import { PaymentsManager } from "./PaymentsManager";
 import { ReferralsManager } from "./ReferralsManager";
 import { ResourcesManager } from "./ResourcesManager";
+import { EntryManager, type Entry } from "./EntryManager";
+import { cmsFields } from "./entry-fields";
+import { ImageUpload } from "./ImageUpload";
 import { SecurityQuotesManager, type SecurityQuote } from "./SecurityQuotesManager";
 import { getAdminUnreadAction } from "./chat-actions";
+import { CONTACT_FIELDS, contactsFrom } from "@/lib/contacts";
 import { followUpMessage, whatsappHref } from "@/lib/contact-links";
 import { toCsv } from "@/lib/csv";
 import type { AdminStats } from "./actions";
-import {
-  deleteCmsItemAction,
-  deleteFormationAction,
-  deleteMediaAction,
-  saveCmsItemAction,
-  saveFormationAction,
-  saveMediaAction,
-  saveSettingsAction,
-} from "./actions";
+import { saveSettingsAction } from "./actions";
 
-type Formation = {
-  id: number; slug: string; name: string; headline: string; summary: string; durationLabel: string | null; priceTnd: string | null; status: string; position: number;
-  intro?: string[]; facts?: { label: string; value: string }[]; objectives?: string[]; modules?: { title: string; text: string }[]; audience?: string[]; careers?: string[];
-  coverUrl?: string; galleryUrls?: string[]; accent?: string;
-};
-type Media = { id: number; type: string; url: string; title: string; category: string };
-type CmsItem = { id: number; section: string; title: string; subtitle: string; body: string; imageUrl: string; linkUrl: string; position: number; active: boolean };
+type Formation = { id: number; slug: string; name: string };
+type CmsItem = Entry & { section: string };
 type Contact = {
   id: string; createdAt: string; firstName: string; lastName: string; email: string; phone: string; city: string; profile: string; trainings: string[]; availability: string; message: string; status: string;
 };
 
 const HOMEPAGE_SECTIONS = [
   { id: "hero", label: "Bannière d'accueil" },
+  { id: "branches", label: "Les académies et toutes les formations" },
+  { id: "highlights", label: "Ce qui nous distingue" },
   { id: "promotions", label: "Promotions & certificats" },
   { id: "about", label: "À propos" },
   { id: "videos", label: "Vidéos" },
@@ -62,13 +54,21 @@ function normalizeHomepageSections(value: unknown): HomepageSection[] {
   ) : [];
   return HOMEPAGE_SECTIONS.map((section, index) => {
     const config = saved.find((item) => item.id === section.id);
-    return { id: section.id, enabled: config?.enabled ?? true, order: config?.order ?? index };
+    return { id: section.id, enabled: config?.enabled ?? true, order: config ? config.order * 20 : index };
   }).sort((a, b) => a.order - b.order).map((section, index) => ({ ...section, order: index }));
 }
 
-const TABS = ["aperçu", "messages", "demandes d'information", "inscriptions", "devis sécurité", "paiements", "parrainage", "ressources", "formations", "contenus", "médias", "partenaires", "paramètres & footer"];
+const TABS = ["aperçu", "messages", "demandes d'information", "inscriptions", "devis sécurité", "paiements", "parrainage", "ressources", "contenus", "partenaires", "paramètres & footer"];
+/** Gestion du site, sur leurs propres pages. */
+const PAGES = [
+  { href: "/admin/formations", label: "formations" },
+  { href: "/admin/historique", label: "historique" },
+  { href: "/admin/equipe", label: "équipe" },
+  { href: "/admin/medias", label: "médias et galeries" },
+  { href: "/admin/textes", label: "textes du site" },
+];
 
-export function AdminDashboard({ stats, formations, media, cms, contacts = [], securityQuotes = [], securityQuotesError, initialSettings = {}, userName = "Administrateur", userEmail = "", initialTab, initialUnreadMessages = 0 }: { initialTab?: string; initialUnreadMessages?: number; stats: AdminStats | null; formations: Formation[]; media: Media[]; cms: CmsItem[]; contacts?: Contact[]; securityQuotes?: SecurityQuote[]; securityQuotesError?: string; initialSettings?: Record<string, unknown>; userName?: string; userEmail?: string }) {
+export function AdminDashboard({ stats, formations, cms, contacts = [], securityQuotes = [], securityQuotesError, initialSettings = {}, userName = "Administrateur", userEmail = "", initialTab, initialUnreadMessages = 0 }: { initialTab?: string; initialUnreadMessages?: number; stats: AdminStats | null; formations: Formation[]; cms: CmsItem[]; contacts?: Contact[]; securityQuotes?: SecurityQuote[]; securityQuotesError?: string; initialSettings?: Record<string, unknown>; userName?: string; userEmail?: string }) {
   const [tab, setTab] = useState(initialTab && TABS.includes(initialTab) ? initialTab : "aperçu");
   const [unreadMessages, setUnreadMessages] = useState(initialUnreadMessages);
   // Badge « messages » tenu à jour hors de l'onglet (l'onglet ouvert le met à jour lui-même).
@@ -90,6 +90,7 @@ export function AdminDashboard({ stats, formations, media, cms, contacts = [], s
   const brandName = typeof initialSettings.brandName === "string" && initialSettings.brandName ? initialSettings.brandName : undefined;
   const brandDescriptor = typeof initialSettings.brandDescriptor === "string" && initialSettings.brandDescriptor ? initialSettings.brandDescriptor : undefined;
   const tabs = TABS;
+  const names = Object.fromEntries(formations.map((f) => [f.slug, f.name]));
   const initials = userName.split(/\s+/).map((part) => part[0]).join("").slice(0, 2).toUpperCase() || "AD";
   return (
     <div className="min-h-dvh bg-ink">
@@ -157,6 +158,11 @@ export function AdminDashboard({ stats, formations, media, cms, contacts = [], s
                 {name === "messages" && unreadMessages > 0 && <span className={`ml-2 rounded-full px-2 py-0.5 text-[10px] font-bold ${tab === name ? "bg-ink text-gold" : "bg-gold text-ink"}`} aria-label={`${unreadMessages} non lu(s)`}>{unreadMessages}</span>}
               </button>
             ))}
+            {PAGES.map((page) => (
+              <Link key={page.href} href={page.href} className="whitespace-nowrap border border-transparent px-4 py-3 text-left text-xs uppercase tracking-wider text-mist transition-colors hover:border-line hover:text-bone lg:w-full">
+                {page.label} <span aria-hidden="true">→</span>
+              </Link>
+            ))}
           </nav>
         </aside>
         <main className="min-w-0 bg-ink px-4 py-8 sm:px-8 lg:px-10">
@@ -165,12 +171,10 @@ export function AdminDashboard({ stats, formations, media, cms, contacts = [], s
           {tab === "paiements" && <PaymentsManager />}
           {tab === "parrainage" && <ReferralsManager />}
           {tab === "ressources" && <ResourcesManager formations={formations.map((f) => ({ id: f.id, name: f.name }))} />}
-          {tab === "demandes d'information" && <ContactsManager contacts={contacts} type="inquiry" />}
-          {tab === "inscriptions" && <ContactsManager contacts={contacts} type="registration" />}
+          {tab === "demandes d'information" && <ContactsManager contacts={contacts} names={names} type="inquiry" />}
+          {tab === "inscriptions" && <ContactsManager contacts={contacts} names={names} type="registration" />}
           {tab === "devis sécurité" && <SecurityQuotesManager quotes={securityQuotes} loadError={securityQuotesError} />}
           {tab === "contenus" && <ContentManager cms={cms.filter((item) => ["faq", "testimonials", "promotions"].includes(item.section))} />}
-          {tab === "formations" && <FormationManager formations={formations} />}
-          {tab === "médias" && <MediaManager media={media} />}
           {tab === "partenaires" && <ContentManager cms={cms.filter((item) => item.section === "partners")} section="partners" />}
           {tab === "paramètres & footer" && <SettingsManager initialSettings={initialSettings} />}
         </main>
@@ -179,7 +183,7 @@ export function AdminDashboard({ stats, formations, media, cms, contacts = [], s
   );
 }
 
-function ContactsManager({ contacts, type }: { contacts: Contact[]; type: "inquiry" | "registration" }) {
+function ContactsManager({ contacts, names, type }: { contacts: Contact[]; names: Record<string, string>; type: "inquiry" | "registration" }) {
   const [filter, setFilter] = useState("all");
   const [query, setQuery] = useState("");
   const [dateFrom, setDateFrom] = useState("");
@@ -199,7 +203,7 @@ function ContactsManager({ contacts, type }: { contacts: Contact[]; type: "inqui
     const availabilityMatch = type !== "registration" || availabilityFilter === "all" || contact.availability === availabilityFilter;
     const dateKey = new Intl.DateTimeFormat("en-CA", { timeZone: "Africa/Tunis", year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date(contact.createdAt));
     const dateMatch = (!dateFrom || dateKey >= dateFrom) && (!dateTo || dateKey <= dateTo);
-    const haystack = `${contact.firstName} ${contact.lastName} ${contact.email} ${contact.phone} ${contact.city} ${contact.trainings.map((training) => TRAINING_LABELS[training] ?? training).join(" ")} ${PROFILE_LABELS[contact.profile] ?? contact.profile} ${AVAILABILITY_LABELS[contact.availability] ?? contact.availability}`.toLowerCase();
+    const haystack = `${contact.firstName} ${contact.lastName} ${contact.email} ${contact.phone} ${contact.city} ${contact.trainings.map((training) => names[training] ?? training).join(" ")} ${PROFILE_LABELS[contact.profile] ?? contact.profile} ${AVAILABILITY_LABELS[contact.availability] ?? contact.availability}`.toLowerCase();
     return statusMatch && formationMatch && profileMatch && availabilityMatch && dateMatch && haystack.includes(query.toLowerCase().trim());
   }).sort((a, b) => (Date.parse(a.createdAt) - Date.parse(b.createdAt)) * (dateOrder === "newest" ? -1 : 1));
   const total = typedContacts.length;
@@ -222,7 +226,7 @@ function ContactsManager({ contacts, type }: { contacts: Contact[]; type: "inqui
             <label className="text-xs text-mist">Formation
               <select aria-label="Filtrer par formation" value={formationFilter} onChange={(event) => setFormationFilter(event.target.value)} className="mt-1 w-full border border-line bg-ink-2 px-3 py-2.5 text-sm text-bone">
                 <option value="all">Toutes les formations</option>
-                {formations.map((formation) => <option key={formation} value={formation}>{TRAINING_LABELS[formation] ?? formation}</option>)}
+                {formations.map((formation) => <option key={formation} value={formation}>{names[formation] ?? formation}</option>)}
               </select>
             </label>
             <label className="text-xs text-mist">Profil
@@ -248,7 +252,7 @@ function ContactsManager({ contacts, type }: { contacts: Contact[]; type: "inqui
       </div>
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
         <p className="text-xs text-mist">{filtered.length} demande{filtered.length === 1 ? "" : "s"} affichée{filtered.length === 1 ? "" : "s"} sur {total}</p>
-        <button type="button" disabled={filtered.length === 0} onClick={() => downloadContactsCsv(filtered, type)} className="inline-flex items-center gap-2 border border-gold/60 px-4 py-2 text-xs uppercase tracking-wider text-gold transition-colors hover:bg-gold hover:text-ink disabled:opacity-40">
+        <button type="button" disabled={filtered.length === 0} onClick={() => downloadContactsCsv(filtered, type, names)} className="inline-flex items-center gap-2 border border-gold/60 px-4 py-2 text-xs uppercase tracking-wider text-gold transition-colors hover:bg-gold hover:text-ink disabled:opacity-40">
           <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="size-4"><path strokeLinecap="round" strokeLinejoin="round" d="M12 4v11m0 0-4-4m4 4 4-4M5 19h14" /></svg>
           Exporter en CSV ({filtered.length})
         </button>
@@ -281,11 +285,11 @@ function ContactsManager({ contacts, type }: { contacts: Contact[]; type: "inqui
                 <div><dt className="text-[0.65rem] uppercase tracking-widest text-mist">Téléphone</dt><dd className="mt-1 text-bone"><a href={`tel:${contact.phone.replace(/\s/g, "")}`} className="hover:text-gold">{contact.phone}</a></dd></div>
                 <div><dt className="text-[0.65rem] uppercase tracking-widest text-mist">Profil</dt><dd className="mt-1 text-bone">{PROFILE_LABELS[contact.profile] ?? contact.profile}</dd></div>
                 <div><dt className="text-[0.65rem] uppercase tracking-widest text-mist">Disponibilité</dt><dd className="mt-1 text-bone">{AVAILABILITY_LABELS[contact.availability] ?? contact.availability}</dd></div>
-                <div><dt className="text-[0.65rem] uppercase tracking-widest text-mist">Formation</dt><dd className="mt-1 text-gold">{contact.trainings.length ? contact.trainings.map((training) => TRAINING_LABELS[training] ?? training).join(", ") : "Demande générale"}</dd></div>
+                <div><dt className="text-[0.65rem] uppercase tracking-widest text-mist">Formation</dt><dd className="mt-1 text-gold">{contact.trainings.length ? contact.trainings.map((training) => names[training] ?? training).join(", ") : "Demande générale"}</dd></div>
                 {contact.city && <div><dt className="text-[0.65rem] uppercase tracking-widest text-mist">Ville</dt><dd className="mt-1 text-bone">{contact.city}</dd></div>}
               </dl>
               {contact.message && <p className="mt-4 border-l-2 border-gold/50 bg-ink px-4 py-3 text-sm whitespace-pre-line text-mist">{contact.message}</p>}
-              <ContactQuickActions contact={contact} />
+              <ContactQuickActions contact={contact} names={names} />
             </article>
           ))}
         </div>
@@ -295,8 +299,8 @@ function ContactsManager({ contacts, type }: { contacts: Contact[]; type: "inqui
 }
 
 /** Actions rapides sur une demande : WhatsApp avec message pré-rempli, appel, e-mail. */
-function ContactQuickActions({ contact }: { contact: Contact }) {
-  const formationNames = contact.trainings.map((training) => TRAINING_LABELS[training] ?? training);
+function ContactQuickActions({ contact, names }: { contact: Contact; names: Record<string, string> }) {
+  const formationNames = contact.trainings.map((training) => names[training] ?? training);
   const wa = whatsappHref(contact.phone, followUpMessage(contact.firstName, formationNames));
   const subject = encodeURIComponent(contact.profile === "demande-info" ? "Votre demande d'information" : "Votre inscription");
   return (
@@ -309,12 +313,12 @@ function ContactQuickActions({ contact }: { contact: Contact }) {
 }
 
 /** Télécharge les demandes affichées (filtres appliqués) au format CSV, lisible par Excel (UTF-8 + « ; »). */
-function downloadContactsCsv(contacts: Contact[], type: "inquiry" | "registration") {
+function downloadContactsCsv(contacts: Contact[], type: "inquiry" | "registration", names: Record<string, string>) {
   const header = ["Date", "Prénom", "Nom", "E-mail", "Téléphone", "Ville", "Profil", "Formations", "Disponibilité", "Statut", "Message"];
   const rows = contacts.map((c) => [
     dateFmt.format(new Date(c.createdAt)), c.firstName, c.lastName, c.email, c.phone, c.city,
     PROFILE_LABELS[c.profile] ?? c.profile,
-    c.trainings.map((t) => TRAINING_LABELS[t] ?? t).join(", "),
+    c.trainings.map((t) => names[t] ?? t).join(", "),
     AVAILABILITY_LABELS[c.availability] ?? c.availability,
     STATUS_LABELS[c.status] ?? c.status,
     c.message,
@@ -334,10 +338,17 @@ function SettingsManager({ initialSettings = {} }: { initialSettings?: Record<st
     privacy: "Responsable du traitement\nDefenders Academy collecte les informations envoyées volontairement depuis les formulaires de contact, d'inscription et de demande de devis sécurité.\n\nDonnées collectées\nLes formulaires peuvent collecter le prénom, le nom, l'entreprise ou l'organisme, l'e-mail, le téléphone, la ville, le profil, les formations souhaitées, le domaine de demande, la disponibilité, le message et une éventuelle pièce jointe.\n\nFinalités\nCes données sont utilisées pour répondre aux demandes, étudier un besoin de devis, fournir des informations sur les formations et organiser le suivi des inscriptions.\n\nBase juridique et conservation\nLes données sont traitées dans le cadre du consentement et de la demande de la personne concernée. Elles sont conservées pendant la durée nécessaire au suivi de la demande.\n\nDestinataires\nLes informations sont consultées par les personnes habilitées de l'académie pour traiter la demande concernée.\n\nSécurité\nDes mesures techniques limitent les accès et protègent les transmissions.\n\nVos droits\nVous pouvez demander l'accès, la rectification ou la suppression des données en écrivant à direction-dsp@outlook.com.",
     cookies: "Cookies strictement nécessaires\nLe site n'utilise pas de bandeau publicitaire ni de traçage marketing. Son fonctionnement peut utiliser des mécanismes techniques essentiels au chargement des pages.\n\nServices tiers\nLa carte intégrée et les liens vers les réseaux sociaux sont soumis aux politiques de confidentialité de leurs fournisseurs.\n\nGestion du navigateur\nVous pouvez supprimer ou bloquer les cookies depuis les paramètres de votre navigateur. Certaines fonctionnalités externes peuvent alors ne plus fonctionner normalement.",
   };
-  const defaults = {
-    phone: "+216 92 204 005", phone2: "+216 29 039 493", email: "direction-dsp@outlook.com", securityEmail: "akkari-dsp@outlook.com", facebook: "https://www.facebook.com/DefendersFitnessAcademy", instagram: "https://www.instagram.com/defenders_fitness_academy", linkedin: "", address: "Avenue Abou Dhabi, 8050 Hammamet, Tunisie", approval: "Agrément n° 21-340-24",
+  const contacts = contactsFrom(initialSettings);
+  const defaults: Record<string, string> = {
+    ...Object.fromEntries(CONTACT_FIELDS.map(({ key }) => [key, ""])),
+    phone: contacts.phone.label, phone2: contacts.phone2.label, email: contacts.email.label, securityEmail: contacts.securityEmail.label,
+    facebook: contacts.facebook.href, instagram: contacts.instagram.href, linkedin: contacts.linkedin.href, messenger: contacts.messenger.href,
+    address: contacts.address.lines.join(", "), approval: contacts.approval,
+    tsaPhone: contacts.tunisianSecurityAcademy.phone.label, tsaPhone2: contacts.tunisianSecurityAcademy.trainingPhone.label, tsaEmail: contacts.tunisianSecurityAcademy.email.label,
+    tsaAddress: contacts.tunisianSecurityAcademy.address.join(", "), tsaFacebook: contacts.tunisianSecurityAcademy.facebook, securityPortal: contacts.securityPortal,
+    rulesUrl: contacts.documents.rules, otdavUrl: contacts.documents.otdav, exclusivityPost: contacts.documents.exclusivityPost,
     logoUrl: "", brandName: "Defenders", brandDescriptor: "Academy", certificationLabel: "Centre de formation certifié",
-    heroLead: "Formez-vous en", heroDescription: "Des formations certifiantes pour les coachs et les professionnels du sport.", footerTagline: "Des formations certifiantes pour les coachs et les professionnels du sport.", footerGroup: "Defenders Academy",
+    heroLead: "Formez-vous en", heroDescription: "Des formations certifiantes pour les coachs et les professionnels du sport.", footerTagline: "Des formations certifiantes pour les coachs et les professionnels du sport.",
     contactPopupEnabled: "true", contactPopupButtonLabel: "Nous contacter", contactPopupTitle: "Nous contacter",
     contactFirstNameLabel: "Prénom", contactLastNameLabel: "Nom", contactEmailLabel: "E-mail", contactPhoneLabel: "Téléphone",
     contactMessageLabel: "Votre message", contactMessagePlaceholder: "Comment pouvons-nous vous aider ?",
@@ -357,7 +368,7 @@ function SettingsManager({ initialSettings = {} }: { initialSettings?: Record<st
   const [homepageSections, setHomepageSections] = useState(() => normalizeHomepageSections(initialSettings.homepageSections));
   const [pending, startTransition] = useTransition();
   const [ok, setOk] = useState<boolean | null>(null);
-  const [group, setGroup] = useState<"accueil" | "contact" | "identite" | "coordonnees" | "legal">("accueil");
+  const [group, setGroup] = useState<"accueil" | "contact" | "identite" | "coordonnees" | "tsa" | "documents" | "legal">("accueil");
   const [legalKey, setLegalKey] = useState<"mentions" | "privacy" | "cookies">("mentions");
   const moveHomepageSection = (index: number, offset: -1 | 1) => {
     const target = index + offset;
@@ -369,14 +380,12 @@ function SettingsManager({ initialSettings = {} }: { initialSettings?: Record<st
       return next.map((section, order) => ({ ...section, order }));
     });
   };
-  const fields: [keyof typeof defaults, string, string][] = [
-    ["phone", "Téléphone principal", "coordonnees"], ["phone2", "Deuxième téléphone", "coordonnees"], ["email", "E-mail principal", "coordonnees"],
-    ["securityEmail", "E-mail sécurité", "coordonnees"], ["facebook", "Lien Facebook", "coordonnees"], ["instagram", "Lien Instagram", "coordonnees"], ["linkedin", "Lien LinkedIn", "coordonnees"],
-    ["address", "Adresse", "coordonnees"],
+  const fields: [string, string, string][] = [
+    ...CONTACT_FIELDS.map(({ key, label, group: part }): [string, string, string] => [key, label, part === "general" ? "coordonnees" : part]),
     ["brandName", "Nom principal", "identite"], ["brandDescriptor", "Nom complémentaire", "identite"],
     ["certificationLabel", "Texte de certification", "identite"], ["approval", "Numéro d'agrément", "identite"],
     ["heroLead", "Accroche avant les formations", "identite"], ["heroDescription", "Description principale", "identite"],
-    ["footerTagline", "Description du pied de page", "identite"], ["footerGroup", "Nom du groupe", "identite"],
+    ["footerTagline", "Description du pied de page", "identite"],
     ["contactPopupButtonLabel", "Texte du bouton", "contact"], ["contactPopupTitle", "Titre de la fenêtre", "contact"],
     ["contactFirstNameLabel", "Libellé prénom", "contact"], ["contactLastNameLabel", "Libellé nom", "contact"],
     ["contactEmailLabel", "Libellé e-mail", "contact"], ["contactPhoneLabel", "Libellé téléphone", "contact"],
@@ -387,7 +396,7 @@ function SettingsManager({ initialSettings = {} }: { initialSettings?: Record<st
     <div>
       <div className="mb-6"><p className="eyebrow text-gold">Configuration du site</p><h2 className="mt-2 font-display text-2xl uppercase text-bone">Paramètres & footer</h2></div>
       <div className="mb-6 flex flex-wrap gap-2 border-b border-line pb-4">
-        {([["accueil", "Zones & ordre accueil"], ["contact", "Fenêtre Nous contacter"], ["identite", "Identité"], ["coordonnees", "Coordonnées & footer"], ["legal", "Pages légales"]] as const).map(([key, label]) => (
+        {([["accueil", "Zones & ordre accueil"], ["contact", "Fenêtre Nous contacter"], ["identite", "Identité"], ["coordonnees", "Coordonnées"], ["tsa", "Coordonnées TSA"], ["documents", "Documents"], ["legal", "Pages légales"]] as const).map(([key, label]) => (
           <button key={key} onClick={() => setGroup(key)} className={`border px-4 py-2 text-xs uppercase tracking-wider ${group === key ? "border-gold bg-gold text-ink" : "border-line text-mist hover:text-bone"}`}>{label}</button>
         ))}
       </div>
@@ -428,7 +437,7 @@ function SettingsManager({ initialSettings = {} }: { initialSettings?: Record<st
           <div className="grid max-w-4xl gap-4 sm:grid-cols-2">
             {group === "identite" && (
               <div className="sm:col-span-2">
-                <ImageUploadControl label="Logo du site" url={values.logoUrl} onUploaded={(logoUrl) => { setOk(null); setValues((old) => ({ ...old, logoUrl })); }} />
+                <ImageUpload label="Logo du site" url={values.logoUrl} onUploaded={(logoUrl) => { setOk(null); setValues((old) => ({ ...old, logoUrl })); }} />
               </div>
             )}
             {group === "contact" && <label className="flex items-center gap-3 border border-line bg-ink-2 p-4 text-sm text-bone sm:col-span-2"><input type="checkbox" checked={values.contactPopupEnabled === "true"} onChange={(event) => { setOk(null); setValues((old) => ({ ...old, contactPopupEnabled: String(event.target.checked) })); }} className="size-4 accent-[var(--color-gold)]" />Afficher les boutons et la fenêtre Nous contacter sur la page d&apos;accueil</label>}
@@ -448,229 +457,25 @@ function SettingsManager({ initialSettings = {} }: { initialSettings?: Record<st
   );
 }
 
-function ContentManager({ cms, section = "" }: { cms: CmsItem[]; section?: string }) {
-  const [activeSection, setActiveSection] = useState(section || "faq");
-  const emptyDraft = { section: section || "faq", title: "", subtitle: "", body: "", imageUrl: "", linkUrl: "", position: 0, active: true };
-  const [draft, setDraft] = useState(emptyDraft);
-  const [editingId, setEditingId] = useState<number | null>(null);
-  const [pending, startTransition] = useTransition();
-  const [saveResult, setSaveResult] = useState<boolean | null>(null);
-  const [deleteResult, setDeleteResult] = useState<boolean | null>(null);
-  const availableSections = section
-    ? [{ key: "partners", label: "Partenaires" }]
-    : [{ key: "faq", label: "FAQ" }, { key: "testimonials", label: "Témoignages" }, { key: "promotions", label: "Promotions" }];
-  const visibleItems = cms.filter((item) => item.section === activeSection);
-  const imageField = ["partners", "promotions", "testimonials"].includes(activeSection);
-  const resetDraft = () => { setEditingId(null); setSaveResult(null); setDeleteResult(null); setDraft({ ...emptyDraft, section: activeSection }); };
+const CMS_SECTIONS = [
+  { key: "faq", label: "FAQ", item: "question" },
+  { key: "testimonials", label: "Témoignages", item: "témoignage" },
+  { key: "promotions", label: "Promotions", item: "promotion" },
+  { key: "partners", label: "Partenaires", item: "partenaire" },
+] as const;
+
+/** FAQ, témoignages, promotions ou partenaires : ajout, modification, suppression, en trois langues. */
+function ContentManager({ cms, section }: { cms: CmsItem[]; section?: "partners" }) {
+  const [active, setActive] = useState<(typeof CMS_SECTIONS)[number]["key"]>(section ?? "faq");
+  const sections = CMS_SECTIONS.filter(({ key }) => (section ? key === section : key !== "partners"));
+  const current = CMS_SECTIONS.find(({ key }) => key === active)!;
   return (
     <div>
       <div className="mb-6"><p className="eyebrow text-gold">Gestion du contenu</p><h2 className="mt-2 font-display text-2xl uppercase text-bone">{section ? "Partenaires" : "Contenus du site"}</h2></div>
       <div className="mb-6 flex flex-wrap gap-2 border-b border-line pb-4">
-        {availableSections.map(({ key, label }) => <button key={key} onClick={() => { setActiveSection(key); setEditingId(null); setDraft({ ...emptyDraft, section: key }); setSaveResult(null); setDeleteResult(null); }} className={`border px-4 py-2 text-xs uppercase tracking-wider ${activeSection === key ? "border-gold bg-gold text-ink" : "border-line text-mist hover:text-bone"}`}>{label}<span className="ml-2 opacity-70">{cms.filter((item) => item.section === key).length}</span></button>)}
+        {sections.map(({ key, label }) => <button key={key} type="button" aria-pressed={active === key} onClick={() => setActive(key)} className={`border px-4 py-2 text-xs uppercase tracking-wider ${active === key ? "border-gold bg-gold text-ink" : "border-line text-mist hover:text-bone"}`}>{label}<span className="ml-2 opacity-70">{cms.filter((item) => item.section === key).length}</span></button>)}
       </div>
-      <div className="grid gap-8 lg:grid-cols-[minmax(300px,0.8fr)_1.2fr]">
-        <form onSubmit={(event) => event.preventDefault()} className="h-fit space-y-4 border border-line bg-ink-2 p-5">
-          <div className="flex items-center justify-between"><h3 className="font-display text-xl uppercase">{editingId ? "Modifier" : "Ajouter"} · {availableSections.find(({ key }) => key === activeSection)?.label}</h3>{editingId && <button type="button" onClick={resetDraft} className="text-xs text-mist hover:text-bone">Annuler</button>}</div>
-          <label className="block text-xs text-mist">Titre<input placeholder="Titre" value={draft.title} onChange={(e) => { setSaveResult(null); setDraft({ ...draft, title: e.target.value }); }} className="mt-1 w-full border border-line bg-ink px-3 py-3 text-sm text-bone" /></label>
-          {activeSection !== "faq" && <label className="block text-xs text-mist">{activeSection === "testimonials" ? "Auteur / fonction" : "Sous-titre"}<input placeholder="Sous-titre / auteur" value={draft.subtitle} onChange={(e) => setDraft({ ...draft, subtitle: e.target.value })} className="mt-1 w-full border border-line bg-ink px-3 py-3 text-sm text-bone" /></label>}
-          <label className="block text-xs text-mist">{activeSection === "faq" ? "Réponse" : activeSection === "testimonials" ? "Témoignage" : "Description"}<textarea placeholder="Contenu" rows={5} value={draft.body} onChange={(e) => setDraft({ ...draft, body: e.target.value })} className="mt-1 w-full border border-line bg-ink px-3 py-3 text-sm text-bone" /></label>
-          {imageField && <ImageUploadControl label={activeSection === "partners" ? "Logo du partenaire" : activeSection === "promotions" ? "Image de promotion" : "Photo du témoignage"} url={draft.imageUrl} onUploaded={(imageUrl) => { setDraft((old) => ({ ...old, imageUrl })); setSaveResult(null); }} />}
-          {imageField && <label className="block text-xs text-mist">URL image<input placeholder="/pics/... ou URL" value={draft.imageUrl} onChange={(e) => setDraft({ ...draft, imageUrl: e.target.value })} className="mt-1 w-full border border-line bg-ink px-3 py-3 text-sm text-bone" /></label>}
-          {activeSection !== "faq" && <label className="block text-xs text-mist">Lien<input placeholder="Lien (optionnel)" value={draft.linkUrl} onChange={(e) => setDraft({ ...draft, linkUrl: e.target.value })} className="mt-1 w-full border border-line bg-ink px-3 py-3 text-sm text-bone" /></label>}
-          <div className="grid grid-cols-[100px_1fr] items-center gap-3">
-            <label className="text-xs text-mist">Ordre<input type="number" min={0} aria-label="Position" value={draft.position} onChange={(e) => setDraft({ ...draft, position: Number(e.target.value) })} className="mt-1 w-full border border-line bg-ink px-3 py-3 text-sm text-bone" /></label>
-            <label className="mt-5 flex items-center gap-3 text-sm text-mist"><input type="checkbox" checked={draft.active} onChange={(e) => setDraft({ ...draft, active: e.target.checked })} /> Visible sur le site</label>
-          </div>
-          <div className="flex items-center gap-4">
-            <button type="button" disabled={pending || !draft.title.trim()} onClick={() => startTransition(async () => { const result = await saveCmsItemAction({ ...draft, section: activeSection, id: editingId ?? undefined }); setDeleteResult(null); setSaveResult(result.ok); if (result.ok) resetDraft(); })} className="btn btn-primary">{pending ? "Enregistrement..." : editingId ? "Enregistrer" : "Ajouter"}</button>
-            {saveResult === true && <span role="status" className="text-xs text-gold">Enregistré</span>}
-            {saveResult === false && <span role="alert" className="text-xs text-red-300">Échec. Réessayez.</span>}
-          </div>
-          {deleteResult === true && <p role="status" className="text-xs text-gold">Élément supprimé.</p>}
-          {deleteResult === false && <p role="alert" className="text-xs text-red-300">Échec de la suppression. Réessayez.</p>}
-        </form>
-        <div className="grid content-start gap-4 md:grid-cols-2">
-          {visibleItems.length === 0 && <p className="border border-line bg-ink-2 p-8 text-sm text-mist md:col-span-2">Aucun élément ici pour le moment. Utilisez le formulaire pour en créer un.</p>}
-          {visibleItems.map((item) => (
-            <article key={item.id} className="overflow-hidden border border-line bg-ink-2">
-              {item.imageUrl && <div className="relative h-40 border-b border-line"><Image src={item.imageUrl} alt={item.title} fill sizes="(min-width: 1280px) 40vw, 100vw" className="object-cover" unoptimized /></div>}
-              <div className="p-5">
-                <div className="flex items-start justify-between gap-3"><div><p className="font-display text-lg text-bone">{item.title}</p>{item.subtitle && <p className="mt-1 text-xs text-gold">{item.subtitle}</p>}</div><span className={`shrink-0 border px-2 py-1 text-[10px] uppercase ${item.active ? "border-emerald-500/40 text-emerald-300" : "border-line text-mist"}`}>{item.active ? "Publié" : "Masqué"}</span></div>
-                <p className="mt-3 line-clamp-3 text-sm text-mist">{item.body}</p>
-                <div className="mt-5 flex gap-4 border-t border-line pt-4"><button onClick={() => { setEditingId(item.id); setSaveResult(null); setDeleteResult(null); setDraft({ section: item.section, title: item.title, subtitle: item.subtitle, body: item.body, imageUrl: item.imageUrl, linkUrl: item.linkUrl, position: item.position, active: item.active }); }} className="text-xs uppercase text-gold">Modifier</button><button disabled={pending} onClick={() => { if (window.confirm(`Supprimer « ${item.title} » ?`)) startTransition(async () => { setDeleteResult((await deleteCmsItemAction(item.id)).ok); }); }} className="text-xs uppercase text-red-300 disabled:opacity-50">Supprimer</button></div>
-              </div>
-            </article>
-          ))}
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function ImageUploadControl({ label, url, onUploaded }: { label: string; url: string; onUploaded: (url: string) => void }) {
-  const [pending, startTransition] = useTransition();
-  const [message, setMessage] = useState<{ text: string; error: boolean } | null>(null);
-  return (
-    <div>
-      <span className="mb-1 block text-xs text-mist">{label}</span>
-      <label className="flex min-h-24 cursor-pointer items-center justify-center border border-dashed border-line bg-ink px-4 py-5 text-center text-xs text-mist transition-colors hover:border-gold hover:text-bone">
-        <span>{pending ? "Importation..." : "Choisir une image · JPEG, PNG, WebP · 25 Mo max"}</span>
-        <input type="file" accept="image/jpeg,image/png,image/webp" className="sr-only" disabled={pending} onChange={(event) => {
-          const file = event.target.files?.[0];
-          if (!file) return;
-          startTransition(async () => {
-            const result = await uploadFile(file);
-            if (result.file?.type === "image") {
-              onUploaded(result.file.url);
-              setMessage({ text: "Image importée. Enregistrez pour publier.", error: false });
-            } else {
-              setMessage({ text: result.error ?? "Échec de l’importation. Vérifiez le format et la taille.", error: true });
-            }
-          });
-          event.currentTarget.value = "";
-        }} />
-      </label>
-      {message && <p role={message.error ? "alert" : "status"} className={`mt-1 text-xs ${message.error ? "text-red-300" : "text-gold"}`}>{message.text}</p>}
-      {url && <div className="relative mt-3 aspect-video w-full border border-line bg-ink"><Image src={url} alt={`Aperçu : ${label}`} fill sizes="(min-width: 1280px) 40vw, 100vw" className="object-contain" unoptimized /></div>}
-    </div>
-  );
-}
-
-function FormationManager({ formations }: { formations: Formation[] }) {
-  const emptyDraft = { slug: "", name: "", headline: "", summary: "", durationLabel: "", priceTnd: "", status: "published", position: 0, coverUrl: "", accent: "gold", intro: "", facts: "", objectives: "", modules: "", audience: "", careers: "", galleryUrls: "" };
-  const [draft, setDraft] = useState(emptyDraft);
-  const [editingId, setEditingId] = useState<number | null>(null);
-  const [pending, startTransition] = useTransition();
-  const [formMessage, setFormMessage] = useState<{ text: string; error: boolean } | null>(null);
-  const submit = () => startTransition(async () => {
-    const result = await saveFormationAction({
-      ...draft,
-      durationLabel: draft.durationLabel || null,
-      priceTnd: draft.priceTnd ? Number(draft.priceTnd) : null,
-      intro: draft.intro.split("\n").map((v) => v.trim()).filter(Boolean),
-      facts: draft.facts.split("\n").map((v) => v.split("|")).filter((v) => v.length === 2).map(([label, value]) => ({ label: label.trim(), value: value.trim() })),
-      objectives: draft.objectives.split("\n").map((v) => v.trim()).filter(Boolean),
-      modules: draft.modules.split("\n").map((v) => v.split("|")).filter((v) => v.length === 2).map(([title, text]) => ({ title: title.trim(), text: text.trim() })),
-      audience: draft.audience.split("\n").map((v) => v.trim()).filter(Boolean),
-      careers: draft.careers.split("\n").map((v) => v.trim()).filter(Boolean),
-      galleryUrls: draft.galleryUrls.split("\n").map((v) => v.trim()).filter(Boolean),
-    }, editingId ?? undefined);
-    setFormMessage(result.ok
-      ? { text: "Formation enregistrée.", error: false }
-      : { text: result.message ?? "Échec de l'enregistrement. Vérifiez le slug, les champs obligatoires et réessayez.", error: true });
-    if (result.ok) {
-      setEditingId(null);
-      setDraft(emptyDraft);
-    }
-  });
-  const deleteFormation = (id: number) => startTransition(async () => {
-    const result = await deleteFormationAction(id);
-    setFormMessage(result.ok
-      ? { text: "Formation supprimée.", error: false }
-      : { text: result.message ?? "La formation n'a pas pu être supprimée.", error: true });
-  });
-  return (
-    <div className="grid gap-8 lg:grid-cols-[minmax(320px,0.8fr)_1.2fr]">
-      <div className="space-y-3">
-        <label className="block text-xs text-mist">URL de la formation
-          <input placeholder="ex. coaching-sportif" value={draft.slug} onChange={(e) => { setDraft({ ...draft, slug: e.target.value }); setFormMessage(null); }} className="mt-2 w-full border border-line bg-ink px-3 py-3" />
-        </label>
-        <p className="text-xs text-mist">L&apos;URL doit être unique et ne pas remplacer une page existante du site.{editingId ? " La modification du slug rendra les anciens liens externes invalides." : ""}</p>
-        <input placeholder="Nom" value={draft.name} onChange={(e) => setDraft({ ...draft, name: e.target.value })} className="w-full border border-line bg-ink px-3 py-3" />
-        <input placeholder="Titre accroche" value={draft.headline} onChange={(e) => setDraft({ ...draft, headline: e.target.value })} className="w-full border border-line bg-ink px-3 py-3" />
-        <textarea placeholder="Description" rows={4} value={draft.summary} onChange={(e) => setDraft({ ...draft, summary: e.target.value })} className="w-full border border-line bg-ink px-3 py-3" />
-        <textarea placeholder="Présentation : une ligne par paragraphe" rows={4} value={draft.intro} onChange={(e) => setDraft({ ...draft, intro: e.target.value })} className="w-full border border-line bg-ink px-3 py-3" />
-        <input placeholder="Durée" value={draft.durationLabel} onChange={(e) => setDraft({ ...draft, durationLabel: e.target.value })} className="w-full border border-line bg-ink px-3 py-3" />
-        <input placeholder="Prix TND" type="number" value={draft.priceTnd} onChange={(e) => setDraft({ ...draft, priceTnd: e.target.value })} className="w-full border border-line bg-ink px-3 py-3" />
-        <ImageUploadControl label="Visuel principal" url={draft.coverUrl} onUploaded={(coverUrl) => setDraft((old) => ({ ...old, coverUrl }))} />
-        <input placeholder="URL image principale" value={draft.coverUrl} onChange={(e) => setDraft({ ...draft, coverUrl: e.target.value })} className="w-full border border-line bg-ink px-3 py-3" />
-        <ImageUploadControl label="Ajouter une image à la galerie" url={draft.galleryUrls.split("\n").filter(Boolean)[0] ?? ""} onUploaded={(url) => setDraft((old) => ({ ...old, galleryUrls: [...old.galleryUrls.split("\n").filter(Boolean), url].join("\n") }))} />
-        <textarea placeholder="Galerie : une URL d'image par ligne" rows={3} value={draft.galleryUrls} onChange={(e) => setDraft({ ...draft, galleryUrls: e.target.value })} className="w-full border border-line bg-ink px-3 py-3" />
-        <textarea placeholder="Objectifs : un objectif par ligne" rows={4} value={draft.objectives} onChange={(e) => setDraft({ ...draft, objectives: e.target.value })} className="w-full border border-line bg-ink px-3 py-3" />
-        <textarea placeholder="Modules : Titre | Description (une ligne par module)" rows={5} value={draft.modules} onChange={(e) => setDraft({ ...draft, modules: e.target.value })} className="w-full border border-line bg-ink px-3 py-3" />
-        <textarea placeholder="Faits : Libellé | Valeur (une ligne)" rows={3} value={draft.facts} onChange={(e) => setDraft({ ...draft, facts: e.target.value })} className="w-full border border-line bg-ink px-3 py-3" />
-        <textarea placeholder="Public concerné : une ligne par profil" rows={3} value={draft.audience} onChange={(e) => setDraft({ ...draft, audience: e.target.value })} className="w-full border border-line bg-ink px-3 py-3" />
-        <textarea placeholder="Débouchés : une ligne par débouché" rows={3} value={draft.careers} onChange={(e) => setDraft({ ...draft, careers: e.target.value })} className="w-full border border-line bg-ink px-3 py-3" />
-        <select value={draft.accent} onChange={(e) => setDraft({ ...draft, accent: e.target.value })} className="w-full border border-line bg-ink px-3 py-3"><option value="gold">Beige (par défaut)</option><option value="pilates">Fitness / Pilates — orange</option><option value="football">Football — rouge</option><option value="personal">Personal Trainer — vert militaire</option></select>
-        <select value={draft.status} onChange={(e) => setDraft({ ...draft, status: e.target.value })} className="w-full border border-line bg-ink px-3 py-3"><option value="published">Publié</option><option value="draft">Brouillon</option><option value="archived">Archivé</option></select>
-        <input type="number" min={0} placeholder="Position" value={draft.position} onChange={(e) => setDraft({ ...draft, position: Number(e.target.value) })} className="w-full border border-line bg-ink px-3 py-3" />
-        <div className="flex flex-wrap items-center gap-3">
-          <button disabled={pending || !draft.slug || !draft.name} onClick={submit} className="btn btn-primary">{pending ? "Enregistrement..." : editingId ? "Enregistrer la formation" : "Ajouter formation"}</button>
-          {editingId && <button type="button" onClick={() => { setEditingId(null); setDraft(emptyDraft); setFormMessage(null); }} className="text-xs text-mist">Annuler</button>}
-        </div>
-        {formMessage && <p role={formMessage.error ? "alert" : "status"} className={`text-xs ${formMessage.error ? "text-red-300" : "text-gold"}`}>{formMessage.text}</p>}
-      </div>
-      <div className="space-y-3">
-        {formations.map((f) => (
-          <article key={f.id} className="flex items-start justify-between gap-4 border border-line bg-ink-2 p-4">
-            {f.coverUrl && <div className="relative h-20 w-16 shrink-0 border border-line"><Image src={f.coverUrl} alt="" fill sizes="64px" className="object-cover" unoptimized /></div>}
-            <div className="min-w-0 flex-1"><p className="font-display text-xl">{f.name}</p><p className="text-xs text-mist">/{f.slug} · {f.status} · {f.priceTnd ? `${f.priceTnd} TND` : "Prix non défini"}</p><p className="mt-2 line-clamp-2 text-sm text-mist">{f.summary}</p></div>
-            <div className="flex shrink-0 gap-3">
-              <button onClick={() => { setEditingId(f.id); setDraft({ slug: f.slug, name: f.name, headline: f.headline, summary: f.summary, durationLabel: f.durationLabel ?? "", priceTnd: f.priceTnd ?? "", status: f.status, position: f.position, coverUrl: f.coverUrl ?? "", accent: f.accent ?? "gold", intro: (f.intro ?? []).join("\n"), facts: (f.facts ?? []).map((x) => `${x.label} | ${x.value}`).join("\n"), objectives: (f.objectives ?? []).join("\n"), modules: (f.modules ?? []).map((x) => `${x.title} | ${x.text}`).join("\n"), audience: (f.audience ?? []).join("\n"), careers: (f.careers ?? []).join("\n"), galleryUrls: (f.galleryUrls ?? []).join("\n") }); }} className="text-xs uppercase text-gold">Modifier</button>
-              <button disabled={pending} onClick={() => {
-                if (window.confirm(`Supprimer « ${f.name} » ? Cette action est définitive. Archivez la formation pour la retirer du site sans perdre son historique.`)) {
-                  deleteFormation(f.id);
-                }
-              }} className="text-xs uppercase text-red-300">Supprimer</button>
-            </div>
-          </article>
-        ))}
-      </div>
-    </div>
-  );
-}
-
-function MediaManager({ media }: { media: Media[] }) {
-  const [draft, setDraft] = useState({ type: "image", url: "", title: "", category: "" });
-  const [uploadMessage, setUploadMessage] = useState<{ text: string; error: boolean } | null>(null);
-  const [editingId, setEditingId] = useState<number | null>(null);
-  const [pending, startTransition] = useTransition();
-  const [saveResult, setSaveResult] = useState<boolean | null>(null);
-  const [deleteResult, setDeleteResult] = useState<boolean | null>(null);
-  return (
-    <div>
-      <div className="mb-6"><p className="eyebrow text-gold">Bibliothèque du site</p><h2 className="mt-2 font-display text-2xl uppercase text-bone">Images & vidéos</h2><p className="mt-2 max-w-2xl text-sm text-mist">Ajoutez des médias, remplacez leur fichier ou modifiez leur titre et leur catégorie. Les images des promotions se gèrent dans Contenus → Promotions.</p></div>
-      <div className="grid gap-8 lg:grid-cols-[minmax(300px,0.8fr)_1.2fr]">
-      <div className="h-fit space-y-3 border border-line bg-ink-2 p-5">
-        <h3 className="font-display text-xl uppercase">{editingId ? "Modifier un média" : "Ajouter un média"}</h3>
-        <label className="block border border-dashed border-line bg-ink p-4 text-sm text-mist">
-          Importer un fichier (max. 25 Mo)
-          <input type="file" accept="image/jpeg,image/png,image/webp,video/mp4,video/webm" className="mt-3 block w-full text-xs text-mist" disabled={pending} onChange={(event) => {
-            const file = event.target.files?.[0];
-            if (!file) return;
-            startTransition(async () => {
-              const result = await uploadFile(file);
-              if (result.file) {
-                setDraft((old) => ({ ...old, url: result.file!.url, type: result.file!.type }));
-                setUploadMessage({ text: "Fichier importé. Enregistrez pour publier.", error: false });
-              } else {
-                setUploadMessage({ text: result.error ?? "Échec de l'importation. Vérifiez le format et la taille.", error: true });
-              }
-            });
-            event.currentTarget.value = "";
-          }} />
-        </label>
-        {uploadMessage && <p role={uploadMessage.error ? "alert" : "status"} className={`text-xs ${uploadMessage.error ? "text-red-300" : "text-gold"}`}>{uploadMessage.text}</p>}
-        {draft.url && <div className="relative h-40 border border-line bg-ink">{draft.type === "video" ? <video src={draft.url} controls muted className="h-full w-full object-contain" /> : <Image src={draft.url} alt="Aperçu du média" fill sizes="(min-width: 1024px) 40vw, 100vw" className="object-contain" unoptimized />}</div>}
-        <select value={draft.type} onChange={(e) => setDraft({ ...draft, type: e.target.value })} className="w-full border border-line bg-ink px-3 py-3"><option value="image">Image</option><option value="video">Vidéo</option></select>
-        <input placeholder="URL /pics/... ou URL vidéo" value={draft.url} onChange={(e) => setDraft({ ...draft, url: e.target.value })} className="w-full border border-line bg-ink px-3 py-3" />
-        <input placeholder="Titre" value={draft.title} onChange={(e) => setDraft({ ...draft, title: e.target.value })} className="w-full border border-line bg-ink px-3 py-3" />
-        <input placeholder="Catégorie" value={draft.category} onChange={(e) => setDraft({ ...draft, category: e.target.value })} className="w-full border border-line bg-ink px-3 py-3" />
-        <div className="flex items-center gap-3"><button disabled={pending || !draft.url} onClick={() => startTransition(async () => { const result = await saveMediaAction(draft, editingId ?? undefined); setSaveResult(result.ok); setDeleteResult(null); if (result.ok) { setEditingId(null); setDraft({ type: "image", url: "", title: "", category: "" }); setUploadMessage(null); } })} className="btn btn-primary">{pending ? "Enregistrement..." : editingId ? "Enregistrer le média" : "Ajouter média"}</button>{editingId && <button type="button" onClick={() => { setEditingId(null); setDraft({ type: "image", url: "", title: "", category: "" }); setUploadMessage(null); }} className="text-xs text-mist">Annuler</button>}</div>
-        {saveResult === true && <p role="status" className="text-xs text-gold">Média enregistré.</p>}
-        {saveResult === false && <p role="alert" className="text-xs text-red-300">Échec de l&apos;enregistrement. Réessayez.</p>}
-        {deleteResult === true && <p role="status" className="text-xs text-gold">Média supprimé.</p>}
-        {deleteResult === false && <p role="alert" className="text-xs text-red-300">Échec de la suppression. Réessayez.</p>}
-      </div>
-      <div className="grid content-start gap-3 sm:grid-cols-2">{media.map((item) => (
-        <article key={item.id} className="overflow-hidden border border-line bg-ink-2">
-          <div className="relative h-40 border-b border-line bg-ink">
-            {item.type === "video" ? <video src={item.url} controls muted className="h-full w-full object-contain" /> : <Image src={item.url} alt={item.title} fill sizes="(min-width: 640px) 50vw, 100vw" className="object-cover" unoptimized />}
-          </div>
-          <div className="p-4"><p className="font-display">{item.title || item.url}</p><p className="mt-1 text-xs text-mist">{item.type} · {item.category}</p><div className="mt-3 flex gap-3"><button onClick={() => { setSaveResult(null); setDeleteResult(null); setEditingId(item.id); setDraft({ type: item.type, url: item.url, title: item.title, category: item.category }); }} className="text-xs uppercase text-gold">Modifier</button><button disabled={pending} onClick={() => { if (window.confirm(`Supprimer « ${item.title || item.url} » ?`)) startTransition(async () => { setDeleteResult((await deleteMediaAction(item.id)).ok); }); }} className="text-xs uppercase text-red-300">Supprimer</button></div></div>
-        </article>
-      ))}</div>
-      </div>
+      <EntryManager key={active} endpoint="/api/admin/cms" entries={cms.filter((item) => item.section === active)} fields={cmsFields[active]} titleField="title" badges={["subtitle", "academy"]} fixed={{ section: active }} itemName={current.item} empty="Aucun élément pour le moment. Utilisez le formulaire pour en créer un." />
     </div>
   );
 }

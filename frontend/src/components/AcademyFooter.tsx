@@ -34,7 +34,7 @@ export function AcademyFooterBrand({
   return (
     <div className="space-y-5">
       <Logo {...activeIdentity} />
-      <p className="max-w-xs text-sm leading-relaxed text-mist">{variant?.tagline ?? tagline}.</p>
+      <p className="max-w-xs text-sm leading-relaxed text-mist">{(variant?.tagline ?? tagline).replace(/[.\s]+$/, "")}.</p>
       <ul className="space-y-1.5 text-xs text-mist">
         {branches.map((branch) => (
           <li key={branch.name} className="flex items-center gap-2">
@@ -113,8 +113,8 @@ export function AcademyFooterContact({
         <li className="flex items-start gap-3">
           <Icon name="phone" width={16} height={16} className="mt-0.5 shrink-0 text-gold" />
           <span>
-            <a href={`tel:${activePhone.replace(/\s/g, "")}`} className="block hover:text-bone">{activePhone}</a>
-            <a href={`tel:${activePhone2.replace(/\s/g, "")}`} className="block hover:text-bone">{activePhone2}</a>
+            <a href={`tel:${activePhone.replace(/\s/g, "")}`} className="block hover:text-bone" dir="ltr">{activePhone}</a>
+            <a href={`tel:${activePhone2.replace(/\s/g, "")}`} className="block hover:text-bone" dir="ltr">{activePhone2}</a>
           </span>
         </li>
         <li>

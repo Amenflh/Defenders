@@ -37,7 +37,7 @@ export const en: Dictionary = {
     youAreHere: "You are here",
     sectionsNav: "Page sections",
     backToTop: "Back to top",
-    sections: { programmes: "Courses", equipe: "Team", galerie: "Gallery", temoignages: "Testimonials", historique: "History", inscription: "Sign up" },
+    sections: { programmes: "Courses", equipe: "Team", galerie: "Gallery", temoignages: "Testimonials", historique: "History", services: "Services", inscription: "Sign up" },
   },
   common: {
     register: "Sign up",

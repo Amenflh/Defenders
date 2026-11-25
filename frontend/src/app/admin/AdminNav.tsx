@@ -4,9 +4,12 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 const TABS = [
-  { href: "/admin", label: "Demandes", exact: true },
+  { href: "/admin", label: "Tableau de bord", exact: true },
   { href: "/admin/formations", label: "Formations" },
-  { href: "/admin/medias", label: "Médias" },
+  { href: "/admin/historique", label: "Historique" },
+  { href: "/admin/equipe", label: "Équipe" },
+  { href: "/admin/medias", label: "Médias et galeries" },
+  { href: "/admin/textes", label: "Textes du site" },
 ];
 
 /** Onglets de l'espace admin. */

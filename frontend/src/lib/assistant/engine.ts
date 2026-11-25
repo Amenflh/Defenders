@@ -1,9 +1,11 @@
 import "server-only";
-import { disciplines, DISCIPLINE_SLUGS } from "../disciplines";
+import { formationHref } from "../academies";
+import { replaceDefaultContacts } from "../contacts";
 import { localizeFormation } from "../formation-i18n";
-import { formatPrice, getFormations, type Formation } from "../formations";
+import { formatPrice, getFormations } from "../formations";
 import { intlLocale, type Locale } from "../i18n/config";
 import { dictionaries } from "../i18n/dictionaries";
+import { getContacts, getFaqs } from "../settings";
 import { buildSearchIndex, normalize, prepareIndex, searchIndex } from "../search-index";
 import { site } from "../site";
 import { adviceAnswer, COURSE_FOLLOW_UPS, GREETINGS, isAdviceQuestion, THANKS, topicAnswer, vary, withFollowUps } from "./knowledge";
@@ -41,9 +43,9 @@ const ALIASES: Record<string, string[]> = {
   football: ["football", "foot", "soccer", "entraineur", "entraineurs", "coach football", "كره", "القدم"],
   "personal-training": ["personal", "musculation", "coaching", "شخصي"],
   k9: ["k9", "chien", "chiens", "canin", "canine", "cynophile", "dog", "dogs", "كلاب", "كلب", "الكلاب"],
-  intervention: ["intervention", "terrorisme", "evacuation", "premiers", "secours", "first", "response", "تدخل", "التدخل"],
-  protection: ["protection", "rapprochee", "bodyguard", "garde", "vip", "escorte", "حراسه", "الحمايه", "حمايه"],
-  security: ["securite", "agent", "agents", "gardiennage", "surveillance", "dsp", "security", "guard", "امن", "الامن", "حارس"],
+  "intervention-initiale": ["intervention", "terrorisme", "evacuation", "premiers", "secours", "first", "response", "تدخل", "التدخل"],
+  "protection-rapprochee": ["protection", "rapprochee", "bodyguard", "garde", "vip", "escorte", "حراسه", "الحمايه", "حمايه"],
+  "securite-protection": ["securite", "agent", "agents", "gardiennage", "surveillance", "dsp", "security", "guard", "امن", "الامن", "حارس"],
 };
 
 type Course = {
@@ -102,110 +104,25 @@ function upcoming(date: string | null | undefined, locale: Locale) {
   return new Intl.DateTimeFormat(intlLocale[locale], { weekday: "long", day: "numeric", month: "long", year: "numeric", timeZone: "UTC" }).format(at);
 }
 
-const LIVE_TTL_MS = 5 * 60_000;
-let liveCache: { at: number; list: Formation[] | null } | null = null;
-
-async function liveFormations() {
-  if (liveCache && Date.now() - liveCache.at < LIVE_TTL_MS) return liveCache.list;
-  const list = await getFormations();
-  liveCache = { at: Date.now(), list };
-  return list;
-}
-
+/** Formations publiées dans l'admin (les deux académies). */
 async function buildCourses(locale: Locale): Promise<Course[]> {
-  const t = dictionaries[locale];
-  const tsa = t.pages.akAcademy;
-  const live = (await liveFormations()) ?? [];
-  const bySlug = new Map(live.map((f) => [f.slug, localizeFormation(f, locale)]));
-  const courses: Course[] = [];
-
-  for (const slug of DISCIPLINE_SLUGS) {
-    const f = localizeFormation(disciplines[slug], locale);
-    const l = bySlug.get(slug);
-    bySlug.delete(slug);
-    courses.push({
-      key: slug,
-      name: f.name,
-      href: slug === "personal-training" ? "/personal-training" : `/formations/${slug}`,
-      summary: l?.summary || f.summary,
-      price: l ? formatPrice(l.priceTnd) : null,
-      nextDate: l?.nextSessionDate,
-      duration: l?.durationLabel || f.facts.find((fact) => /dur|مد/i.test(fact.label))?.value,
-      modules: (l?.modules.length ? l.modules : f.modules).map((m) => `**${m.title}** : ${m.text}`),
-      audience: [...(l?.audience.length ? l.audience : f.audience), ...(l?.prerequisites ?? [])],
-      careers: l?.careers.length ? l.careers : f.careers,
-      facts: (l?.facts.length ? l.facts : f.facts).map((fact) => `${fact.label} : ${fact.value}`),
-      aliases: [...ALIASES[slug], ...tokensOf(f.name)],
-    });
-  }
-
-  courses.push(
-    {
-      key: "k9",
-      name: tsa.k9CourseTitle,
-      href: "/tunisian-security-academy/formations/k9",
-      summary: `${tsa.k9CourseText} ${tsa.k9CourseTrainer}.`,
-      duration: tsa.k9CourseDuration,
-      modules: [...tsa.k9CourseTopics, tsa.k9CoursePractical],
-      audience: [],
-      careers: [],
-      facts: [tsa.k9CourseLocation, tsa.k9CoursePractical],
-      aliases: ALIASES.k9,
-    },
-    {
-      key: "intervention",
-      name: tsa.courseTitle,
-      href: "/tunisian-security-academy/formations/intervention-initiale",
-      summary: `${tsa.courseText} ${tsa.coursePractical}`,
-      duration: tsa.courseDuration,
-      modules: [...tsa.courseTopics],
-      audience: [],
-      careers: [],
-      facts: [tsa.coursePractical],
-      aliases: ALIASES.intervention,
-    },
-    {
-      key: "protection",
-      name: tsa.closeProtectionTitle,
-      href: "/tunisian-security-academy/formations/protection-rapprochee",
-      summary: `${tsa.closeProtectionText} ${tsa.closeProtectionPractical}`,
-      modules: [],
-      audience: [],
-      careers: [],
-      facts: [tsa.closeProtectionPractical],
-      aliases: ALIASES.protection,
-    },
-    {
-      key: "security",
-      name: t.search.securityCourse,
-      href: "/tunisian-security-academy#securite-programme",
-      summary: t.pages.security.programmeText,
-      modules: [],
-      audience: [],
-      careers: [],
-      facts: [],
-      aliases: ALIASES.security,
-    },
-  );
-
-  // Autres formations publiées dans l'admin.
-  for (const f of bySlug.values()) {
-    courses.push({
+  return ((await getFormations()) ?? []).map((source) => {
+    const f = localizeFormation(source, locale);
+    return {
       key: f.slug,
       name: f.name,
-      href: `/formations/${f.slug}`,
-      summary: f.summary,
+      href: formationHref(f),
+      summary: [f.summary, f.practical].filter(Boolean).join(" "),
       price: formatPrice(f.priceTnd),
       nextDate: f.nextSessionDate,
-      duration: f.durationLabel,
-      modules: f.modules.map((m) => `**${m.title}** : ${m.text}`),
+      duration: f.durationLabel || f.facts.find((fact) => /dur|مد/i.test(fact.label))?.value,
+      modules: f.modules.length ? f.modules.map((m) => `**${m.title}** : ${m.text}`) : f.objectives,
       audience: [...f.audience, ...f.prerequisites],
       careers: f.careers,
-      facts: f.facts.map((fact) => `${fact.label} : ${fact.value}`),
-      aliases: tokensOf(f.name).filter((w) => w.length >= 4),
-    });
-  }
-  return courses;
+      facts: [...f.facts.map((fact) => `${fact.label} : ${fact.value}`), ...[f.location, f.practical].filter(Boolean)],
+      aliases: [...(ALIASES[f.slug] ?? []), ...tokensOf(f.name).filter((w) => w.length >= 4 && !STOP.has(w))],
+    };
+  });
 }
 
 const bullets = (items: string[]) => items.map((item) => `- ${item}`).join("\n");
@@ -251,7 +168,7 @@ function answerForCourse(course: Course, intents: Intent[], locale: Locale): str
 function contactLine(courseKey: string, locale: Locale) {
   const l = dictionaries[locale].assistant.answers.labels;
   if (courseKey === "k9") return `${l.k9} : ${site.tunisianSecurityAcademy.k9Contact.label} · [${l.whatsapp}](${site.whatsapp.href})`;
-  const security = ["intervention", "protection", "security"].includes(courseKey);
+  const security = ["intervention-initiale", "protection-rapprochee", "securite-protection"].includes(courseKey);
   return `${security ? l.security : l.fitness} : ${security ? site.phone2.label : site.phone.label} · [${l.whatsapp}](${site.whatsapp.href})`;
 }
 
@@ -300,10 +217,18 @@ ${bullets(lines)}`;
 const questionWords = (question: string) =>
   tokensOf(question).filter((w) => w.length >= 3 && !STOP.has(w) && !Object.values(INTENTS).some((list) => list.includes(w)) && !WEAK_PRICE.includes(w));
 
-function searchAnswer(question: string, courses: Course[], locale: Locale): string {
+async function searchAnswer(question: string, courses: Course[], locale: Locale): Promise<string> {
   const t = dictionaries[locale];
   const a = t.assistant.answers;
-  const index = prepareIndex(buildSearchIndex(t, locale));
+  const [formations, faqs, contacts] = await Promise.all([getFormations(), getFaqs(locale, t.home.faqs), getContacts()]);
+  const index = prepareIndex(buildSearchIndex(t, {
+    contacts,
+    faqs,
+    formations: (formations ?? []).map((source) => {
+      const f = localizeFormation(source, locale);
+      return { slug: f.slug, name: f.name, headline: f.headline, summary: f.summary, academy: f.academy, href: formationHref(f) };
+    }),
+  }));
   const words = questionWords(question);
 
   // 1. Une page ou une question fréquente contient tous les mots.
@@ -338,8 +263,14 @@ ${results[0].subtitle}
 
 export type Turn = { role: "user" | "assistant"; content: string };
 
-/** Réponse à la dernière question ; la formation citée plus tôt sert pour « et le prix ? ». */
+/** Réponse à la dernière question, avec les coordonnées à jour de l'admin. */
 export async function answer(turns: Turn[], locale: Locale): Promise<string> {
+  const [text, contacts] = await Promise.all([rawAnswer(turns, locale), getContacts()]);
+  return replaceDefaultContacts(text, contacts);
+}
+
+/** La formation citée plus tôt sert pour « et le prix ? ». */
+async function rawAnswer(turns: Turn[], locale: Locale): Promise<string> {
   const a = dictionaries[locale].assistant.answers;
   const question = turns.at(-1)!.content;
   const tokens = tokensOf(question);

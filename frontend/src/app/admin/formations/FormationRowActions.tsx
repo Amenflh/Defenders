@@ -5,7 +5,7 @@ import { useState, useTransition } from "react";
 import { deleteFormation, setFormationStatus } from "./actions";
 
 /** Actions rapides d'une ligne : modifier, publier / dépublier, archiver, supprimer. */
-export function FormationRowActions({ id, name, slug, status, registrationCount }: { id: number; name: string; slug: string; status: string; registrationCount: number }) {
+export function FormationRowActions({ id, name, href, status, registrationCount }: { id: number; name: string; href: string; status: string; registrationCount: number }) {
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
 
@@ -19,12 +19,12 @@ export function FormationRowActions({ id, name, slug, status, registrationCount 
   const btn = "border border-line px-3 py-1.5 text-xs tracking-[0.1em] uppercase transition-colors hover:border-bone/50 disabled:opacity-50";
 
   return (
-    <div className="flex flex-col items-end gap-2">
-      <div className="flex flex-wrap justify-end gap-2" aria-busy={pending}>
+    <div className="flex flex-col items-start gap-2 sm:items-end">
+      <div className="flex flex-wrap gap-2 sm:justify-end" aria-busy={pending}>
         <Link href={`/admin/formations/${id}`} className={`${btn} border-gold text-gold`}>Modifier</Link>
         {status === "published" ? (
           <>
-            <Link href={`/formations/${slug}`} target="_blank" className={btn}>Voir</Link>
+            <Link href={href} target="_blank" className={btn}>Voir</Link>
             <button type="button" disabled={pending} onClick={() => run(() => setFormationStatus(id, "draft"))} className={btn}>Dépublier</button>
           </>
         ) : (

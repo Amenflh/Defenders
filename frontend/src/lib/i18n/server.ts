@@ -1,8 +1,10 @@
 import "server-only";
 import { cookies } from "next/headers";
 import { cache } from "react";
+import { getTextOverrides } from "../settings";
 import { DEFAULT_LOCALE, isLocale, LOCALE_COOKIE, type Locale } from "./config";
 import { dictionaries } from "./dictionaries";
+import { applyOverrides } from "./overrides";
 
 /** Langue du visiteur (cookie posé par le sélecteur de langue), français par défaut. */
 export const getLocale = cache(async (): Promise<Locale> => {
@@ -10,7 +12,8 @@ export const getLocale = cache(async (): Promise<Locale> => {
   return isLocale(value) ? value : DEFAULT_LOCALE;
 });
 
-export async function getDictionary() {
+/** Textes du site dans la langue active, avec les modifications faites dans l'admin. */
+export const getDictionary = cache(async () => {
   const locale = await getLocale();
-  return { locale, t: dictionaries[locale] };
-}
+  return { locale, t: applyOverrides(dictionaries[locale], (await getTextOverrides())[locale]) };
+});

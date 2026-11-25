@@ -1,7 +1,10 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { VideoEmbed } from "@/components/VideoEmbed";
+import { isVideoFile } from "@/lib/video";
 import { deleteMedia, updateMedia } from "./actions";
+import { PlacementFields } from "./MediaUploader";
 
 export type AdminMedia = {
   id: number;
@@ -9,6 +12,8 @@ export type AdminMedia = {
   url: string;
   title: string;
   category: string;
+  academy: "fitness" | "tsa" | null;
+  position: number;
   mimeType: string;
   sizeBytes: number;
   createdAt: string;
@@ -29,6 +34,8 @@ export function MediaCard({ m, formations }: { m: AdminMedia; formations: { id: 
       const res = await updateMedia(m.id, {
         title: String(form.get("title") ?? ""),
         category: String(form.get("category") ?? ""),
+        academy: String(form.get("academy") ?? ""),
+        position: Number(form.get("position") || 0),
         formationId: formationId ? Number(formationId) : null,
       });
       setFeedback(res.ok ? { ok: true, text: "Enregistré" } : { ok: false, text: res.message ?? "Échec" });
@@ -41,8 +48,10 @@ export function MediaCard({ m, formations }: { m: AdminMedia; formations: { id: 
         {m.type === "image" ? (
           // eslint-disable-next-line @next/next/no-img-element -- aperçu admin d'un fichier téléversé
           <img src={m.url} alt={m.title} loading="lazy" className="size-full object-cover" />
-        ) : (
+        ) : isVideoFile(m.url) || m.url.startsWith("/") ? (
           <video src={m.url} controls preload="metadata" className="size-full" />
+        ) : (
+          <VideoEmbed url={m.url} title={m.title} fit="cover" />
         )}
         <span className="absolute top-2 left-2 bg-ink/80 px-2 py-0.5 text-[0.65rem] tracking-[0.15em] uppercase">
           {m.type === "image" ? "Image" : "Vidéo"} · {size(m.sizeBytes)}
@@ -51,7 +60,7 @@ export function MediaCard({ m, formations }: { m: AdminMedia; formations: { id: 
       <form action={save} className="flex flex-1 flex-col gap-3 p-4" aria-busy={pending}>
         <input name="title" defaultValue={m.title} maxLength={120} aria-label="Titre" className="input !py-2 text-sm" />
         <div className="grid grid-cols-2 gap-3">
-          <input name="category" defaultValue={m.category} maxLength={40} placeholder="Catégorie" aria-label="Catégorie" list="categories" className="input !py-2 text-sm" />
+          <PlacementFields category={m.category} academy={m.academy ?? ""} position={m.position} disabled={pending} />
           <select name="formationId" defaultValue={m.formation?.id ?? ""} aria-label="Formation associée" className="input !py-2 text-sm">
             <option value="">Aucune formation</option>
             {formations.map((f) => <option key={f.id} value={f.id}>{f.name}</option>)}

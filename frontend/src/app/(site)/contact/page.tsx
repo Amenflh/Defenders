@@ -7,7 +7,7 @@ import { trainingOptions } from "@/lib/formations";
 import { cookies } from "next/headers";
 import { REFERRAL_CODE, REFERRAL_COOKIE } from "@/lib/program";
 import { apiFetch, getContactDefaults } from "@/lib/session";
-import { site } from "@/lib/site";
+import { getContacts } from "@/lib/settings";
 import { getDictionary } from "@/lib/i18n/server";
 import { localizeFormation } from "@/lib/formation-i18n";
 import { ContactForm, type ContactDefaults } from "./ContactForm";
@@ -22,6 +22,7 @@ export default async function ContactPage({ searchParams }: PageProps<"/contact"
   const params = await searchParams;
   const { locale, t } = await getDictionary();
   const L = t.contact.labels;
+  const contacts = await getContacts();
   const formation = typeof params.formation === "string" ? params.formation : undefined;
   const popup = typeof params.popup === "string" ? params.popup : undefined;
   const formationsRes = await apiFetch("/api/formations");
@@ -43,16 +44,16 @@ export default async function ContactPage({ searchParams }: PageProps<"/contact"
         .catch(() => null)
     : null;
 
-  const contacts = [
-    { icon: "pin" as const, label: L.address, value: site.address.lines.join(", "), href: site.address.href, external: true },
-    { icon: "phone" as const, label: L.phone, value: site.phone.label, href: site.phone.href },
-    { icon: "phone" as const, label: L.phone2, value: site.phone2.label, href: site.phone2.href },
-    { icon: "mail" as const, label: L.email, value: site.email.label, href: site.email.href },
-    { icon: "phone" as const, label: L.whatsapp, value: site.phone2.label, href: site.whatsapp.href, external: true },
-    { icon: "chat" as const, label: L.messenger, value: site.facebook.label, href: site.messenger.href, external: true },
-    { icon: "mail" as const, label: L.securityEmail, value: site.securityEmail.label, href: site.securityEmail.href },
-    { icon: "facebook" as const, label: L.facebook, value: site.facebook.label, href: site.facebook.href, external: true },
-    { icon: "instagram" as const, label: L.instagram, value: site.instagram.label, href: site.instagram.href, external: true },
+  const rows = [
+    { icon: "pin" as const, label: L.address, value: contacts.address.lines.join(", "), href: contacts.address.href, external: true },
+    { icon: "phone" as const, label: L.phone, value: contacts.phone.label, href: contacts.phone.href },
+    { icon: "phone" as const, label: L.phone2, value: contacts.phone2.label, href: contacts.phone2.href },
+    { icon: "mail" as const, label: L.email, value: contacts.email.label, href: contacts.email.href },
+    { icon: "phone" as const, label: L.whatsapp, value: contacts.phone2.label, href: contacts.whatsapp.href, external: true },
+    { icon: "chat" as const, label: L.messenger, value: contacts.facebook.label, href: contacts.messenger.href, external: true },
+    { icon: "mail" as const, label: L.securityEmail, value: contacts.securityEmail.label, href: contacts.securityEmail.href },
+    { icon: "facebook" as const, label: L.facebook, value: contacts.facebook.label, href: contacts.facebook.href, external: true },
+    { icon: "instagram" as const, label: L.instagram, value: contacts.instagram.label, href: contacts.instagram.href, external: true },
   ];
 
   return (
@@ -80,7 +81,7 @@ export default async function ContactPage({ searchParams }: PageProps<"/contact"
             <div className="border border-line bg-ink-2 p-7">
               <h2 className="eyebrow mb-6">{t.contact.reachUs}</h2>
               <ul className="space-y-5">
-                {contacts.map((c) => (
+                {rows.map((c) => (
                   <li key={c.label}>
                     <a
                       href={c.href}
@@ -101,11 +102,11 @@ export default async function ContactPage({ searchParams }: PageProps<"/contact"
             </div>
 
             <div className="overflow-hidden border border-line">
-              <Image src={brand.info} alt={`${site.group} : Defenders Security Protection, Tunisian Security Academy, Defenders Fitness Academy`} sizes="352px" className="w-full" />
+              <Image src={brand.info} alt={`Defenders Academy : Defenders Security Protection, Tunisian Security Academy, Defenders Fitness Academy`} sizes="352px" className="w-full" />
             </div>
 
             <p className="flex items-center gap-2 text-xs tracking-widest text-mist uppercase">
-              <Icon name="shield" width={14} height={14} className="text-gold" /> {site.approval}
+              <Icon name="shield" width={14} height={14} className="text-gold" /> {contacts.approval}
             </p>
           </aside>
         </div>

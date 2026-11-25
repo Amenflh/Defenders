@@ -1,27 +1,25 @@
 import Link from "next/link";
-import { disciplineList } from "@/lib/disciplines";
+import { formationHref, type Academy } from "@/lib/academies";
 import { mainNav, site } from "@/lib/site";
 import { getDictionary } from "@/lib/i18n/server";
-import { brandIdentity, getPublishedFormations, getSiteSettings } from "@/lib/settings";
-import { localizeFormation } from "@/lib/formation-i18n";
+import { brandIdentity, getContacts, getPublishedFormations, getSiteSettings } from "@/lib/settings";
+import { localizeFormation, type Translations } from "@/lib/formation-i18n";
 import { academyFooterVariants } from "@/lib/academy-footer";
 import { AcademyFooterBrand, AcademyFooterContact } from "./AcademyFooter";
 import { FooterWordmark } from "./FooterWordmark";
 
 export async function Footer() {
-  const [settings, formations, { locale, t }] = await Promise.all([getSiteSettings(), getPublishedFormations(), getDictionary()]);
-  const phone = typeof settings.phone === "string" ? settings.phone : site.phone.label;
-  const phone2 = typeof settings.phone2 === "string" ? settings.phone2 : site.phone2.label;
-  const email = typeof settings.email === "string" ? settings.email : site.email.label;
-  const facebook = typeof settings.facebook === "string" ? settings.facebook : site.facebook.href;
-  const instagram = typeof settings.instagram === "string" ? settings.instagram : site.instagram.href;
-  const address = typeof settings.address === "string" ? settings.address : site.address.lines.join(", ");
-  const approval = typeof settings.approval === "string" ? settings.approval : site.approval;
+  const [settings, formations, { locale, t }, contacts] = await Promise.all([
+    getSiteSettings(),
+    getPublishedFormations<{ slug: string; name: string; academy: Academy; translations?: Translations }>(),
+    getDictionary(),
+    getContacts(),
+  ]);
   const { brandName, brandDescriptor, siteName, logoUrl } = brandIdentity(settings);
   // Les textes personnalisés dans l'admin sont en français : dans les autres langues, on affiche la traduction.
   const certificationLabel = locale === "fr" && typeof settings.certificationLabel === "string" && settings.certificationLabel ? settings.certificationLabel : t.common.certified;
   const tagline = locale === "fr" && typeof settings.footerTagline === "string" && settings.footerTagline ? settings.footerTagline : t.brand.tagline;
-  const academyVariants = academyFooterVariants({
+  const academyVariants = academyFooterVariants(contacts, {
     fitness: t.pages.fitnessAcademy.metaDescription,
     tsa: t.pages.akAcademy.metaDescription,
     tsaFacebook: t.pages.akAcademy.profile,
@@ -35,7 +33,7 @@ export async function Footer() {
           tagline={tagline}
           branches={site.branches}
           certificationLabel={certificationLabel}
-          approval={approval}
+          approval={contacts.approval}
           comingSoonLabel={t.branches.comingSoon.title}
           variants={academyVariants}
         />
@@ -52,8 +50,8 @@ export async function Footer() {
         </FooterColumn>
 
         <FooterColumn title={t.common.formations}>
-          {(formations.length > 0 ? formations : disciplineList).map((formation) => localizeFormation(formation, locale)).map((formation) => (
-            <FooterLink key={formation.slug} href={`/formations/${formation.slug}`}>
+          {formations.map((formation) => localizeFormation(formation, locale)).map((formation) => (
+            <FooterLink key={formation.slug} href={formationHref(formation)}>
               {formation.name}
             </FooterLink>
           ))}
@@ -62,19 +60,19 @@ export async function Footer() {
         </FooterColumn>
 
         <AcademyFooterContact
-          address={address}
-          addressHref={site.address.href}
-          phone={phone}
-          phone2={phone2}
-          email={email}
-          facebook={facebook}
-          instagram={instagram}
+          address={contacts.address.lines.join(", ")}
+          addressHref={contacts.address.href}
+          phone={contacts.phone.label}
+          phone2={contacts.phone2.label}
+          email={contacts.email.label}
+          facebook={contacts.facebook.href}
+          instagram={contacts.instagram.href}
           directionsLabel={t.common.directions}
           contactLabel={t.common.contact}
-          messengerHref={site.messenger.href}
-          messengerLabel={site.messenger.label}
-          facebookLabel={site.facebook.label}
-          instagramLabel={site.instagram.label}
+          messengerHref={contacts.messenger.href}
+          messengerLabel={contacts.messenger.label}
+          facebookLabel={contacts.facebook.label}
+          instagramLabel={contacts.instagram.label}
           variants={academyVariants}
         />
       </div>

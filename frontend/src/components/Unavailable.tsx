@@ -1,11 +1,11 @@
 import Link from "next/link";
 import { getDictionary } from "@/lib/i18n/server";
-import { site } from "@/lib/site";
+import { getContacts } from "@/lib/settings";
 import { Icon } from "./Icon";
 
 /** État d'erreur quand l'API ne répond pas : on propose de nous contacter directement. */
 export async function Unavailable() {
-  const { t } = await getDictionary();
+  const [{ t }, contacts] = await Promise.all([getDictionary(), getContacts()]);
   return (
     <section className="py-24">
       <div className="container-site border border-line bg-ink-2 p-10 text-center">
@@ -16,8 +16,8 @@ export async function Unavailable() {
           <Link href="/contact" className="btn btn-primary">
             {t.home.contactUs}
           </Link>
-          <a href={site.phone.href} className="btn btn-ghost">
-            {site.phone.label}
+          <a href={contacts.phone.href} className="btn btn-ghost" dir="ltr">
+            {contacts.phone.label}
           </a>
         </div>
       </div>

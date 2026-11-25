@@ -10,6 +10,8 @@ const select = {
   url: true,
   title: true,
   category: true,
+  academy: true,
+  position: true,
   mimeType: true,
   sizeBytes: true,
   createdAt: true,
@@ -35,6 +37,8 @@ export async function upload(kind: UploadKind, file: Express.Multer.File, fields
         title: fields.title || file.originalname.slice(0, 120),
         category: fields.category,
         formationId: fields.formationId,
+        academy: fields.academy,
+        position: fields.position,
       },
       select,
     });
@@ -57,10 +61,11 @@ export function list(query: ListQuery, { publicOnly }: { publicOnly: boolean }) 
       ...(query.type ? { type: query.type } : {}),
       ...(query.category ? { category: query.category } : {}),
       ...(query.formation ? { formation: { slug: query.formation } } : {}),
+      ...(query.academy ? { AND: [{ OR: [{ academy: query.academy }, { academy: null }] }] } : {}),
       // Côté public : pas de média rattaché à une formation brouillon ou archivée.
       ...(publicOnly ? { OR: [{ formationId: null }, { formation: { status: "published" as const } }] } : {}),
     },
-    orderBy: { createdAt: "desc" },
+    orderBy: [{ position: "asc" }, { createdAt: "desc" }, { id: "asc" }],
     take: 500,
     select,
   });
@@ -72,12 +77,15 @@ export async function update(id: number, input: UpdateMediaInput) {
   return prisma.media.update({ where: { id }, data: input, select });
 }
 
-/** Supprime le média et son fichier. Une formation qui l'utilisait comme visuel reprend le visuel par défaut. */
+/**
+ * Supprime le média et son fichier. Si le fichier disparaît, une formation qui l'utilisait comme visuel reprend
+ * le visuel par défaut ; retirer un simple lien (image du site, vidéo Facebook) ne touche pas aux formations.
+ */
 export async function remove(id: number) {
   const media = await prisma.media.findUnique({ where: { id }, select: { url: true, storageKey: true } });
   if (!media) throw new NotFoundError("Média introuvable");
   await prisma.$transaction([
-    prisma.formation.updateMany({ where: { coverUrl: media.url }, data: { coverUrl: null } }),
+    ...(media.storageKey ? [prisma.formation.updateMany({ where: { coverUrl: media.url }, data: { coverUrl: null } })] : []),
     prisma.media.delete({ where: { id } }),
   ]);
   if (media.storageKey) await deleteStoredFile(media.storageKey);

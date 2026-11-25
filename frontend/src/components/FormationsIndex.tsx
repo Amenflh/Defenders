@@ -79,7 +79,7 @@ export function FormationsIndex({ items }: { items: FormationsIndexItem[] }) {
               className="group flex items-center gap-4 py-5 outline-none sm:gap-6 sm:py-7 focus-visible:bg-white/[0.03]"
             >
               <span className="relative size-14 shrink-0 overflow-hidden rounded-full border border-line sm:hidden">
-                <Image src={item.image} alt="" fill sizes="56px" className="object-cover" />
+                <Image src={item.image} alt="" fill sizes="56px" className="formation-photo-drift object-cover" />
               </span>
               <span className="min-w-0 flex-1">
                 <span className="formations-index-title block font-display text-2xl leading-[1.05] uppercase sm:text-4xl lg:text-5xl">{item.title}</span>
@@ -112,7 +112,7 @@ export function FormationsIndex({ items }: { items: FormationsIndexItem[] }) {
               alt=""
               fill
               sizes="224px"
-              className={`object-cover transition-[opacity,scale] duration-500 ${active === index ? "scale-100 opacity-100" : "scale-110 opacity-0"}`}
+              className={`formation-photo-drift object-cover transition-[opacity,scale] duration-500 ${active === index ? "scale-100 opacity-100" : "scale-110 opacity-0"}`}
             />
           ))}
         </div>

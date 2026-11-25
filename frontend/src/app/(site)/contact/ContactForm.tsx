@@ -133,11 +133,11 @@ export function ContactForm({
           </Fieldset>
 
           <Fieldset legend={f.step3} hint={f.step3Hint} error={err("trainings")}>
-            <div className="grid gap-3 sm:grid-cols-3">
+            <div className={`grid gap-3 sm:grid-cols-2 ${availableTrainings.every(({ label }) => label.length < 20) ? "lg:grid-cols-3" : ""}`}>
               {availableTrainings.map((t) => (
                 <ChoiceCard key={t.value} type="checkbox" name="trainings" value={t.value} defaultChecked={trainings.includes(t.value)}>
                   <span className="flex items-center gap-2 font-medium">
-                    <span className={`size-2.5 rounded-full ${t.dot ?? "bg-gold"}`} /> {t.label}
+                    <span className={`size-2.5 shrink-0 rounded-full ${t.dot ?? "bg-gold"}`} /> {t.label}
                   </span>
                 </ChoiceCard>
               ))}

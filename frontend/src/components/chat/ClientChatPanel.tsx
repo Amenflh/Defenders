@@ -5,8 +5,7 @@ import { usePathname } from "next/navigation";
 import { useEffect } from "react";
 import { getMyThreadAction, sendMyMessageAction } from "@/app/(site)/chat-actions";
 import { Icon } from "@/components/Icon";
-import { site } from "@/lib/site";
-import { useI18n } from "@/lib/i18n/client";
+import { useI18n, useSiteData } from "@/lib/i18n/client";
 import { ChatThread } from "./ChatThread";
 
 /** Événement global pour ouvrir la discussion depuis n'importe quel bouton du site. */
@@ -30,6 +29,7 @@ export function ClientChatPanel({ viewer, onClose, onActivity }: { viewer: ChatV
   }, [onClose]);
 
   const { locale, t } = useI18n();
+  const { contacts } = useSiteData();
   const c = t.pages.chat;
   const hello = { fr: "Bonjour", en: "Hello", ar: "مرحبًا" }[locale];
   return (
@@ -86,7 +86,7 @@ export function ClientChatPanel({ viewer, onClose, onActivity }: { viewer: ChatV
             <Link href={`/login?next=${back}`} className="btn btn-primary justify-center">{c.login}</Link>
             <Link href={`/register?next=${back}`} className="btn btn-ghost justify-center">{c.signup}</Link>
           </div>
-          <a href={site.whatsapp.href} target="_blank" rel="noreferrer" className="text-sm text-mist underline-offset-4 hover:text-gold hover:underline">
+          <a href={contacts.whatsapp.href} target="_blank" rel="noreferrer" className="text-sm text-mist underline-offset-4 hover:text-gold hover:underline">
             {c.whatsapp}
           </a>
         </div>

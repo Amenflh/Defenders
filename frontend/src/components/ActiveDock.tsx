@@ -14,6 +14,7 @@ const SECTIONS: readonly [SectionKey, ...string[]][] = [
   ["galerie", "galerie"],
   ["temoignages", "temoignages"],
   ["historique", "historique"],
+  ["services", "securite"],
   ["inscription", "inscription"],
 ];
 
@@ -80,7 +81,7 @@ export function ActiveDock({
     <div className="dock relative overflow-hidden border-t border-white/5 bg-ink/85" style={{ "--dock": accent } as CSSProperties}>
       <span className="dock-sweep" aria-hidden="true" />
       <div className="container-site relative flex h-11 items-center gap-3 sm:h-12 sm:gap-4">
-        <Link href={href} className="group flex min-w-0 shrink-0 items-center gap-2.5" aria-label={`${copy.youAreHere} : ${label}${crumb ? ` / ${crumb}` : ""}`}>
+        <Link href={href} className="group flex max-w-[52%] min-w-0 shrink-0 items-center gap-2.5 sm:max-w-none" aria-label={`${copy.youAreHere} : ${label}${crumb ? ` / ${crumb}` : ""}`}>
           <span className="dock-lens relative grid size-8 shrink-0 place-items-center rounded-full">
             {logo ? (
               <Image src={logo} alt="" width={28} height={28} className="size-7 rounded-full bg-white object-contain p-0.5" />
@@ -114,7 +115,7 @@ export function ActiveDock({
                     <a
                       href={`#${id}`}
                       aria-current={current === id ? "location" : undefined}
-                      className="dock-chip flex items-center gap-1.5 rounded-full border border-line px-3 py-1 font-display text-[0.62rem] tracking-[0.12em] whitespace-nowrap text-mist uppercase hover:border-[var(--dock)] hover:text-bone"
+                      className="dock-chip flex items-center gap-1.5 rounded-full border border-line px-3 py-2 font-display lg:py-1.5 text-[0.62rem] tracking-[0.12em] whitespace-nowrap text-mist uppercase hover:border-[var(--dock)] hover:text-bone"
                     >
                       <span className="opacity-60">{String(index + 1).padStart(2, "0")}</span>
                       {copy.sections[key]}

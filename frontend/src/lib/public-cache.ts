@@ -19,6 +19,7 @@ const PUBLIC_ROUTES = [
   /^\/api\/content\/(settings|items)\/[\w-]+$/,
   /^\/api\/formations(\/[\w-]+)?(\?[^#]*)?$/,
   /^\/api\/media(\?[^#]*)?$/,
+  /^\/api\/(history|trainers)(\?[^#]*)?$/,
   /^\/api\/planning(\?[^#]*)?$/,
 ];
 

@@ -1,11 +1,12 @@
 "use client";
 
 import { useState, type KeyboardEvent } from "react";
-import { FacebookVideoEmbed } from "./FacebookVideoEmbed";
+import type { FacebookVideoLayout } from "./FacebookVideoEmbed";
+import { VideoEmbed } from "./VideoEmbed";
 import { Icon } from "./Icon";
 
 type Props = {
-  videos: { url: string; title: string }[];
+  videos: { url: string; title: string; layout?: FacebookVideoLayout }[];
   labels: { previous: string; next: string; upNext: string };
 };
 
@@ -42,10 +43,10 @@ export function VideoCarousel({ videos, labels }: Props) {
             </button>
           )}
 
-          <div className="relative w-full max-w-[340px]">
+          <div className={`relative w-full ${current.layout === "landscape" ? "" : "max-w-[340px]"}`}>
             <span aria-hidden="true" className="absolute -inset-2 border border-gold/30" />
             <div key={current.url} className="video-swap relative overflow-hidden border border-line bg-ink-2">
-              <FacebookVideoEmbed url={current.url} title={current.title} loading="eager" />
+              <VideoEmbed url={current.url} title={current.title} layout={current.layout} loading="eager" />
             </div>
           </div>
 
@@ -83,7 +84,7 @@ export function VideoCarousel({ videos, labels }: Props) {
                   >
                     {/* Le lecteur Facebook exige une largeur minimale : il est rendu à 220 px puis réduit. */}
                     <span className="absolute top-0 left-0 block w-[220px] origin-top-left scale-[0.45]">
-                      <FacebookVideoEmbed url={video.url} title={video.title} />
+                      <VideoEmbed url={video.url} title={video.title} />
                     </span>
                     <span className="absolute inset-0 z-10 grid place-items-center bg-ink/35 transition group-hover:bg-ink/10">
                       <span className="grid size-9 place-items-center rounded-full border border-bone/60 bg-ink/60 text-bone transition group-hover:scale-110 group-hover:border-gold group-hover:text-gold">

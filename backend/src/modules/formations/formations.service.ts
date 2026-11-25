@@ -6,6 +6,8 @@ import type { CreateFormationInput, UpdateFormationInput } from "./formations.sc
 
 type Module = { title: string; text: string };
 type Fact = { label: string; value: string };
+type Video = { url: string; title: string; layout: "portrait" | "square" | "landscape" };
+type Translations = Partial<Record<"en" | "ar", Record<string, unknown>>>;
 
 const formationSelect = {
   id: true,
@@ -28,6 +30,14 @@ const formationSelect = {
   coverUrl: true,
   galleryUrls: true,
   accent: true,
+  academy: true,
+  location: true,
+  practical: true,
+  contactPhone: true,
+  sourceUrl: true,
+  coverIsPoster: true,
+  videos: true,
+  translations: true,
   nextSessionDate: true,
   updatedAt: true,
 } satisfies Prisma.FormationSelect;
@@ -35,7 +45,9 @@ const formationSelect = {
 type Row = Prisma.FormationGetPayload<{ select: typeof formationSelect }>;
 
 /** Forme renvoyée par l'API : prix en nombre, niveau avec son libellé. */
-export type FormationDto = Omit<Row, "priceTnd" | "modules" | "facts" | "galleryUrls" | "nextSessionDate"> & {
+export type FormationDto = Omit<Row, "priceTnd" | "modules" | "facts" | "galleryUrls" | "nextSessionDate" | "videos" | "translations"> & {
+  videos: Video[];
+  translations: Translations;
   priceTnd: number | null;
   /** Date de la prochaine session au format AAAA-MM-JJ. */
   nextSessionDate: string | null;
@@ -53,6 +65,8 @@ function toDto(row: Row): FormationDto {
     modules: (row.modules as Module[] | null) ?? [],
     facts: (row.facts as Fact[] | null) ?? [],
     galleryUrls: (row.galleryUrls as string[] | null) ?? [],
+    videos: (row.videos as Video[] | null) ?? [],
+    translations: (row.translations as Translations | null) ?? {},
     nextSessionDate: row.nextSessionDate ? row.nextSessionDate.toISOString().slice(0, 10) : null,
   };
 }
@@ -61,8 +75,8 @@ const slugTaken = () =>
   new ConflictError("Cet identifiant d'URL est déjà utilisé", { slug: ["Cet identifiant d'URL est déjà utilisé par une autre formation"] });
 
 function toData(input: UpdateFormationInput): Prisma.FormationUpdateInput {
-  const { priceTnd, ...rest } = input;
-  return { ...rest, ...(priceTnd !== undefined ? { priceTnd: priceTnd === null ? null : new Prisma.Decimal(priceTnd) } : {}) };
+  const { priceTnd, trainerIds: _trainerIds, translations, ...rest } = input;
+  return { ...rest, ...(translations ? { translations: translations as Prisma.InputJsonValue } : {}), ...(priceTnd !== undefined ? { priceTnd: priceTnd === null ? null : new Prisma.Decimal(priceTnd) } : {}) };
 }
 
 // ---------------------------------------------------------------- Public
@@ -83,8 +97,12 @@ export async function getPublishedBySlug(slug: string) {
     where: { slug, status: "published" },
     select: {
       ...formationSelect,
-      trainers: { select: { trainer: { select: { id: true, name: true, title: true, bio: true, photoUrl: true } } } },
-      media: { orderBy: { createdAt: "desc" }, select: { id: true, type: true, url: true, title: true, mimeType: true } },
+      trainers: {
+        where: { trainer: { active: true } },
+        orderBy: { trainer: { position: "asc" } },
+        select: { trainer: { select: { id: true, name: true, title: true, bio: true, photoUrl: true, translations: true } } },
+      },
+      media: { orderBy: [{ position: "asc" }, { createdAt: "desc" }], select: { id: true, type: true, url: true, title: true, mimeType: true } },
     },
   });
   if (!row) throw new NotFoundError("Formation introuvable");
@@ -133,17 +151,30 @@ export async function listAll(status?: FormationStatus) {
     .sort((a, b) => Number(a.status === "archived") - Number(b.status === "archived")); // archivées en dernier
 }
 
-export async function getById(id: number): Promise<FormationDto> {
-  const row = await prisma.formation.findUnique({ where: { id }, select: formationSelect });
+export async function getById(id: number): Promise<FormationDto & { trainerIds: number[] }> {
+  const row = await prisma.formation.findUnique({ where: { id }, select: { ...formationSelect, trainers: { select: { trainerId: true } } } });
   if (!row) throw new NotFoundError("Formation introuvable");
-  return toDto(row);
+  const { trainers, ...formation } = row;
+  return { ...toDto(formation), trainerIds: trainers.map((t) => t.trainerId) };
+}
+
+/** Remplace les formateurs d'une formation (identifiants inconnus ignorés). */
+async function setTrainers(formationId: number, trainerIds: number[] | undefined) {
+  if (!trainerIds) return;
+  const known = await prisma.trainer.findMany({ where: { id: { in: trainerIds } }, select: { id: true } });
+  await prisma.$transaction([
+    prisma.formationTrainer.deleteMany({ where: { formationId } }),
+    prisma.formationTrainer.createMany({ data: known.map(({ id }) => ({ formationId, trainerId: id })) }),
+  ]);
 }
 
 export async function create(input: CreateFormationInput): Promise<FormationDto> {
   // Sans ordre précisé, la nouvelle formation s'affiche après les autres.
   const position = input.position ?? ((await prisma.formation.aggregate({ _max: { position: true } }))._max.position ?? 0) + 1;
   try {
-    return toDto(await prisma.formation.create({ data: toData({ ...input, position }) as Prisma.FormationCreateInput, select: formationSelect }));
+    const row = await prisma.formation.create({ data: toData({ ...input, position }) as Prisma.FormationCreateInput, select: formationSelect });
+    await setTrainers(row.id, input.trainerIds);
+    return toDto(row);
   } catch (err) {
     if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === "P2002") throw slugTaken();
     throw err;
@@ -153,7 +184,9 @@ export async function create(input: CreateFormationInput): Promise<FormationDto>
 export async function update(id: number, input: UpdateFormationInput): Promise<FormationDto> {
   await getById(id);
   try {
-    return toDto(await prisma.formation.update({ where: { id }, data: toData(input), select: formationSelect }));
+    const row = await prisma.formation.update({ where: { id }, data: toData(input), select: formationSelect });
+    await setTrainers(id, input.trainerIds);
+    return toDto(row);
   } catch (err) {
     if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === "P2002") throw slugTaken();
     throw err;

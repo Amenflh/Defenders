@@ -1,10 +1,8 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { useI18n } from "@/lib/i18n/client";
+import { useI18n, useSiteData } from "@/lib/i18n/client";
 import { dirFor } from "@/lib/i18n/config";
-import { internalRules } from "@/lib/internal-rules";
-import { site } from "@/lib/site";
 import { Icon } from "./Icon";
 
 /**
@@ -15,8 +13,9 @@ import { Icon } from "./Icon";
  */
 export function RulesAgreement({ defaultAccepted = false, error }: { defaultAccepted?: boolean; error?: string }) {
   const { locale, t } = useI18n();
+  const { contacts } = useSiteData();
   const r = t.form.rules;
-  const rules = internalRules[locale];
+  const rules = t.internalRules;
   const boxRef = useRef<HTMLDivElement>(null);
   const [reachedEnd, setReachedEnd] = useState(defaultAccepted);
   const [confirmed, setConfirmed] = useState(defaultAccepted);
@@ -36,7 +35,7 @@ export function RulesAgreement({ defaultAccepted = false, error }: { defaultAcce
       <div className="border border-line bg-ink">
         <div className="flex items-center justify-between gap-3 border-b border-line px-4 py-3">
           <p className="font-display text-sm tracking-[0.08em] uppercase">{r.title}</p>
-          <a href={site.documents.rules} target="_blank" rel="noreferrer" className="inline-flex shrink-0 items-center gap-1.5 text-xs text-gold hover:text-gold-soft">
+          <a href={contacts.documents.rules} target="_blank" rel="noreferrer" className="inline-flex shrink-0 items-center gap-1.5 text-xs text-gold hover:text-gold-soft">
             <Icon name="file" width={14} height={14} /> {r.download}
           </a>
         </div>

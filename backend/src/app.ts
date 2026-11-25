@@ -7,6 +7,8 @@ import { authRoutes } from "./modules/auth/auth.routes.js";
 import { healthRoutes } from "./modules/health/health.routes.js";
 import { adminFormationRoutes, publicFormationRoutes } from "./modules/formations/formations.routes.js";
 import { adminMediaRoutes, publicMediaRoutes, uploadsStatic } from "./modules/media/media.routes.js";
+import { adminHistoryRoutes, publicHistoryRoutes } from "./modules/history/history.routes.js";
+import { adminTrainerRoutes, publicTrainerRoutes } from "./modules/trainers/trainers.routes.js";
 import { docsRoutes } from "./modules/docs/docs.routes.js";
 import { planningRoutes } from "./modules/planning/planning.routes.js";
 import {
@@ -34,6 +36,8 @@ export function createApp() {
   app.use("/uploads", cmsUploadsStatic);
   // Seul le formulaire d'inscription accepte un corps volumineux (pièce jointe de 5 Mo en base64).
   app.use("/api/contact", express.json({ limit: "7mb" }));
+  // Contenus de l'admin (fiches de formation en trois langues, textes du site) : plus volumineux.
+  app.use("/api/admin", express.json({ limit: "512kb" }));
   app.use(express.json({ limit: "20kb" }));
 
   // Routes par module (une responsabilité par dossier : routes → contrôleur → service → Prisma)
@@ -43,6 +47,10 @@ export function createApp() {
   app.use("/api/admin/formations", adminFormationRoutes);
   app.use("/api/media", publicMediaRoutes);
   app.use("/api/admin/media", adminMediaRoutes);
+  app.use("/api/history", publicHistoryRoutes);
+  app.use("/api/admin/history", adminHistoryRoutes);
+  app.use("/api/trainers", publicTrainerRoutes);
+  app.use("/api/admin/trainers", adminTrainerRoutes);
   app.use("/uploads", uploadsStatic);
   if (config.apiDocs) app.use("/api/docs", docsRoutes);
   app.use("/api/auth", authRoutes);

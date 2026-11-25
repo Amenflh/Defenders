@@ -21,6 +21,8 @@ export const safeUrl = z
     "Lien invalide : utilisez un chemin (/…), une adresse https://, mailto: ou tel:",
   );
 
+const cmsTranslation = z.object({ title: z.string().max(200), subtitle: z.string().max(300), body: z.string().max(10000) }).partial();
+
 const cmsSchema = z.object({
   section: z.enum(["faq", "testimonials", "partners", "promotions", "legal"]),
   title: z.string().max(200),
@@ -30,8 +32,23 @@ const cmsSchema = z.object({
   linkUrl: safeUrl.optional().default(""),
   position: z.number().int().min(0).optional().default(0),
   active: z.boolean().optional().default(true),
+  academy: z.enum(["fitness", "tsa"]).nullable().optional().default(null),
+  translations: z.object({ en: cmsTranslation, ar: cmsTranslation }).partial().optional().default({}),
 });
-const itemUpdateSchema = cmsSchema.partial().omit({ section: true });
+/** Mise à jour partielle : sans les valeurs par défaut de la création (un champ absent n'est jamais modifié). */
+const itemUpdateSchema = z
+  .object({
+    title: z.string().max(200),
+    subtitle: z.string().max(300),
+    body: z.string().max(10000),
+    imageUrl: safeUrl,
+    linkUrl: safeUrl,
+    position: z.number().int().min(0),
+    active: z.boolean(),
+    academy: z.enum(["fitness", "tsa"]).nullable(),
+    translations: z.object({ en: cmsTranslation, ar: cmsTranslation }).partial(),
+  })
+  .partial();
 const idParams = z.object({ id: z.coerce.number().int().positive() });
 const settingKey = z.string().regex(/^[a-z0-9_-]{1,80}$/i);
 const badRequest = () => new BadRequestError("Requête invalide");

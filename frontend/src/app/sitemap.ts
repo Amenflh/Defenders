@@ -1,4 +1,5 @@
 import type { MetadataRoute } from "next";
+import { formationHref } from "@/lib/academies";
 import { getFormations } from "@/lib/formations";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
@@ -9,7 +10,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     "/fitness-academy",
     "/formations",
     "/trouver-ma-formation",
-    ...formations.map((f) => `/formations/${f.slug}`),
+    ...formations.map(formationHref),
     "/planning",
     "/historique",
     "/tunisian-security-academy",

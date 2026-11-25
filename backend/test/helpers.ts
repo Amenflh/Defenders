@@ -13,9 +13,29 @@ type Options = { method?: string; body?: unknown; token?: string; headers?: Reco
 export type Api = (path: string, options?: Options) => Promise<{ status: number; body: any }>;
 
 /** Vide les données de test (formations et réglages de référence conservés), puis recrée l'admin. */
+async function ignoreMissingTable<T>(operation: Promise<T>): Promise<T | undefined> {
+  try {
+    return await operation;
+  } catch (err) {
+    const code = typeof err === "object" && err && "code" in err ? String((err as { code?: string }).code) : "";
+    if (code === "P2021") return undefined;
+    throw err;
+  }
+}
+
 export async function resetDb(): Promise<void> {
-  await prisma.$executeRawUnsafe(`TRUNCATE security_quote_requests, payments, resources, chat_messages, conversations, registration_formations, registrations, auth_sessions, users RESTART IDENTITY CASCADE`);
-  await prisma.siteSetting.deleteMany({ where: { key: "paiements" } });
+  await prisma.$transaction(async (tx) => {
+    await ignoreMissingTable(tx.payment.deleteMany());
+    await ignoreMissingTable(tx.chatMessage.deleteMany());
+    await ignoreMissingTable(tx.conversation.deleteMany());
+    await ignoreMissingTable(tx.registrationFormation.deleteMany());
+    await ignoreMissingTable(tx.resource.deleteMany());
+    await ignoreMissingTable(tx.securityQuoteRequest.deleteMany());
+    await ignoreMissingTable(tx.registration.deleteMany());
+    await ignoreMissingTable(tx.authSession.deleteMany());
+    await ignoreMissingTable(tx.user.deleteMany());
+    await ignoreMissingTable(tx.siteSetting.deleteMany({ where: { key: "paiements" } }));
+  });
   await ensureSeedData();
 }
 

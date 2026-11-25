@@ -4,8 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { getMyUnreadAction } from "@/app/(site)/chat-actions";
-import { useI18n } from "@/lib/i18n/client";
-import { site } from "@/lib/site";
+import { useI18n, useSiteData } from "@/lib/i18n/client";
 import { subscribeToScroll } from "@/lib/scroll-subscription";
 import { AssistantPanel } from "./assistant/AssistantPanel";
 import { ClientChatPanel, OPEN_CHAT_EVENT, type ChatViewer } from "./chat/ClientChatPanel";
@@ -39,6 +38,7 @@ const UNREAD_POLL_MS = 30_000;
 export function FloatingActions({ viewer = { role: "guest" } }: { viewer?: ChatViewer }) {
   const pathname = usePathname();
   const { t } = useI18n();
+  const { contacts } = useSiteData();
   // Le menu est lié à la page où il a été ouvert : changer de page le referme.
   const [openedOn, setOpenedOn] = useState<string | null>(null);
   const open = openedOn === pathname;
@@ -110,10 +110,10 @@ export function FloatingActions({ viewer = { role: "guest" } }: { viewer?: ChatV
   const message = encodeURIComponent(t.floating.whatsappMessage);
   const actions = [
     { label: unread ? `${t.floating.chat} (${t.floating.unread(unread)})` : t.floating.chat, onClick: openChatPanel, icon: <Icon name="chat" width={18} height={18} /> },
-    { href: `${site.whatsapp.href}?text=${message}`, label: t.floating.whatsapp, external: true, icon: <WhatsAppIcon className="size-5" /> },
+    { href: `${contacts.whatsapp.href}?text=${message}`, label: t.floating.whatsapp, external: true, icon: <WhatsAppIcon className="size-5" /> },
     // Messenger : même boîte de réception que les conversations ouvertes depuis les publicités Meta.
-    { href: site.messenger.href, label: t.floating.messenger, external: true, icon: <MessengerIcon className="size-5" /> },
-    { href: site.phone.href, label: `${t.floating.call} ${site.phone.label}`, icon: <Icon name="phone" width={18} height={18} /> },
+    { href: contacts.messenger.href, label: t.floating.messenger, external: true, icon: <MessengerIcon className="size-5" /> },
+    { href: contacts.phone.href, label: `${t.floating.call} ${contacts.phone.label}`, icon: <Icon name="phone" width={18} height={18} /> },
     ...(pathname === "/trouver-ma-formation" ? [] : [{ href: "/trouver-ma-formation", label: t.floating.quiz, internal: true, icon: <Icon name="star" width={18} height={18} /> }]),
   ];
 

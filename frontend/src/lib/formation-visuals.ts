@@ -29,7 +29,7 @@ const VISUALS: Record<string, FormationVisual> = {
     photos: footballPhotos,
     cover: footballPhotos[1],
   },
-  "personal-training": {
+  personal: {
     accent: { text: "text-personal", bg: "bg-personal", border: "border-personal", dot: "bg-personal", borderL: "border-l-personal" },
     photos: personalPhotos,
     cover: personalPhotos[0],
@@ -38,17 +38,21 @@ const VISUALS: Record<string, FormationVisual> = {
 
 const fallback: FormationVisual = { accent: gold, photos: bannerPhotos.slice(0, 3), cover: bannerPhotos[0] };
 
-export function visualFor(slug: string): FormationVisual {
-  return VISUALS[slug] ?? fallback;
+/** Visuel par défaut selon la couleur choisie dans l'admin (accent). */
+export function visualFor(accent: string): FormationVisual {
+  return VISUALS[accent] ?? fallback;
 }
 
 /**
- * Classe CSS qui applique la couleur d'une activité à toute une section (voir globals.css) :
- * football = rouge, fitness / Pilates = orange, personal trainer = vert militaire. Sinon : beige.
+ * Classe CSS qui applique la couleur d'une formation (accent choisi dans l'admin) à toute une section
+ * (voir globals.css). Les anciens slugs sont aussi reconnus. Sinon : beige.
  */
 export function accentClassFor(slugOrAccent: string): string {
   if (/football/.test(slugOrAccent)) return "accent-football";
   if (/pilates|fitness/.test(slugOrAccent)) return "accent-pilates";
   if (/personal/.test(slugOrAccent)) return "accent-personal";
+  if (/intervention/.test(slugOrAccent)) return "accent-intervention";
+  if (/k9/.test(slugOrAccent)) return "accent-k9";
+  if (/protection/.test(slugOrAccent)) return "accent-protection";
   return "";
 }

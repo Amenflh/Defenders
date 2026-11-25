@@ -50,7 +50,7 @@ export function LanguageSwitcher({ className = "" }: { className?: string }) {
         aria-expanded={open}
         onClick={() => setOpen((value) => !value)}
         disabled={pending}
-        className="min-w-12 border border-white/20 px-2.5 py-1.5 font-display text-[0.68rem] tracking-[0.08em] text-bone transition-colors hover:border-gold hover:text-gold"
+        className="min-w-12 border border-white/20 px-2.5 py-2.5 font-display text-[0.68rem] tracking-[0.08em] text-bone transition-colors hover:border-gold hover:text-gold"
       >
         {LOCALE_LABELS[locale].short}
       </button>

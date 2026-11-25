@@ -1,8 +1,6 @@
-import { disciplines } from "./disciplines";
-import { localizeFormation } from "./formation-i18n";
-import type { Locale } from "./i18n/config";
+import type { SiteData } from "./i18n/client";
 import type { Dictionary } from "./i18n/dictionaries";
-import { mainNav, site } from "./site";
+import { mainNav } from "./site";
 
 export type SearchGroup = "formations" | "pages" | "questions" | "contact";
 export type SearchIcon = "fitness" | "shield" | "page" | "question" | "phone" | "mail" | "pin";
@@ -39,65 +37,23 @@ const SYNONYMS: Record<string, string> = {
   k9: "chien canin cynophile dog maitre chien attaque obeissance كلاب كلب",
   "protection-rapprochee": "garde du corps bodyguard vip escorte close protection حراسة شخصية",
   "intervention-initiale": "terrorisme evacuation premiers secours crise first response تدخل",
-  security: "agent de securite gardiennage surveillance dsp حراسة امن",
+  "securite-protection": "agent de securite gardiennage surveillance dsp حراسة امن",
 };
 
-/** Index de recherche construit à partir des textes traduits : aucune requête réseau, résultats instantanés. */
-export function buildSearchIndex(t: Dictionary, locale: Locale): SearchItem[] {
-  const tsa = t.pages.akAcademy;
-  const items: SearchItem[] = [];
-
-  for (const slug of ["pilates", "football", "personal-training"] as const) {
-    const formation = localizeFormation(disciplines[slug], locale);
-    items.push({
-      id: `formation-${slug}`,
-      group: "formations",
-      title: formation.name,
-      subtitle: `${t.nav.fitnessAcademy} · ${formation.headline}`,
-      href: slug === "personal-training" ? "/personal-training" : `/formations/${slug}`,
-      icon: "fitness",
-      keywords: `${formation.summary} ${SYNONYMS[slug]}`,
-    });
-  }
-
-  items.push(
-    {
-      id: "formation-k9",
-      group: "formations",
-      title: tsa.k9CourseTitle,
-      subtitle: `${t.nav.akAcademy} · ${tsa.k9CourseDuration}`,
-      href: "/tunisian-security-academy/formations/k9",
-      icon: "shield",
-      keywords: `${tsa.k9CourseText} ${tsa.k9CourseTrainer} ${SYNONYMS.k9}`,
-    },
-    {
-      id: "formation-intervention",
-      group: "formations",
-      title: tsa.courseTitle,
-      subtitle: `${t.nav.akAcademy} · ${tsa.courseDuration}`,
-      href: "/tunisian-security-academy/formations/intervention-initiale",
-      icon: "shield",
-      keywords: `${tsa.courseText} ${SYNONYMS["intervention-initiale"]}`,
-    },
-    {
-      id: "formation-protection",
-      group: "formations",
-      title: tsa.closeProtectionTitle,
-      subtitle: t.nav.akAcademy,
-      href: "/tunisian-security-academy/formations/protection-rapprochee",
-      icon: "shield",
-      keywords: `${tsa.closeProtectionText} ${SYNONYMS["protection-rapprochee"]}`,
-    },
-    {
-      id: "formation-security",
-      group: "formations",
-      title: t.search.securityCourse,
-      subtitle: t.nav.security,
-      href: "/tunisian-security-academy#securite-programme",
-      icon: "shield",
-      keywords: `${t.pages.security.programmeText} ${SYNONYMS.security}`,
-    },
-  );
+/**
+ * Index de recherche : formations publiées, pages, questions fréquentes et coordonnées de l'admin, dans la langue
+ * du visiteur. Aucune requête réseau, résultats instantanés.
+ */
+export function buildSearchIndex(t: Dictionary, { formations, faqs, contacts }: SiteData): SearchItem[] {
+  const items: SearchItem[] = formations.map((f) => ({
+    id: `formation-${f.slug}`,
+    group: "formations",
+    title: f.name,
+    subtitle: [f.academy === "tsa" ? t.nav.akAcademy : t.nav.fitnessAcademy, f.headline].filter(Boolean).join(" · "),
+    href: f.href,
+    icon: f.academy === "tsa" ? "shield" : "fitness",
+    keywords: `${f.summary} ${SYNONYMS[f.slug] ?? ""}`,
+  }));
 
   // Sous-titre lisible plutôt que l'adresse technique de la page.
   const pageDescriptions: Partial<Record<(typeof mainNav)[number]["key"], string>> = {
@@ -121,16 +77,16 @@ export function buildSearchIndex(t: Dictionary, locale: Locale): SearchItem[] {
     { id: "page-privacy", group: "pages", title: t.common.privacy, subtitle: "", href: "/politique-de-confidentialite", icon: "page", keywords: "rgpd donnees personnelles" },
   );
 
-  t.home.faqs.forEach((faq, index) => {
+  faqs.forEach((faq, index) => {
     items.push({ id: `faq-${index}`, group: "questions", title: faq.question, subtitle: faq.answer, href: "/#faq", icon: "question" });
   });
 
   items.push(
-    { id: "contact-phone", group: "contact", title: `${t.search.callUs} ${site.phone.label}`, subtitle: t.nav.fitnessAcademy, href: site.phone.href, icon: "phone", keywords: "telephone tel numero appel" },
-    { id: "contact-phone2", group: "contact", title: `${t.search.callUs} ${site.phone2.label}`, subtitle: t.nav.security, href: site.phone2.href, icon: "phone", keywords: "telephone tel numero appel" },
-    { id: "contact-whatsapp", group: "contact", title: site.whatsapp.label, subtitle: site.phone2.label, href: site.whatsapp.href, icon: "phone", external: true, keywords: "whatsapp message" },
-    { id: "contact-email", group: "contact", title: t.search.writeUs, subtitle: site.email.label, href: site.email.href, icon: "mail", keywords: "email mail courriel" },
-    { id: "contact-address", group: "contact", title: t.search.findUs, subtitle: site.address.lines.join(", "), href: site.address.href, icon: "pin", external: true, keywords: "adresse hammamet carte maps localisation" },
+    { id: "contact-phone", group: "contact", title: `${t.search.callUs} ${contacts.phone.label}`, subtitle: t.nav.fitnessAcademy, href: contacts.phone.href, icon: "phone", keywords: "telephone tel numero appel" },
+    { id: "contact-phone2", group: "contact", title: `${t.search.callUs} ${contacts.phone2.label}`, subtitle: t.nav.security, href: contacts.phone2.href, icon: "phone", keywords: "telephone tel numero appel" },
+    { id: "contact-whatsapp", group: "contact", title: contacts.whatsapp.label, subtitle: contacts.phone2.label, href: contacts.whatsapp.href, icon: "phone", external: true, keywords: "whatsapp message" },
+    { id: "contact-email", group: "contact", title: t.search.writeUs, subtitle: contacts.email.label, href: contacts.email.href, icon: "mail", keywords: "email mail courriel" },
+    { id: "contact-address", group: "contact", title: t.search.findUs, subtitle: contacts.address.lines.join(", "), href: contacts.address.href, icon: "pin", external: true, keywords: "adresse hammamet carte maps localisation" },
   );
 
   return items;
