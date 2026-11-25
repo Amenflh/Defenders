@@ -3,8 +3,10 @@ import { Cairo, Inter, Oswald } from "next/font/google";
 import { dirFor } from "@/lib/i18n/config";
 import { formationHref, type Academy } from "@/lib/academies";
 import { localize, type Translations } from "@/lib/formation-i18n";
+import { PreviewBridge } from "@/components/PreviewBridge";
 import { I18nProvider, type SiteData } from "@/lib/i18n/client";
 import { getDictionary } from "@/lib/i18n/server";
+import { getPreview } from "@/lib/session";
 import { getContacts, getFaqs, getPublishedFormations, getTextOverrides } from "@/lib/settings";
 import { cookies } from "next/headers";
 import { isTheme, THEME_COOKIE, type Theme } from "@/lib/theme";
@@ -31,7 +33,8 @@ export const viewport: Viewport = {
 export default async function RootLayout({ children }: LayoutProps<"/">) {
   const { locale, t } = await getDictionary();
   type LightFormation = { id: number; slug: string; name: string; headline: string; summary: string; academy: Academy; translations?: Translations };
-  const [overrides, contacts, formations, faqs] = await Promise.all([
+  const [preview, overrides, contacts, formations, faqs] = await Promise.all([
+    getPreview(),
     getTextOverrides(),
     getContacts(),
     getPublishedFormations<LightFormation>(),
@@ -54,7 +57,10 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
         <noscript>
           <style>{`[data-reveal]{opacity:1!important;transform:none!important}[data-wordmark] .footer-wordmark-letter{opacity:1!important;transform:none!important;filter:none!important}`}</style>
         </noscript>
-        <I18nProvider locale={locale} overrides={overrides[locale]} theme={theme} data={data}>{children}</I18nProvider>
+        <I18nProvider locale={locale} overrides={overrides[locale]} preview={!!preview} theme={theme} data={data}>
+          {children}
+          {preview && <PreviewBridge />}
+        </I18nProvider>
       </body>
     </html>
   );

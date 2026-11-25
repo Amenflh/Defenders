@@ -671,3 +671,18 @@ body > main, body > footer { overflow-x: clip; }
   .hl-ecg { stroke-dasharray: none; }
   .hl-paper { transform: none; transition: none; }
 }
+
+/* ---------- Aperçu de l'admin : contour du texte ou de l'image à modifier ---------- */
+.preview-outline {
+  position: fixed;
+  z-index: 2147483000;
+  pointer-events: none;
+  opacity: 0;
+  border: 2px solid #f59e0b;
+  border-radius: 4px;
+  background: rgb(245 158 11 / 0.1);
+  transition: opacity 0.15s, top 0.12s, left 0.12s, width 0.12s, height 0.12s;
+}
+.preview-outline[data-flash="true"] { animation: preview-flash 1.1s ease-out 2; }
+@keyframes preview-flash { 50% { background: rgb(245 158 11 / 0.35); } }
+html[data-preview-edit], html[data-preview-edit] * { cursor: pointer !important; }

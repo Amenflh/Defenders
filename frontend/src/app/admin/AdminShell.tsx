@@ -19,6 +19,7 @@ const MENU: { title: string; items: Item[] }[] = [
   {
     title: "Contenu du site",
     items: [
+      { label: "éditeur visuel", href: "/admin/editeur" },
       { label: "formations", href: "/admin/formations" },
       { label: "historique", href: "/admin/historique" },
       { label: "équipe", href: "/admin/equipe" },

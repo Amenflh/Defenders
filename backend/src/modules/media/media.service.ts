@@ -72,9 +72,14 @@ export function list(query: ListQuery, { publicOnly }: { publicOnly: boolean }) 
 }
 
 export async function update(id: number, input: UpdateMediaInput) {
-  if (!(await prisma.media.count({ where: { id } }))) throw new NotFoundError("Média introuvable");
+  const current = await prisma.media.findUnique({ where: { id }, select: { url: true, storageKey: true } });
+  if (!current) throw new NotFoundError("Média introuvable");
   await assertFormation(input.formationId);
-  return prisma.media.update({ where: { id }, data: input, select });
+  const replaced = input.url !== undefined && input.url !== current.url;
+  // Fichier remplacé : sa taille et son type ne sont plus connus, l'ancien fichier est effacé.
+  const updated = await prisma.media.update({ where: { id }, data: { ...input, ...(replaced ? { storageKey: null, mimeType: "", sizeBytes: 0 } : {}) }, select });
+  if (replaced && current.storageKey) await deleteStoredFile(current.storageKey);
+  return updated;
 }
 
 /**

@@ -17,14 +17,17 @@ export const uploadFieldsSchema = z.object({
   position: position.optional().default(0),
 });
 
+/** Chemin local ou URL https. */
+const mediaUrl = z
+  .string()
+  .trim()
+  .max(500)
+  .refine((v) => /^\/(?!\/)[\w\-./%]+$/.test(v) || /^https:\/\/\S+$/.test(v), "Chemin (/uploads/…) ou URL https attendu");
+
 /** Média déjà hébergé (fichier de /public, /uploads ou URL https) ajouté sans téléversement. */
 export const linkMediaSchema = z.object({
   type: z.enum(["image", "video"]),
-  url: z
-    .string()
-    .trim()
-    .max(500)
-    .refine((v) => /^\/(?!\/)[\w\-./%]+$/.test(v) || /^https:\/\/\S+$/.test(v), "Chemin (/uploads/…) ou URL https attendu"),
+  url: mediaUrl,
   title: z.string().trim().max(120, "120 caractères maximum").default(""),
   category: z.string().trim().toLowerCase().max(40, "40 caractères maximum").default(""),
   formationId: formationId.optional().default(null),
@@ -34,6 +37,8 @@ export const linkMediaSchema = z.object({
 
 export const updateMediaSchema = z
   .object({
+    /** Remplace l'image ou la vidéo en gardant sa place. */
+    url: mediaUrl,
     title: z.string().trim().max(120, "120 caractères maximum"),
     category: z.string().trim().toLowerCase().max(40, "40 caractères maximum"),
     formationId: formationId,

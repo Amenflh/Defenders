@@ -6,6 +6,9 @@ import { contactsFrom, replaceDefaultContacts } from "../src/lib/contacts.ts";
 import { localize } from "../src/lib/formation-i18n.ts";
 import { dictionaries } from "../src/lib/i18n/dictionaries.ts";
 import { applyOverrides, flattenTexts } from "../src/lib/i18n/overrides.ts";
+import { parsePreview, previewHref } from "../src/lib/preview/config.ts";
+import { applyDraft } from "../src/lib/preview/draft.ts";
+import { decodeRefs, encodeRef, markDictionary, stripRefs } from "../src/lib/preview/markers.ts";
 import { instagramEmbed, isFacebookVideo, isVideoFile, youtubeEmbed } from "../src/lib/video.ts";
 
 describe("formationHref", () => {
@@ -53,6 +56,40 @@ describe("applyOverrides", () => {
     const paths = (l) => flattenTexts(dictionaries[l]).map(({ path }) => path).filter((p) => !/faqs|clauses/.test(p)).sort();
     assert.deepEqual(paths("en"), paths("fr"));
     assert.deepEqual(paths("ar"), paths("fr"));
+  });
+});
+
+describe("aperçu de l'admin", () => {
+  it("cache la référence dans le texte sans le changer à l'écran", () => {
+    const marked = "Bonjour" + encodeRef("t.home.title");
+    assert.deepEqual(decodeRefs(marked), ["t.home.title"]);
+    assert.equal(stripRefs(marked), "Bonjour");
+    assert.deepEqual(decodeRefs("A" + encodeRef("f.1.name") + " · B" + encodeRef("f.1.headline")), ["f.1.name", "f.1.headline"]);
+    assert.deepEqual(decodeRefs("Texte normal"), []);
+  });
+  it("marque le dictionnaire sauf les clés techniques", () => {
+    const t = markDictionary(dictionaries.ar);
+    assert.deepEqual(decodeRefs(t.highlights.title), ["t.highlights.title"]);
+    assert.equal(t.pages.security.quoteForm.services[0].value, dictionaries.ar.pages.security.quoteForm.services[0].value);
+    assert.equal(typeof t.home.formationsTitle, "function");
+  });
+  it("montre le brouillon : modification, ajout, masquage, suppression, ordre", () => {
+    const body = { items: [{ id: 1, section: "faq", title: "Q1", position: 0 }, { id: 2, section: "faq", title: "Q2", position: 1 }, { id: 3, section: "faq", title: "Q3", position: 2 }] };
+    const cms = { 1: { title: "Q1 bis", position: 9 }, 2: { deleted: true }, 3: { active: false }, new: { section: "faq", title: "Nouveau", position: 5 }, 7: { section: "partners", title: "Autre" } };
+    const { body: result } = applyDraft("/api/content/items/faq", 200, body, { cms });
+    assert.deepEqual(result.items.map((i) => i.title), ["Nouveau", "Q1 bis"]);
+  });
+  it("affiche une formation pas encore créée", () => {
+    const draft = { formations: { new: { slug: "yoga", name: "Yoga", academy: "tsa", trainerIds: [4] } } };
+    const result = applyDraft("/api/formations/yoga", 404, { error: "x" }, draft, [{ id: 4, name: "Coach" }, { id: 5, name: "Autre" }]);
+    assert.equal(result.status, 200);
+    assert.deepEqual([result.body.formation.name, result.body.formation.trainers.map((t) => t.name), result.body.formation.objectives], ["Yoga", ["Coach"], []]);
+    assert.equal(applyDraft("/api/formations/inconnue", 404, { error: "x" }, draft).status, 404);
+  });
+  it("n'accepte que des paramètres d'aperçu valides", () => {
+    assert.deepEqual(parsePreview("ar.abc-1"), { locale: "ar", draftId: "abc-1" });
+    for (const bad of ["", "xx.abc", "fr", "fr.a/b", null]) assert.equal(parsePreview(bad), null);
+    assert.equal(previewHref("/historique?academy=tsa#x", "fr", "d1"), "/historique?academy=tsa&apercu=fr.d1#x");
   });
 });
 

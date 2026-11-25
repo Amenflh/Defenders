@@ -64,6 +64,15 @@ describe("contenu dynamique", () => {
     for (const id of Object.values(ids)) await api(`/api/admin/media/${id}`, { method: "DELETE", token });
   });
 
+  it("remplace l'image d'un média en gardant sa place", async () => {
+    const token = await adminToken();
+    const { body } = await api("/api/admin/media", { method: "POST", token, body: { type: "image", url: "/pics/avant.jpg", category: "galerie-test", academy: "tsa", position: 4 } });
+    const updated = await api(`/api/admin/media/${body.media.id}`, { method: "PATCH", token, body: { url: "/pics/apres.jpg" } });
+    assert.deepEqual([updated.body.media.url, updated.body.media.position, updated.body.media.academy], ["/pics/apres.jpg", 4, "tsa"]);
+    assert.equal((await api(`/api/admin/media/${body.media.id}`, { method: "PATCH", token, body: { url: "javascript:alert(1)" } })).status, 422);
+    await api(`/api/admin/media/${body.media.id}`, { method: "DELETE", token });
+  });
+
   it("garde le visuel d'une formation quand on retire l'image d'une galerie", async () => {
     const token = await adminToken();
     const { coverUrl, id } = await prisma.formation.findFirstOrThrow({ where: { coverUrl: { not: null } } });

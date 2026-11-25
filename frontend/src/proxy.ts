@@ -1,4 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server";
+import { PREVIEW_HEADER, PREVIEW_PARAM } from "@/lib/preview/config";
 
 const SESSION_COOKIE = "dfa_session";
 /** Pages privées réservées aux comptes. Toutes les autres pages restent publiques. */
@@ -19,7 +20,14 @@ export function proxy(request: NextRequest) {
     url.search = pathname === "/" ? "" : `?next=${encodeURIComponent(pathname + search)}`;
     return NextResponse.redirect(url);
   }
-  return NextResponse.next();
+
+  // Aperçu de l'admin (?apercu=…) : transmis aux pages par un en-tête, jamais accepté tel quel du navigateur.
+  // Les pages vérifient ensuite que la session est bien celle d'un administrateur.
+  const headers = new Headers(request.headers);
+  headers.delete(PREVIEW_HEADER);
+  const preview = request.nextUrl.searchParams.get(PREVIEW_PARAM);
+  if (preview && hasSession && !isPrivate) headers.set(PREVIEW_HEADER, preview);
+  return NextResponse.next({ request: { headers } });
 }
 
 export const config = {

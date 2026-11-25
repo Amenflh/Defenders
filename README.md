@@ -43,6 +43,7 @@ Le site marketing est public. Les espaces protégés nécessitent une connexion 
 | Mentions légales, confidentialité, cookies | `/mentions-legales`, `/politique-de-confidentialite`, `/cookies` | public |
 | Suivi de ses inscriptions | `/mon-espace` | client |
 | Tableau de bord des demandes | `/admin` | admin |
+| Éditeur visuel : cliquer sur un texte ou une image du site, voir le résultat en direct, publier | `/admin/editeur` | admin |
 | Formations des deux académies (contenu, vidéos, traductions, statut) | `/admin/formations` | admin |
 | Historique | `/admin/historique` | admin |
 | Équipe pédagogique | `/admin/equipe` | admin |

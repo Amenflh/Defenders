@@ -1,9 +1,13 @@
 "use client";
 
 import Link from "next/link";
-import { useActionState, useEffect, useRef, useState } from "react";
+import { useActionState, useCallback, useEffect, useRef, useState } from "react";
 import { ACADEMIES, ACADEMY_NAME, ACCENTS, formationHref, type Academy } from "@/lib/academies";
+import type { Draft } from "@/lib/preview/draft";
 import { ImageUpload } from "../ImageUpload";
+import { LivePreview } from "../LivePreview";
+import { FACT_COLUMNS, MODULE_COLUMNS, RowsEditor, VIDEO_COLUMNS } from "../RowsEditor";
+import { formValues, toPayload } from "./payload";
 import { saveFormation, type FormationFormState } from "./actions";
 
 /** Valeurs texte du formulaire ; les traductions sont nommées « en.name », « ar.name »… */
@@ -51,12 +55,34 @@ export function FormationForm({
   const galleryRef = useRef<HTMLTextAreaElement>(null);
   const selectedTrainers = new Set(values.trainerIds.split(","));
 
+  // Aperçu en direct : la page de la formation, avec ce qui est saisi.
+  const formRef = useRef<HTMLFormElement>(null);
+  const key = id === null ? "new" : String(id);
+  const [preview, setPreview] = useState<{ draft: Draft; path: string }>(() => {
+    const shown = { slug: initial.slug || "nouvelle-formation", academy: (initial.academy === "tsa" ? "tsa" : "fitness") as Academy };
+    // Création : la page s'affiche déjà, vide, avant la première saisie.
+    return { draft: id === null ? { formations: { new: { ...shown, name: "Nouvelle formation" } } } : {}, path: formationHref(shown) };
+  });
+  const updatePreview = useCallback(() => {
+    // Après la mise à jour des champs contrôlés (académie, visuel, URL).
+    window.setTimeout(() => {
+      if (!formRef.current) return;
+      const payload = toPayload(formValues(new FormData(formRef.current)));
+      const shown = { ...payload, name: payload.name || "Nouvelle formation", slug: payload.slug || "nouvelle-formation", academy: payload.academy as Academy };
+      setPreview({ draft: { formations: { [key]: shown } }, path: formationHref(shown) });
+    }, 0);
+  }, [key]);
+  useEffect(() => {
+    if (cover !== initial.coverUrl) updatePreview();
+  }, [cover, initial.coverUrl, updatePreview]);
+
   useEffect(() => {
     if (state.status !== "idle") statusRef.current?.focus();
   }, [state]);
 
   return (
-    <form key={state.attempt} action={action} noValidate className="space-y-10" aria-busy={pending}>
+    <div className="grid grid-cols-1 gap-8 xl:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)]">
+    <form ref={formRef} key={state.attempt} action={action} onInput={updatePreview} noValidate className="min-w-0 space-y-8" aria-busy={pending}>
       <div ref={statusRef} tabIndex={-1} aria-live="polite" className="outline-none">
         {state.status === "error" && (
           <div role="alert" className="border border-red-400/50 bg-red-500/10 p-4 text-sm text-red-200">
@@ -178,13 +204,15 @@ export function FormationForm({
             <div className="space-y-2">
               <textarea ref={galleryRef} id="galleryUrls" name="galleryUrls" defaultValue={values.galleryUrls} rows={6} className="input font-mono text-sm" />
               <ImageUpload label="Ajouter une image à la galerie" onUploaded={(url) => {
-                if (galleryRef.current) galleryRef.current.value = [galleryRef.current.value.trim(), url].filter(Boolean).join("\n");
+                if (!galleryRef.current) return;
+                galleryRef.current.value = [galleryRef.current.value.trim(), url].filter(Boolean).join("\n");
+                updatePreview();
               }} />
             </div>
           </Field>
         </div>
-        <Field label="Vidéos" name="videos" error={err("videos")} hint="Une par ligne : lien Facebook, Instagram, YouTube ou fichier | titre | portrait, square ou landscape. La première s'affiche sur la carte.">
-          <textarea id="videos" name="videos" defaultValue={values.videos} rows={4} className="input font-mono text-sm" />
+        <Field label="Vidéos" name="videos" error={err("videos")} hint="Facebook, Instagram, YouTube ou fichier. La première s'affiche sur la carte.">
+          <RowsEditor name="videos" columns={VIDEO_COLUMNS} value={values.videos} addLabel="Ajouter une vidéo" />
         </Field>
         {trainers.length > 0 && (
           <fieldset>
@@ -218,11 +246,11 @@ export function FormationForm({
             <textarea id="careers" name="careers" defaultValue={values.careers} rows={4} className="input" />
           </Field>
         </div>
-        <Field label="Programme (modules)" name="modules" error={err("modules")} hint="Un module par ligne : Titre | description">
-          <textarea id="modules" name="modules" defaultValue={values.modules} rows={7} className="input font-mono text-sm" />
+        <Field label="Programme (modules)" name="modules" error={err("modules")}>
+          <RowsEditor name="modules" columns={MODULE_COLUMNS} value={values.modules} addLabel="Ajouter un module" />
         </Field>
-        <Field label="Chiffres clés" name="facts" error={err("facts")} hint="3 maximum affichés, un par ligne : Libellé | valeur (ex. Durée | 4 jours). Vide : durée, niveau et tarif">
-          <textarea id="facts" name="facts" defaultValue={values.facts} rows={3} className="input font-mono text-sm" />
+        <Field label="Chiffres clés" name="facts" error={err("facts")} hint="3 maximum affichés. Vide : durée, lieu, niveau et tarif">
+          <RowsEditor name="facts" columns={FACT_COLUMNS} value={values.facts} addLabel="Ajouter un chiffre" />
         </Field>
       </Section>
 
@@ -241,13 +269,18 @@ export function FormationForm({
         )}
       </div>
     </form>
+    <div className="min-w-0 xl:sticky xl:top-24 xl:self-start">
+      <p className="mb-3 text-sm text-mist">La page telle qu&apos;elle sera, pendant que vous écrivez. Rien n&apos;est publié avant « Enregistrer ».</p>
+      <LivePreview path={preview.path} draft={preview.draft} height="76vh" />
+    </div>
+    </div>
   );
 }
 
 const TRANSLATED: [string, string, number][] = [
   ["name", "Nom", 1], ["headline", "Accroche", 1], ["summary", "Résumé", 3], ["durationLabel", "Durée", 1], ["location", "Lieu", 1], ["practical", "Informations pratiques", 4],
   ["intro", "Présentation", 5], ["objectives", "Objectifs (un par ligne)", 5], ["prerequisites", "Prérequis (un par ligne)", 3], ["audience", "Public (un par ligne)", 3],
-  ["careers", "Débouchés (un par ligne)", 3], ["modules", "Programme : Titre | description", 5], ["facts", "Chiffres clés : Libellé | valeur", 3],
+  ["careers", "Débouchés (un par ligne)", 3], ["modules", "Programme", 5], ["facts", "Chiffres clés", 3],
 ];
 
 /** Textes d'une autre langue : un champ vide s'affiche en français. */
@@ -261,7 +294,9 @@ function TranslationFields({ lang, title, values }: { lang: "en" | "ar"; title: 
           const key = `${lang}.${name}`;
           return (
             <Field key={key} label={label} name={key}>
-              {rows === 1
+              {name === "modules" || name === "facts"
+                ? <RowsEditor name={key} columns={name === "modules" ? MODULE_COLUMNS : FACT_COLUMNS} value={values[key] ?? ""} addLabel="Ajouter une ligne" dir={lang === "ar" ? "rtl" : "ltr"} />
+                : rows === 1
                 ? <input id={key} name={key} dir={lang === "ar" ? "rtl" : "ltr"} defaultValue={values[key] ?? ""} className="input" />
                 : <textarea id={key} name={key} dir={lang === "ar" ? "rtl" : "ltr"} rows={rows} defaultValue={values[key] ?? ""} className="input" />}
             </Field>

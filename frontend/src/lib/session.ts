@@ -1,6 +1,12 @@
 import "server-only";
 import { cookies, headers } from "next/headers";
+import { cache } from "react";
 import { backendUrl } from "./api";
+import type { Locale } from "./i18n/config";
+import { parsePreview, PREVIEW_HEADER } from "./preview/config";
+import { applyDraft, type Draft } from "./preview/draft";
+import { markResponse } from "./preview/markers";
+import { getDraft } from "./preview/store";
 import { cachedPublicGet, clearPublicCache, isCacheablePublicGet } from "./public-cache";
 
 /** Cookie httpOnly contenant le jeton de session (illisible par le JavaScript de la page). */
@@ -30,13 +36,38 @@ export async function getSessionToken(): Promise<string | undefined> {
 }
 
 /**
+ * Aperçu demandé par un administrateur connecté (?apercu=…) : sa langue et son brouillon. null sur le site public.
+ */
+export const getPreview = cache(async (): Promise<{ locale: Locale; draft: Draft } | null> => {
+  const preview = parsePreview((await headers()).get(PREVIEW_HEADER));
+  if (!preview) return null;
+  const user = await getCurrentUser();
+  if (!user || user === "unavailable" || user.role !== "admin") return null;
+  return { locale: preview.locale, draft: getDraft(user.id, preview.draftId) };
+});
+
+/** Lecture publique de l'API ; dans l'aperçu, avec le brouillon de l'admin et les références des textes. */
+export async function publicGet(path: string, load: () => Promise<Response>): Promise<Response> {
+  const preview = await getPreview();
+  const response = await cachedPublicGet(path, load);
+  if (!preview) return response;
+  const body: unknown = await response.json().catch(() => null);
+  const needsTrainers = path.startsWith("/api/formations/") && Object.keys(preview.draft.formations ?? {}).length > 0;
+  const trainers = needsTrainers
+    ? await cachedPublicGet("/api/trainers", () => fetch(backendUrl("/api/trainers"), { cache: "no-store", signal: AbortSignal.timeout(5000) })).then((r) => (r.ok ? r.json() : { trainers: [] }))
+    : { trainers: [] };
+  const result = applyDraft(path, response.status, body, preview.draft, trainers.trainers);
+  return Response.json(markResponse(path.split("?")[0], result.body), { status: result.status });
+}
+
+/**
  * Appel à l'API avec le jeton de session de l'utilisateur (s'il est connecté).
  * Les lectures publiques (identiques pour tous) passent par un cache mémoire court, voir public-cache.ts.
  */
 export async function apiFetch(path: string, init: RequestInit = {}): Promise<Response> {
   const method = (init.method ?? "GET").toUpperCase();
   if (isCacheablePublicGet(path, method) && !init.headers) {
-    return cachedPublicGet(path, () =>
+    return publicGet(path, () =>
       fetch(backendUrl(path), { cache: "no-store", signal: AbortSignal.timeout(8000), headers: { "Content-Type": "application/json" } }),
     );
   }

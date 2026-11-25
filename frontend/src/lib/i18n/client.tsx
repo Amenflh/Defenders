@@ -2,6 +2,7 @@
 
 import { createContext, useContext, useMemo } from "react";
 import { contactsFrom, type Contacts } from "../contacts";
+import { markDictionary } from "../preview/markers";
 import type { Theme } from "../theme";
 import { DEFAULT_LOCALE, type Locale } from "./config";
 import { dictionaries, type Dictionary } from "./dictionaries";
@@ -19,14 +20,19 @@ const ThemeContext = createContext<Theme>("dark");
 const SiteContext = createContext<SiteData>({ contacts: contactsFrom({}), formations: [], faqs: [] });
 
 /** Transmet la langue, les textes personnalisés, le thème et les données du site aux composants client. */
-export function I18nProvider({ locale, overrides, theme = "dark", data, children }: {
+export function I18nProvider({ locale, overrides, preview = false, theme = "dark", data, children }: {
   locale: Locale;
   overrides?: TextOverrides;
+  /** Aperçu de l'admin : les textes portent leur référence. */
+  preview?: boolean;
   theme?: Theme;
   data?: SiteData;
   children: React.ReactNode;
 }) {
-  const i18n = useMemo(() => ({ locale, t: applyOverrides(dictionaries[locale], overrides) }), [locale, overrides]);
+  const i18n = useMemo(() => {
+    const t = applyOverrides(dictionaries[locale], overrides);
+    return { locale, t: preview ? markDictionary(t) : t };
+  }, [locale, overrides, preview]);
   const content = (
     <I18nContext.Provider value={i18n}>
       <ThemeContext.Provider value={theme}>{children}</ThemeContext.Provider>

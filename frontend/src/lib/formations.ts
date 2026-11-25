@@ -1,6 +1,7 @@
 import "server-only";
 import { backendUrl } from "./api";
-import { cachedPublicGet, isCacheablePublicGet } from "./public-cache";
+import { isCacheablePublicGet } from "./public-cache";
+import { publicGet } from "./session";
 import type { Academy } from "./academies";
 import type { Translations } from "./formation-i18n";
 import { type Accent, visualFor } from "./formation-visuals";
@@ -54,7 +55,7 @@ export type FormationDetail = Formation & { trainers: Trainer[]; media: MediaIte
 async function get<T>(path: string): Promise<{ status: number; data?: T }> {
   const load = () => fetch(backendUrl(path), { cache: "no-store", signal: AbortSignal.timeout(5000) });
   // Catalogue public : partagé entre visiteurs via le cache mémoire court (voir public-cache.ts).
-  const res = isCacheablePublicGet(path) ? await cachedPublicGet(path, load) : await load();
+  const res = isCacheablePublicGet(path) ? await publicGet(path, load) : await load();
   return { status: res.status, data: res.ok ? ((await res.json()) as T) : undefined };
 }
 

@@ -10,7 +10,9 @@ import { ReferralsManager } from "./ReferralsManager";
 import { ResourcesManager } from "./ResourcesManager";
 import { EntryManager, type Entry } from "./EntryManager";
 import { cmsFields } from "./entry-fields";
+import { HOMEPAGE_SECTIONS, moveSection, normalizeHomepageSections } from "./home-sections";
 import { ImageUpload } from "./ImageUpload";
+import { LivePreview } from "./LivePreview";
 import { SecurityQuotesManager, type SecurityQuote } from "./SecurityQuotesManager";
 import { openAdminTab, useAdminTab, useSetUnread } from "./AdminShell";
 import type { AdminContact } from "./shell-data";
@@ -23,36 +25,6 @@ import { saveSettingsAction } from "./actions";
 type Formation = { id: number; slug: string; name: string };
 type CmsItem = Entry & { section: string };
 type Contact = AdminContact;
-
-const HOMEPAGE_SECTIONS = [
-  { id: "hero", label: "Bannière d'accueil" },
-  { id: "branches", label: "Les académies et toutes les formations" },
-  { id: "highlights", label: "Ce qui nous distingue" },
-  { id: "promotions", label: "Promotions & certificats" },
-  { id: "about", label: "À propos" },
-  { id: "videos", label: "Vidéos" },
-  { id: "security", label: "Sécurité (Tunisian Security Academy)" },
-  { id: "formations", label: "Formations" },
-  { id: "method", label: "Parcours de formation" },
-  { id: "testimonials", label: "Témoignages" },
-  { id: "faq", label: "FAQ" },
-  { id: "cta", label: "Appel à l'action" },
-  { id: "partners", label: "Partenaires" },
-] as const;
-
-type HomepageSection = { id: string; enabled: boolean; order: number };
-function normalizeHomepageSections(value: unknown): HomepageSection[] {
-  const saved = Array.isArray(value) ? value.filter((item): item is HomepageSection =>
-    typeof item === "object" && item !== null &&
-    "id" in item && typeof item.id === "string" &&
-    "enabled" in item && typeof item.enabled === "boolean" &&
-    "order" in item && typeof item.order === "number" && Number.isInteger(item.order),
-  ) : [];
-  return HOMEPAGE_SECTIONS.map((section, index) => {
-    const config = saved.find((item) => item.id === section.id);
-    return { id: section.id, enabled: config?.enabled ?? true, order: config ? config.order * 20 : index };
-  }).sort((a, b) => a.order - b.order).map((section, index) => ({ ...section, order: index }));
-}
 
 /** Contenu de l'onglet ouvert (l'en-tête et le menu sont dans AdminShell). */
 export function AdminDashboard({ stats, formations, cms, contacts = [], securityQuotes = [], securityQuotesError, initialSettings = {} }: { stats: AdminStats | null; formations: Formation[]; cms: CmsItem[]; contacts?: AdminContact[]; securityQuotes?: SecurityQuote[]; securityQuotesError?: string; initialSettings?: Record<string, unknown> }) {
@@ -225,6 +197,9 @@ function downloadContactsCsv(contacts: Contact[], type: "inquiry" | "registratio
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
+const NO_DRAFT = {};
+const LEGAL_PAGES = { mentions: "/mentions-legales", privacy: "/politique-de-confidentialite", cookies: "/cookies" };
+
 function SettingsManager({ initialSettings = {} }: { initialSettings?: Record<string, unknown> }) {
   const legalDefaults = {
     mentions: "Éditeur du site\nDefenders Fitness Academy — Avenue Abou Dhabi, 8050 Hammamet, Tunisie\n\nContact\n+216 92 204 005 — +216 29 039 493 — direction-dsp@outlook.com\n\nActivité\nCentre de formation certifié — Agrément n° 21-340-24. Les contenus pédagogiques et les prochaines sessions doivent être confirmés directement auprès de l'académie.\n\nPropriété intellectuelle\nLes textes, photographies, vidéos, marques et éléments graphiques présents sur ce site sont protégés. Toute reproduction ou exploitation non autorisée est interdite.\n\nResponsabilité\nLes informations du site sont fournies à titre informatif. L'académie peut les modifier ou les actualiser sans préavis. Les horaires et tarifs exacts sont confirmés auprès de l'équipe.",
@@ -261,17 +236,15 @@ function SettingsManager({ initialSettings = {} }: { initialSettings?: Record<st
   const [homepageSections, setHomepageSections] = useState(() => normalizeHomepageSections(initialSettings.homepageSections));
   const [pending, startTransition] = useTransition();
   const [ok, setOk] = useState<boolean | null>(null);
+  const [focused, setFocused] = useState<string | null>(null);
+  // Aperçu : seulement quand quelque chose a changé depuis l'ouverture.
+  const [opened] = useState(() => JSON.stringify([values, homepageSections]));
+  const dirty = opened !== JSON.stringify([values, homepageSections]);
   const [group, setGroup] = useState<"accueil" | "contact" | "identite" | "coordonnees" | "tsa" | "documents" | "legal">("accueil");
   const [legalKey, setLegalKey] = useState<"mentions" | "privacy" | "cookies">("mentions");
   const moveHomepageSection = (index: number, offset: -1 | 1) => {
-    const target = index + offset;
-    if (target < 0 || target >= homepageSections.length) return;
     setOk(null);
-    setHomepageSections((current) => {
-      const next = [...current];
-      [next[index], next[target]] = [next[target], next[index]];
-      return next.map((section, order) => ({ ...section, order }));
-    });
+    setHomepageSections((current) => moveSection(current, index, offset));
   };
   const fields: [string, string, string][] = [
     ...CONTACT_FIELDS.map(({ key, label, group: part }): [string, string, string] => [key, label, part === "general" ? "coordonnees" : part]),
@@ -293,7 +266,8 @@ function SettingsManager({ initialSettings = {} }: { initialSettings?: Record<st
           <button key={key} onClick={() => setGroup(key)} className={`border px-4 py-2 text-xs uppercase tracking-wider ${group === key ? "border-gold bg-gold text-ink" : "border-line text-mist hover:text-bone"}`}>{label}</button>
         ))}
       </div>
-      <form onSubmit={(event) => { event.preventDefault(); startTransition(async () => { setOk((await saveSettingsAction("site", { ...values, homepageSections })).ok); }); }}>
+      <div className="grid grid-cols-1 gap-6 xl:grid-cols-[minmax(0,0.85fr)_minmax(0,1.15fr)]">
+      <form className="min-w-0" onFocus={(event) => setFocused(event.target instanceof HTMLElement ? event.target.dataset.setting ?? null : null)} onSubmit={(event) => { event.preventDefault(); startTransition(async () => { setOk((await saveSettingsAction("site", { ...values, homepageSections })).ok); }); }}>
         {group === "legal" ? (
           <div className="max-w-4xl">
             <div className="mb-4 flex flex-wrap gap-2">
@@ -303,7 +277,7 @@ function SettingsManager({ initialSettings = {} }: { initialSettings?: Record<st
             </div>
             <label className="block text-sm text-mist">
               <span className="mb-2 block font-medium text-bone">{legalKey === "mentions" ? "Texte Mentions légales" : legalKey === "privacy" ? "Texte Confidentialité" : "Texte Cookies"}</span>
-              <textarea rows={18} value={values[legalKey]} onChange={(event) => { setOk(null); setValues((old) => ({ ...old, [legalKey]: event.target.value })); }} className="block w-full resize-y border border-line bg-ink-2 px-4 py-4 leading-relaxed text-bone outline-none focus:border-gold" />
+              <textarea data-setting={legalKey} rows={18} value={values[legalKey]} onChange={(event) => { setOk(null); setValues((old) => ({ ...old, [legalKey]: event.target.value })); }} className="block w-full resize-y border border-line bg-ink-2 px-4 py-4 leading-relaxed text-bone outline-none focus:border-gold" />
               <span className="mt-2 block text-xs text-mist">Le texte actuellement publié est préchargé ici. Modifiez-le puis enregistrez pour mettre à jour la page publique.</span>
             </label>
           </div>
@@ -327,7 +301,7 @@ function SettingsManager({ initialSettings = {} }: { initialSettings?: Record<st
             </ol>
           </div>
         ) : (
-          <div className="grid max-w-4xl gap-4 sm:grid-cols-2">
+          <div className="grid gap-4 sm:grid-cols-2">
             {group === "identite" && (
               <div className="sm:col-span-2">
                 <ImageUpload label="Logo du site" url={values.logoUrl} onUploaded={(logoUrl) => { setOk(null); setValues((old) => ({ ...old, logoUrl })); }} />
@@ -335,7 +309,7 @@ function SettingsManager({ initialSettings = {} }: { initialSettings?: Record<st
             )}
             {group === "contact" && <label className="flex items-center gap-3 border border-line bg-ink-2 p-4 text-sm text-bone sm:col-span-2"><input type="checkbox" checked={values.contactPopupEnabled === "true"} onChange={(event) => { setOk(null); setValues((old) => ({ ...old, contactPopupEnabled: String(event.target.checked) })); }} className="size-4 accent-[var(--color-gold)]" />Afficher les boutons et la fenêtre Nous contacter sur la page d&apos;accueil</label>}
             {fields.filter(([, , section]) => section === group).map(([name, label]) => (
-              <label key={name} className="text-sm text-mist">{label}{["heroDescription", "footerTagline", "contactConsentText", "contactMessagePlaceholder"].includes(name) ? <textarea rows={3} value={values[name]} onChange={(event) => { setOk(null); setValues((old) => ({ ...old, [name]: event.target.value })); }} className="mt-2 block w-full border border-line bg-ink-2 px-3 py-3 text-bone outline-none focus:border-gold" /> : <input value={values[name]} onChange={(event) => { setOk(null); setValues((old) => ({ ...old, [name]: event.target.value })); }} className="mt-2 block w-full border border-line bg-ink-2 px-3 py-3 text-bone outline-none focus:border-gold" />}</label>
+              <label key={name} className="text-sm text-mist">{label}{["heroDescription", "footerTagline", "contactConsentText", "contactMessagePlaceholder"].includes(name) ? <textarea data-setting={name} rows={3} value={values[name]} onChange={(event) => { setOk(null); setValues((old) => ({ ...old, [name]: event.target.value })); }} className="mt-2 block w-full border border-line bg-ink-2 px-3 py-3 text-bone outline-none focus:border-gold" /> : <input data-setting={name} value={values[name]} onChange={(event) => { setOk(null); setValues((old) => ({ ...old, [name]: event.target.value })); }} className="mt-2 block w-full border border-line bg-ink-2 px-3 py-3 text-bone outline-none focus:border-gold" />}</label>
             ))}
             {group === "identite" && <p className="text-xs text-mist sm:col-span-2">Le logo et les textes seront appliqués à l&apos;accueil, à l&apos;en-tête, au pied de page et aux titres des pages.</p>}
           </div>
@@ -346,6 +320,11 @@ function SettingsManager({ initialSettings = {} }: { initialSettings?: Record<st
           {ok === false && <span role="alert" className="text-sm text-red-300">Échec de l’enregistrement. Réessayez.</span>}
         </div>
       </form>
+      <div className="min-w-0 xl:sticky xl:top-24 xl:self-start">
+        <p className="mb-3 text-sm text-mist">Le résultat sur le site, pendant que vous modifiez. Rien n&apos;est publié avant « Enregistrer les paramètres ».</p>
+        <LivePreview path={group === "legal" ? LEGAL_PAGES[legalKey] : group === "coordonnees" ? "/contact" : group === "tsa" ? "/tunisian-security-academy" : "/"} draft={dirty ? { settings: { ...values, homepageSections } } : NO_DRAFT} focus={focused ? `s.${focused}` : undefined} height="70vh" />
+      </div>
+      </div>
     </div>
   );
 }

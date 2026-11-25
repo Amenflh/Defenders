@@ -19,8 +19,8 @@ export const historyFields = (formations: { slug: string; name: string }[]): Ent
   { name: "participants", label: "Nombre de participants", type: "number", nullable: true },
   { name: "medicalFollowUp", label: "Suivi médical assuré", type: "checkbox" },
   { name: "photos", label: "Photos", type: "lines", hint: "Une adresse d'image par ligne (voir l'onglet Médias)" },
-  { name: "videos", label: "Vidéos", type: "videos", hint: "Une par ligne : lien Facebook, Instagram, YouTube ou fichier | titre | portrait, square ou landscape" },
-  { name: "sources", label: "Liens (publication, article…)", type: "links", hint: "Un par ligne : lien | texte du bouton" },
+  { name: "videos", label: "Vidéos", type: "videos", hint: "Facebook, Instagram, YouTube ou fichier" },
+  { name: "sources", label: "Liens (publication, article…)", type: "links" },
   position,
   active,
 ];

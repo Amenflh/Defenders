@@ -1,9 +1,13 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useRef, useState, useTransition } from "react";
+import { useMemo, useRef, useState, useTransition } from "react";
+import { ACADEMY_PATH, type Academy } from "@/lib/academies";
+import type { Draft } from "@/lib/preview/draft";
 import { deleteEntryAction, saveEntryAction, type EntryEndpoint } from "./entries-actions";
 import { ImageUpload } from "./ImageUpload";
+import { LivePreview } from "./LivePreview";
+import { LINK_COLUMNS, RowsEditor, VIDEO_COLUMNS } from "./RowsEditor";
 
 /** Champ d'un formulaire de contenu. `translatable` : saisi aussi en anglais et en arabe. */
 export type EntryField = {
@@ -22,7 +26,7 @@ export type EntryField = {
 
 export type Entry = { id: number } & Record<string, unknown>;
 type Lang = "fr" | "en" | "ar";
-type Draft = Record<string, string | boolean>;
+type FormDraft = Record<string, string | boolean>;
 
 const LANGS: { value: Lang; label: string }[] = [
   { value: "fr", label: "Français" },
@@ -61,8 +65,8 @@ function fromText(field: EntryField, raw: string | boolean): unknown {
   }
 }
 
-function draftOf(fields: EntryField[], entry?: Entry): Draft {
-  const draft: Draft = {};
+function draftOf(fields: EntryField[], entry?: Entry): FormDraft {
+  const draft: FormDraft = {};
   const translations = (entry?.translations ?? {}) as Partial<Record<Lang, Record<string, unknown>>>;
   for (const field of fields) {
     draft[field.name] = toText(field, entry?.[field.name]);
@@ -71,7 +75,29 @@ function draftOf(fields: EntryField[], entry?: Entry): Draft {
   return draft;
 }
 
-/** Liste + formulaire (ajout, modification, suppression) d'un type de contenu, en trois langues. */
+/** Formulaire → corps envoyé à l'API. */
+function toBody(fields: EntryField[], draft: FormDraft): Record<string, unknown> {
+  const body: Record<string, unknown> = {};
+  for (const field of fields) body[field.name] = fromText(field, draft[field.name]);
+  const translatable = fields.filter((field) => field.translatable);
+  if (translatable.length) {
+    body.translations = Object.fromEntries((["en", "ar"] as const).map((l) => [
+      l,
+      Object.fromEntries(translatable.map((field) => [field.name, String(draft[key(l, field.name)] ?? "").trim()]).filter(([, value]) => value)),
+    ]));
+  }
+  return body;
+}
+
+/** Page du site où le contenu apparaît, et sa référence dans l'aperçu. */
+function previewTarget(endpoint: EntryEndpoint, body: Record<string, unknown>): { kind: "history" | "trainers" | "cms"; path: string; prefix: string } {
+  const academy = (body.academy as Academy | null) ?? "fitness";
+  if (endpoint === "/api/admin/history") return { kind: "history", path: `/historique?academy=${academy}`, prefix: "h" };
+  if (endpoint === "/api/admin/trainers") return { kind: "trainers", path: ACADEMY_PATH[academy], prefix: "r" };
+  return { kind: "cms", path: "/", prefix: "c" };
+}
+
+/** Liste + formulaire (ajout, modification, suppression) d'un type de contenu, en trois langues, avec aperçu en direct. */
 export function EntryManager({ endpoint, entries, fields, titleField, badges = [], fixed = {}, itemName, empty }: {
   endpoint: EntryEndpoint;
   entries: Entry[];
@@ -87,7 +113,9 @@ export function EntryManager({ endpoint, entries, fields, titleField, badges = [
   const router = useRouter();
   const formRef = useRef<HTMLFormElement>(null);
   const [editing, setEditing] = useState<number | null>(null);
-  const [draft, setDraft] = useState<Draft>(() => draftOf(fields));
+  const [draft, setDraft] = useState<FormDraft>(() => draftOf(fields));
+  // Les éditeurs de lignes repartent de zéro quand on change d'élément.
+  const [formKey, setFormKey] = useState(0);
   const [lang, setLang] = useState<Lang>("fr");
   const [message, setMessage] = useState<{ text: string; error: boolean } | null>(null);
   const [pending, startTransition] = useTransition();
@@ -97,20 +125,14 @@ export function EntryManager({ endpoint, entries, fields, titleField, badges = [
   const open = (entry?: Entry) => {
     setEditing(entry?.id ?? null);
     setDraft(draftOf(fields, entry));
+    setFormKey((n) => n + 1);
     setLang("fr");
     setMessage(null);
     if (entry) formRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
   };
 
   const save = () => startTransition(async () => {
-    const body: Record<string, unknown> = editing ? {} : { ...fixed };
-    for (const field of fields) body[field.name] = fromText(field, draft[field.name]);
-    if (translatable.length) {
-      body.translations = Object.fromEntries((["en", "ar"] as const).map((l) => [
-        l,
-        Object.fromEntries(translatable.map((field) => [field.name, String(draft[key(l, field.name)] ?? "").trim()]).filter(([, value]) => value)),
-      ]));
-    }
+    const body = { ...(editing ? {} : fixed), ...toBody(fields, draft) };
     const result = await saveEntryAction(endpoint, editing, body);
     if (!result.ok) return setMessage({ text: result.message ?? "Enregistrement impossible.", error: true });
     open();
@@ -132,7 +154,10 @@ export function EntryManager({ endpoint, entries, fields, titleField, badges = [
     const name = key(lang, field.name);
     const value = draft[name];
     const shared = { id: `${endpoint}-${name}`, className: "input !py-2.5 text-sm", dir: lang === "ar" && field.translatable ? "rtl" : undefined } as const;
-    if (field.type === "textarea" || field.type === "lines" || field.type === "videos" || field.type === "links") {
+    if (field.type === "videos" || field.type === "links") {
+      return <RowsEditor key={`${formKey}-${name}`} columns={field.type === "videos" ? VIDEO_COLUMNS : LINK_COLUMNS} value={String(value ?? "")} onChange={(text) => set(name, text)} addLabel={field.type === "videos" ? "Ajouter une vidéo" : "Ajouter un lien"} />;
+    }
+    if (field.type === "textarea" || field.type === "lines") {
       return <textarea {...shared} rows={field.type === "textarea" ? 6 : 3} value={String(value ?? "")} placeholder={lang !== "fr" ? String(draft[field.name] ?? "") : undefined} onChange={(e) => set(name, e.target.value)} />;
     }
     if (field.type === "select") {
@@ -153,12 +178,24 @@ export function EntryManager({ endpoint, entries, fields, titleField, badges = [
     return <input {...shared} type={field.type} min={field.type === "number" ? 0 : undefined} value={String(value ?? "")} placeholder={lang !== "fr" ? String(draft[field.name] ?? "") : undefined} onChange={(e) => set(name, e.target.value)} />;
   };
 
+  // Aperçu : l'élément en cours, avec les autres tels qu'ils sont en ligne.
+  const preview = useMemo(() => {
+    const body = { ...fixed, ...toBody(fields, draft) };
+    const { kind, path, prefix } = previewTarget(endpoint, body);
+    const empty = !editing && !String(draft[titleField] ?? "").trim();
+    const entryDraft: Draft = empty ? {} : { [kind]: { [editing ?? "new"]: { ...body, section: fixed.section } } };
+    return { path, draft: entryDraft, focus: empty ? undefined : `${prefix}.${editing ?? 0}` };
+    // « fixed » est recréé à chaque rendu du parent, sans changer de contenu.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [draft, editing, endpoint, fields, titleField, fixed.section]);
+
   const shown = lang === "fr" ? fields : translatable;
   const missingTitle = !String(draft[titleField] ?? "").trim();
 
   return (
-    <div className="grid gap-8 xl:grid-cols-[minmax(22rem,0.9fr)_1.1fr]">
-      <form ref={formRef} onSubmit={(e) => { e.preventDefault(); save(); }} className="h-fit scroll-mt-24 space-y-4 border border-line bg-ink-2 p-5" aria-busy={pending}>
+    <div className="space-y-8">
+    <div className="grid grid-cols-1 gap-6 xl:grid-cols-[minmax(0,0.85fr)_minmax(0,1.15fr)]">
+      <form ref={formRef} onSubmit={(e) => { e.preventDefault(); save(); }} className="h-fit min-w-0 scroll-mt-24 space-y-4 border border-line bg-ink-2 p-5" aria-busy={pending}>
         <div className="flex flex-wrap items-center justify-between gap-3">
           <h3 className="font-display text-xl uppercase">{editing ? "Modifier" : "Ajouter"} · {itemName}</h3>
           {editing && <button type="button" onClick={() => open()} className="text-xs text-mist underline hover:text-bone">Annuler</button>}
@@ -187,8 +224,14 @@ export function EntryManager({ endpoint, entries, fields, titleField, badges = [
           {message && <span role={message.error ? "alert" : "status"} className={`text-xs ${message.error ? "text-red-300" : "text-gold"}`}>{message.text}</span>}
         </div>
       </form>
+      <div className="min-w-0 xl:sticky xl:top-24 xl:self-start">
+        <p className="mb-3 text-sm text-mist">Le résultat sur le site, pendant que vous écrivez. Rien n&apos;est publié avant « {editing ? "Enregistrer" : "Ajouter"} ».</p>
+        <LivePreview path={preview.path} draft={preview.draft} focus={preview.focus} locale={lang} onLocale={(l) => setLang(translatable.length ? l : "fr")} height="70vh" />
+      </div>
+    </div>
 
-      <ul className="content-start space-y-3">
+      <h3 className="font-display text-lg uppercase text-bone">Éléments enregistrés ({entries.length})</h3>
+      <ul className="grid grid-cols-1 gap-3 xl:grid-cols-2">
         {entries.length === 0 && <li className="border border-line bg-ink-2 p-8 text-sm text-mist">{empty}</li>}
         {entries.map((entry) => (
           <li key={entry.id} className={`flex flex-wrap items-start justify-between gap-4 border bg-ink-2 p-4 ${editing === entry.id ? "border-gold" : "border-line"}`}>
