@@ -11,10 +11,10 @@ export default async function AdminTextsPage() {
   const value = res?.ok ? ((await res.json()) as { value: React.ComponentProps<typeof TextsEditor>["initial"] }).value : null;
 
   return (
-    <section className="container-site">
-      <div className="mb-8">
-        <p className="eyebrow mb-2">Espace admin</p>
-        <h1 className="heading-lg">Textes du site</h1>
+    <section>
+      <div className="mb-6">
+        <p className="eyebrow text-gold">Contenu du site</p>
+        <h1 className="mt-2 font-display text-2xl uppercase text-bone">Textes du site</h1>
         <p className="mt-2 max-w-2xl text-sm text-mist">Tous les textes des pages, dans les trois langues. Les formations, l&apos;historique et l&apos;équipe se modifient dans leurs onglets.</p>
       </div>
       {value === null ? (

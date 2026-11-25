@@ -10,7 +10,7 @@ import { formatTnd, type MyReferral, type RewardState } from "@/lib/program";
 const REWARD_TONE: Record<RewardState, string> = {
   en_attente: "border-line text-mist",
   a_verser: "border-gold/60 text-gold",
-  verse: "border-football/60 text-football",
+  verse: "border-emerald-500/60 text-emerald-500",
 };
 
 /** Lien personnel à partager, gains et suivi des amis invités. */

@@ -16,10 +16,10 @@ export default async function AdminHistoryPage() {
   const formations = formationsRes?.ok ? ((await formationsRes.json()) as { formations: { slug: string; name: string }[] }).formations.map(({ slug, name }) => ({ slug, name })) : [];
 
   return (
-    <section className="container-site">
-      <div className="mb-10">
-        <p className="eyebrow mb-2">Espace admin</p>
-        <h1 className="heading-lg">Historique</h1>
+    <section>
+      <div className="mb-6">
+        <p className="eyebrow text-gold">Contenu du site</p>
+        <h1 className="mt-2 font-display text-2xl uppercase text-bone">Historique</h1>
         <p className="mt-2 max-w-2xl text-sm text-mist">Sessions et programmes affichés sur la page Historique, filtrables par académie et par formation.</p>
       </div>
       {entries === null ? (

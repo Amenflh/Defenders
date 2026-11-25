@@ -14,7 +14,7 @@ export default async function EditFormationPage({ params, searchParams }: PagePr
 
   if (formation === null) {
     return (
-      <section className="container-site">
+      <section>
         <p role="alert" className="border border-red-400/40 bg-red-500/10 p-6 text-red-200">
           Impossible de charger la formation : l&apos;API ne répond pas.{" "}
           <Link href="/admin/formations" className="underline">Retour à la liste</Link>
@@ -24,12 +24,12 @@ export default async function EditFormationPage({ params, searchParams }: PagePr
   }
 
   return (
-    <section className="container-site max-w-5xl">
-      <p className="eyebrow mb-2">Formations</p>
-      <h1 className="heading-lg mb-2">{formation.name}</h1>
+    <section className="max-w-5xl">
+      <p className="eyebrow text-gold"><Link href="/admin/formations" className="hover:text-bone">← Formations</Link></p>
+      <h1 className="mt-2 mb-2 font-display text-2xl uppercase text-bone">{formation.name}</h1>
       <p className="mb-10 text-sm text-mist">Dernière modification : {new Date(formation.updatedAt).toLocaleString("fr-FR", { timeZone: "Africa/Tunis" })}</p>
       {cree === "1" && (
-        <p className="mb-8 border border-football/50 bg-football/10 p-4 text-sm">
+        <p className="mb-8 border border-emerald-500/50 bg-emerald-500/10 p-4 text-sm">
           Formation créée en brouillon. Complétez son contenu puis passez son statut à « Publiée ».
         </p>
       )}

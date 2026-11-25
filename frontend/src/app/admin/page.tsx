@@ -1,71 +1,35 @@
-import { redirect } from "next/navigation";
-import { apiFetch, getCurrentUser } from "@/lib/session";
+import { apiFetch } from "@/lib/session";
 import { AdminDashboard } from "./AdminDashboard";
-import type { SecurityQuote } from "./SecurityQuotesManager";
 import type { AdminStats } from "./actions";
+import { getAdminSettings, getContactRequests, getSecurityQuotes } from "./shell-data";
 
-type Contact = {
-  id: string;
-  createdAt: string;
-  firstName: string;
-  lastName: string;
-  email: string;
-  phone: string;
-  city: string;
-  profile: string;
-  trainings: string[];
-  availability: string;
-  message: string;
-  status: string;
-};
+type Props = React.ComponentProps<typeof AdminDashboard>;
 
-export default async function AdminPage({ searchParams }: PageProps<"/admin">) {
-  const user = await getCurrentUser();
-  if (user === "unavailable" || user === null) {
-    return (
-      <section className="mx-auto max-w-3xl px-6 py-24">
-        <h1 className="heading-lg">Espace admin</h1>
-        <p className="mt-4 text-mist">L&apos;API ne répond pas. Vérifiez que le backend et PostgreSQL sont démarrés.</p>
-      </section>
-    );
-  }
+/** Lecture JSON tolérante : une rubrique indisponible n'empêche pas d'afficher les autres. */
+async function load<T>(path: string): Promise<T | null> {
+  const res = await apiFetch(path).catch(() => null);
+  return res?.ok ? ((await res.json()) as T) : null;
+}
 
-  const { tab } = await searchParams;
-  const res = await apiFetch("/api/admin/contacts");
-  if (res.status === 401) redirect("/login?next=/admin");
-  const data = res.ok ? ((await res.json()) as { contacts: Contact[] }) : null;
-  const [statsRes, formationsRes, cmsRes, settingsRes, unreadRes, securityQuotesRes] = await Promise.all([
-    apiFetch("/api/admin/stats?days=30"),
-    apiFetch("/api/admin/formations"),
-    apiFetch("/api/admin/cms/all"),
-    apiFetch("/api/admin/settings/site"),
-    apiFetch("/api/admin/chat/unread"),
-    apiFetch("/api/admin/security-quotes"),
+export default async function AdminPage() {
+  const [contacts, quotes, settings, stats, formations, cms] = await Promise.all([
+    getContactRequests(),
+    getSecurityQuotes(),
+    getAdminSettings(),
+    load<AdminStats>("/api/admin/stats?days=30"),
+    load<{ formations: Props["formations"] }>("/api/admin/formations"),
+    load<{ items: Props["cms"] }>("/api/admin/cms/all"),
   ]);
-  if (securityQuotesRes.status === 401) redirect("/login?next=/admin");
-  const unreadMessages = unreadRes.ok ? ((await unreadRes.json()) as { unread: number }).unread : 0;
-  const stats = statsRes.ok ? ((await statsRes.json()) as AdminStats) : null;
-  const formations = formationsRes.ok ? ((await formationsRes.json()) as { formations: React.ComponentProps<typeof AdminDashboard>["formations"] }).formations : [];
-  const cms = cmsRes.ok ? ((await cmsRes.json()) as { items: React.ComponentProps<typeof AdminDashboard>["cms"] }).items : [];
-  const settings = settingsRes.ok ? ((await settingsRes.json()) as { value: Record<string, unknown> }).value : {};
-  const securityQuotes = securityQuotesRes.ok
-    ? ((await securityQuotesRes.json()) as { quotes: SecurityQuote[] }).quotes
-    : [];
-  const securityQuotesError = securityQuotesRes.ok ? undefined : "Les demandes de devis sécurité n'ont pas pu être chargées. Vérifiez la migration de la base et réessayez.";
 
   return (
     <AdminDashboard
-      initialTab={typeof tab === "string" ? tab : undefined}
-      initialUnreadMessages={unreadMessages}
       stats={stats}
-      formations={formations}
-      cms={cms}
-      contacts={data?.contacts ?? []}
-      securityQuotes={securityQuotes}
-      securityQuotesError={securityQuotesError}
+      formations={formations?.formations ?? []}
+      cms={cms?.items ?? []}
+      contacts={contacts}
+      securityQuotes={quotes ?? []}
+      securityQuotesError={quotes ? undefined : "Les demandes de devis sécurité n'ont pas pu être chargées. Vérifiez la migration de la base et réessayez."}
       initialSettings={settings}
-      userName={typeof user === "object" ? user.name : ""}
-      userEmail={typeof user === "object" ? user.email : ""}
     />
   );
 }

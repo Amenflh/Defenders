@@ -9,7 +9,7 @@ export const STATUS_LABELS: Record<string, string> = {
 export const STATUS_CLIENT_LABELS: Record<string, { label: string; text: string; tone: string }> = {
   nouveau: { label: "Demande reçue", text: "Notre équipe va vous contacter très prochainement.", tone: "border-gold/60 text-gold" },
   contacte: { label: "En cours", text: "Nous avons pris contact avec vous.", tone: "border-sky-400/60 text-sky-300" },
-  inscrit: { label: "Inscription confirmée", text: "Bienvenue dans la promotion !", tone: "border-football/60 text-football" },
+  inscrit: { label: "Inscription confirmée", text: "Bienvenue dans la promotion !", tone: "border-emerald-500/60 text-emerald-500" },
   archive: { label: "Clôturée", text: "Cette demande est clôturée.", tone: "border-line text-mist" },
 };
 

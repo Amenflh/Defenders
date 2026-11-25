@@ -44,7 +44,7 @@ export function MediaLinkForm() {
       <input name="title" maxLength={120} placeholder="Titre (facultatif)" aria-label="Titre" className="input !py-2 text-sm" />
       <PlacementFields disabled={pending} />
       <button type="submit" disabled={pending} className="btn btn-primary disabled:opacity-60">{pending ? "Ajout…" : "Ajouter"}</button>
-      {message && <p role={message.tone === "error" ? "alert" : "status"} className={`text-sm ${message.tone === "ok" ? "text-football" : "text-red-300"}`}>{message.text}</p>}
+      {message && <p role={message.tone === "error" ? "alert" : "status"} className={`text-sm ${message.tone === "ok" ? "text-emerald-500" : "text-red-300"}`}>{message.text}</p>}
     </form>
   );
 }
@@ -158,7 +158,7 @@ export function MediaUploader({ formations }: { formations: { id: number; name: 
         </div>
       )}
       <div aria-live="polite">
-        {message && <p role={message.tone === "error" ? "alert" : undefined} className={`text-sm ${message.tone === "ok" ? "text-football" : "text-red-300"}`}>{message.text}</p>}
+        {message && <p role={message.tone === "error" ? "alert" : undefined} className={`text-sm ${message.tone === "ok" ? "text-emerald-500" : "text-red-300"}`}>{message.text}</p>}
       </div>
 
       <button type="submit" disabled={busy} className="btn btn-primary disabled:opacity-60">

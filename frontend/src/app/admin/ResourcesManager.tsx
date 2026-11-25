@@ -163,7 +163,7 @@ function UploadForm({ formations, onDone }: { formations: { id: number; name: st
       )}
       <div className="flex items-center gap-4 md:col-span-2">
         <button type="submit" disabled={busy} className="btn btn-primary disabled:cursor-wait disabled:opacity-60">{busy ? "Envoi…" : "Ajouter la ressource"}</button>
-        {message && <p role="status" className={`text-sm ${message.ok ? "text-football" : "text-red-300"}`}>{message.text}</p>}
+        {message && <p role="status" className={`text-sm ${message.ok ? "text-emerald-500" : "text-red-300"}`}>{message.text}</p>}
       </div>
     </form>
   );

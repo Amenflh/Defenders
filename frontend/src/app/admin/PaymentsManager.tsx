@@ -8,7 +8,7 @@ import { getPaymentsAction, saveProgramSettingsAction, type ProgramSettings } fr
 type Data = NonNullable<Awaited<ReturnType<typeof getPaymentsAction>>>;
 
 const STATUS: Record<PaymentStatus, { label: string; tone: string }> = {
-  paid: { label: "Payé", tone: "border-football/60 text-football" },
+  paid: { label: "Payé", tone: "border-emerald-500/60 text-emerald-500" },
   pending: { label: "En attente", tone: "border-gold/60 text-gold" },
   failed: { label: "Échoué", tone: "border-red-500/50 text-red-300" },
 };

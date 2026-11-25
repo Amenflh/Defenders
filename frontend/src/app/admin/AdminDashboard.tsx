@@ -1,9 +1,6 @@
 "use client";
 
-import { useEffect, useState, useTransition } from "react";
-import Link from "next/link";
-import { logoutAction } from "@/app/(auth)/actions";
-import { Logo } from "@/components/Logo";
+import { useState, useTransition } from "react";
 import { AVAILABILITY_LABELS, PROFILE_LABELS, STATUS_LABELS, dateFmt } from "@/lib/labels";
 import { StatusSelect } from "./StatusSelect";
 import { AnalyticsOverview } from "./AnalyticsOverview";
@@ -15,7 +12,8 @@ import { EntryManager, type Entry } from "./EntryManager";
 import { cmsFields } from "./entry-fields";
 import { ImageUpload } from "./ImageUpload";
 import { SecurityQuotesManager, type SecurityQuote } from "./SecurityQuotesManager";
-import { getAdminUnreadAction } from "./chat-actions";
+import { openAdminTab, useAdminTab, useSetUnread } from "./AdminShell";
+import type { AdminContact } from "./shell-data";
 import { CONTACT_FIELDS, contactsFrom } from "@/lib/contacts";
 import { followUpMessage, whatsappHref } from "@/lib/contact-links";
 import { toCsv } from "@/lib/csv";
@@ -24,9 +22,7 @@ import { saveSettingsAction } from "./actions";
 
 type Formation = { id: number; slug: string; name: string };
 type CmsItem = Entry & { section: string };
-type Contact = {
-  id: string; createdAt: string; firstName: string; lastName: string; email: string; phone: string; city: string; profile: string; trainings: string[]; availability: string; message: string; status: string;
-};
+type Contact = AdminContact;
 
 const HOMEPAGE_SECTIONS = [
   { id: "hero", label: "Bannière d'accueil" },
@@ -58,128 +54,25 @@ function normalizeHomepageSections(value: unknown): HomepageSection[] {
   }).sort((a, b) => a.order - b.order).map((section, index) => ({ ...section, order: index }));
 }
 
-const TABS = ["aperçu", "messages", "demandes d'information", "inscriptions", "devis sécurité", "paiements", "parrainage", "ressources", "contenus", "partenaires", "paramètres & footer"];
-/** Gestion du site, sur leurs propres pages. */
-const PAGES = [
-  { href: "/admin/formations", label: "formations" },
-  { href: "/admin/historique", label: "historique" },
-  { href: "/admin/equipe", label: "équipe" },
-  { href: "/admin/medias", label: "médias et galeries" },
-  { href: "/admin/textes", label: "textes du site" },
-];
-
-export function AdminDashboard({ stats, formations, cms, contacts = [], securityQuotes = [], securityQuotesError, initialSettings = {}, userName = "Administrateur", userEmail = "", initialTab, initialUnreadMessages = 0 }: { initialTab?: string; initialUnreadMessages?: number; stats: AdminStats | null; formations: Formation[]; cms: CmsItem[]; contacts?: Contact[]; securityQuotes?: SecurityQuote[]; securityQuotesError?: string; initialSettings?: Record<string, unknown>; userName?: string; userEmail?: string }) {
-  const [tab, setTab] = useState(initialTab && TABS.includes(initialTab) ? initialTab : "aperçu");
-  const [unreadMessages, setUnreadMessages] = useState(initialUnreadMessages);
-  // Badge « messages » tenu à jour hors de l'onglet (l'onglet ouvert le met à jour lui-même).
-  useEffect(() => {
-    if (tab === "messages") return;
-    const timer = setInterval(() => {
-      if (document.visibilityState === "visible") getAdminUnreadAction().then(setUnreadMessages).catch(() => undefined);
-    }, 30_000);
-    return () => clearInterval(timer);
-  }, [tab]);
-  const [notificationsOpen, setNotificationsOpen] = useState(false);
-  const inquiryCount = contacts.filter((contact) => contact.profile === "demande-info").length;
-  const registrationCount = contacts.length - inquiryCount;
-  const latestInquiry = contacts.filter((contact) => contact.profile === "demande-info").sort((a, b) => Date.parse(b.createdAt) - Date.parse(a.createdAt))[0];
-  const latestRegistration = contacts.filter((contact) => contact.profile !== "demande-info").sort((a, b) => Date.parse(b.createdAt) - Date.parse(a.createdAt))[0];
-  const latestSecurityQuote = securityQuotes[0];
-  const newContactCount = contacts.filter((contact) => contact.status === "nouveau").length + securityQuotes.filter((quote) => quote.status === "nouveau").length;
-  const logoUrl = typeof initialSettings.logoUrl === "string" && initialSettings.logoUrl ? initialSettings.logoUrl : undefined;
-  const brandName = typeof initialSettings.brandName === "string" && initialSettings.brandName ? initialSettings.brandName : undefined;
-  const brandDescriptor = typeof initialSettings.brandDescriptor === "string" && initialSettings.brandDescriptor ? initialSettings.brandDescriptor : undefined;
-  const tabs = TABS;
+/** Contenu de l'onglet ouvert (l'en-tête et le menu sont dans AdminShell). */
+export function AdminDashboard({ stats, formations, cms, contacts = [], securityQuotes = [], securityQuotesError, initialSettings = {} }: { stats: AdminStats | null; formations: Formation[]; cms: CmsItem[]; contacts?: AdminContact[]; securityQuotes?: SecurityQuote[]; securityQuotesError?: string; initialSettings?: Record<string, unknown> }) {
+  const tab = useAdminTab();
+  const setUnread = useSetUnread();
   const names = Object.fromEntries(formations.map((f) => [f.slug, f.name]));
-  const initials = userName.split(/\s+/).map((part) => part[0]).join("").slice(0, 2).toUpperCase() || "AD";
   return (
-    <div className="min-h-dvh bg-ink">
-      <header className="sticky top-0 z-30 flex min-h-20 items-center justify-between border-b border-line bg-ink-2/95 px-4 backdrop-blur-md sm:px-8">
-        <div className="flex min-w-0 items-center gap-3 sm:gap-5">
-          <Logo compact logoUrl={logoUrl} brandName={brandName} brandDescriptor={brandDescriptor} />
-          <div className="min-w-0">
-          <p className="eyebrow text-gold">Defenders · Administration</p>
-          <p className="mt-1 truncate font-display text-xl uppercase text-bone">{tab}</p>
-          </div>
-        </div>
-        <div className="flex items-center gap-4">
-          <a href="/" target="_blank" rel="noreferrer" className="hidden border border-line px-3 py-2 text-xs uppercase tracking-wider text-mist hover:border-gold hover:text-gold md:inline-flex">Voir le site</a>
-          <div className="hidden text-right sm:block"><p className="text-sm text-bone">{userName}</p><p className="text-xs text-mist">{userEmail}</p></div>
-          <div className="relative">
-            <button type="button" onClick={() => setNotificationsOpen((open) => !open)} aria-label={`Notifications${newContactCount ? `, ${newContactCount} nouvelle(s) demande(s)` : ""}`} aria-expanded={notificationsOpen} className="relative grid size-10 place-items-center border border-line text-mist transition-colors hover:border-gold hover:text-gold">
-              <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" className="size-5" stroke="currentColor" strokeWidth="1.7">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4" />
-              </svg>
-              {newContactCount > 0 && <span className="absolute -right-1 -top-1 grid min-h-5 min-w-5 place-items-center rounded-full bg-gold px-1 text-[10px] font-bold text-ink">{newContactCount}</span>}
-            </button>
-            {notificationsOpen && (
-              <div className="absolute right-0 top-full z-40 mt-3 w-[min(22rem,calc(100vw-2rem))] border border-line bg-ink-2 p-4 shadow-2xl">
-                <div className="mb-3 flex items-center justify-between border-b border-line pb-3">
-                  <h2 className="font-display text-lg uppercase text-bone">Notifications</h2>
-                  <span className="text-[10px] uppercase tracking-widest text-mist">{newContactCount} nouvelle{newContactCount === 1 ? "" : "s"}</span>
-                </div>
-                <div className="space-y-2">
-                  {([
-                    { label: "Dernière demande d'information", contact: latestInquiry, target: "demandes d'information" },
-                    { label: "Dernière inscription", contact: latestRegistration, target: "inscriptions" },
-                    { label: "Dernier devis sécurité", contact: latestSecurityQuote, target: "devis sécurité" },
-                  ] as const).map(({ label, contact, target }) => (
-                    <button key={target} type="button" disabled={!contact} onClick={() => { setTab(target); setNotificationsOpen(false); }} className="w-full border border-line bg-ink p-3 text-left transition-colors enabled:hover:border-gold disabled:opacity-60">
-                      <span className="block text-[10px] uppercase tracking-widest text-gold">{label}</span>
-                      {contact ? (
-                        <>
-                          <span className="mt-1 block truncate text-sm text-bone">{contact.firstName} {contact.lastName}</span>
-                          <span className="mt-1 block text-xs text-mist">{dateFmt.format(new Date(contact.createdAt))} · {STATUS_LABELS[contact.status] ?? contact.status}</span>
-                        </>
-                      ) : <span className="mt-1 block text-xs text-mist">Aucune demande reçue.</span>}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
-          <div className="grid size-10 place-items-center rounded-full border border-gold/50 bg-gold text-sm font-bold text-ink">{initials}</div>
-          <form action={logoutAction}><button type="submit" className="border border-line px-4 py-2 text-xs uppercase tracking-wider text-mist hover:border-gold hover:text-gold">Déconnexion</button></form>
-        </div>
-      </header>
-      <div className="grid min-h-[calc(100dvh-5rem)] min-w-0 lg:grid-cols-[250px_1fr]">
-        <aside className="min-w-0 border-b border-line bg-ink-2 p-3 lg:border-r lg:border-b-0 lg:p-5">
-          <div className="mb-6 hidden border-b border-line px-4 pb-5 lg:block">
-            <p className="font-display text-lg uppercase text-bone">Centre de gestion</p>
-            <p className="mt-1 text-xs text-mist">Administration du site</p>
-          </div>
-          <nav className="flex w-full min-w-0 gap-2 overflow-x-auto lg:sticky lg:top-24 lg:flex-col lg:overflow-visible" aria-label="Sections administrateur">
-            {tabs.map((name) => (
-              <button key={name} onClick={() => setTab(name)} aria-current={tab === name ? "page" : undefined} className={`whitespace-nowrap border px-4 py-3 text-left text-xs uppercase tracking-wider transition-colors lg:w-full ${tab === name ? "border-gold bg-gold text-ink" : "border-transparent text-mist hover:border-line hover:text-bone"}`}>
-                {name}
-                {name === "demandes d'information" && <span className="ml-2 rounded-full bg-ink/15 px-2 py-0.5 text-[10px]">{inquiryCount}</span>}
-                {name === "inscriptions" && <span className="ml-2 rounded-full bg-ink/15 px-2 py-0.5 text-[10px]">{registrationCount}</span>}
-                {name === "devis sécurité" && <span className="ml-2 rounded-full bg-ink/15 px-2 py-0.5 text-[10px]">{securityQuotes.length}</span>}
-                {name === "messages" && unreadMessages > 0 && <span className={`ml-2 rounded-full px-2 py-0.5 text-[10px] font-bold ${tab === name ? "bg-ink text-gold" : "bg-gold text-ink"}`} aria-label={`${unreadMessages} non lu(s)`}>{unreadMessages}</span>}
-              </button>
-            ))}
-            {PAGES.map((page) => (
-              <Link key={page.href} href={page.href} className="whitespace-nowrap border border-transparent px-4 py-3 text-left text-xs uppercase tracking-wider text-mist transition-colors hover:border-line hover:text-bone lg:w-full">
-                {page.label} <span aria-hidden="true">→</span>
-              </Link>
-            ))}
-          </nav>
-        </aside>
-        <main className="min-w-0 bg-ink px-4 py-8 sm:px-8 lg:px-10">
-          {tab === "aperçu" && <AnalyticsOverview initialStats={stats} onOpenTab={setTab} />}
-          {tab === "messages" && <ChatInbox onUnreadChange={setUnreadMessages} />}
-          {tab === "paiements" && <PaymentsManager />}
-          {tab === "parrainage" && <ReferralsManager />}
-          {tab === "ressources" && <ResourcesManager formations={formations.map((f) => ({ id: f.id, name: f.name }))} />}
-          {tab === "demandes d'information" && <ContactsManager contacts={contacts} names={names} type="inquiry" />}
-          {tab === "inscriptions" && <ContactsManager contacts={contacts} names={names} type="registration" />}
-          {tab === "devis sécurité" && <SecurityQuotesManager quotes={securityQuotes} loadError={securityQuotesError} />}
-          {tab === "contenus" && <ContentManager cms={cms.filter((item) => ["faq", "testimonials", "promotions"].includes(item.section))} />}
-          {tab === "partenaires" && <ContentManager cms={cms.filter((item) => item.section === "partners")} section="partners" />}
-          {tab === "paramètres & footer" && <SettingsManager initialSettings={initialSettings} />}
-        </main>
-      </div>
-    </div>
+    <>
+      {tab === "aperçu" && <AnalyticsOverview initialStats={stats} onOpenTab={openAdminTab} />}
+      {tab === "messages" && <ChatInbox onUnreadChange={setUnread} />}
+      {tab === "paiements" && <PaymentsManager />}
+      {tab === "parrainage" && <ReferralsManager />}
+      {tab === "ressources" && <ResourcesManager formations={formations.map((f) => ({ id: f.id, name: f.name }))} />}
+      {tab === "demandes d'information" && <ContactsManager key="inquiry" contacts={contacts} names={names} type="inquiry" />}
+      {tab === "inscriptions" && <ContactsManager key="registration" contacts={contacts} names={names} type="registration" />}
+      {tab === "devis sécurité" && <SecurityQuotesManager quotes={securityQuotes} loadError={securityQuotesError} />}
+      {tab === "contenus" && <ContentManager key="content" cms={cms.filter((item) => ["faq", "testimonials", "promotions"].includes(item.section))} />}
+      {tab === "partenaires" && <ContentManager key="partners" cms={cms.filter((item) => item.section === "partners")} section="partners" />}
+      {tab === "paramètres & footer" && <SettingsManager initialSettings={initialSettings} />}
+    </>
   );
 }
 
@@ -305,7 +198,7 @@ function ContactQuickActions({ contact, names }: { contact: Contact; names: Reco
   const subject = encodeURIComponent(contact.profile === "demande-info" ? "Votre demande d'information" : "Votre inscription");
   return (
     <div className="mt-4 flex flex-wrap gap-2 border-t border-line pt-4">
-      {wa && <a href={wa} target="_blank" rel="noreferrer" className="border border-football/50 px-3 py-1.5 text-xs uppercase tracking-wider text-football hover:bg-football/10">WhatsApp</a>}
+      {wa && <a href={wa} target="_blank" rel="noreferrer" className="border border-emerald-500/50 px-3 py-1.5 text-xs uppercase tracking-wider text-emerald-500 hover:bg-emerald-500/10">WhatsApp</a>}
       <a href={`tel:${contact.phone.replace(/\s/g, "")}`} className="border border-line px-3 py-1.5 text-xs uppercase tracking-wider text-mist hover:border-gold hover:text-gold">Appeler</a>
       <a href={`mailto:${contact.email}?subject=${subject}`} className="border border-line px-3 py-1.5 text-xs uppercase tracking-wider text-mist hover:border-gold hover:text-gold">E-mail</a>
     </div>

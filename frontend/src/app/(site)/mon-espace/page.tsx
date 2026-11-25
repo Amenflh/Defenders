@@ -30,7 +30,7 @@ async function load<T>(path: string): Promise<T | null> {
 }
 
 const PAYMENT_TONES: Record<string, string> = {
-  paid: "border-football/50 bg-football/10",
+  paid: "border-emerald-500/50 bg-emerald-500/10",
   failed: "border-red-500/50 bg-red-500/10",
   pending: "border-gold/50 bg-gold/10",
   error: "border-red-500/50 bg-red-500/10",
@@ -117,7 +117,7 @@ export default async function MonEspacePage({ searchParams }: PageProps<"/mon-es
                     <p className="mt-3 text-sm text-mist">{statusText}</p>
                     <p className="mt-4 text-xs text-mist/70">{A.sentOn(dateFmt.format(new Date(i.createdAt)))}</p>
                     {paid && (
-                      <p className="mt-5 flex items-center gap-2 border-t border-line pt-5 text-sm text-football">
+                      <p className="mt-5 flex items-center gap-2 border-t border-line pt-5 text-sm text-emerald-500">
                         <Icon name="check" width={18} height={18} /> {A.depositPaid(millimesToTnd(paid.amountMillimes))}
                         {paid.paidAt ? ` le ${dateFmt.format(new Date(paid.paidAt))}` : ""}
                       </p>

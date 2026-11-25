@@ -37,18 +37,18 @@ export default async function AdminMediaPage({ searchParams }: PageProps<"/admin
     : [];
 
   return (
-    <section className="container-site">
-      <div className="mb-10">
-        <p className="eyebrow mb-2">Espace admin</p>
-        <h1 className="heading-lg">Médias</h1>
+    <section>
+      <div className="mb-6">
+        <p className="eyebrow text-gold">Contenu du site</p>
+        <h1 className="mt-2 font-display text-2xl uppercase text-bone">Médias</h1>
         <p className="mt-2 max-w-2xl text-sm text-mist">
           Galeries des académies, témoignages vidéo, vidéos de fond et bandeau de l&apos;accueil. « Emplacement » et « Académie »
           décident où le média s&apos;affiche ; une image sert aussi de visuel à une formation.
         </p>
       </div>
 
-      <div className="grid gap-10 lg:grid-cols-[24rem_1fr]">
-        <div className="lg:sticky lg:top-28 lg:self-start">
+      <div className="grid grid-cols-1 gap-8 xl:grid-cols-[22rem_minmax(0,1fr)]">
+        <div className="xl:self-start">
           <h2 className="mb-4 font-display text-xl tracking-wide uppercase">Envoyer un fichier</h2>
           <MediaUploader formations={formations} />
           <h2 className="mt-8 mb-4 font-display text-xl tracking-wide uppercase">Ajouter par lien</h2>

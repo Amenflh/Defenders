@@ -10,7 +10,7 @@ type Data = NonNullable<Awaited<ReturnType<typeof getReferralsAction>>>;
 const REWARD: Record<RewardState, { label: string; tone: string }> = {
   en_attente: { label: "Filleul pas encore inscrit", tone: "border-line text-mist" },
   a_verser: { label: "Bonus à verser", tone: "border-gold/60 text-gold" },
-  verse: { label: "Bonus versé", tone: "border-football/60 text-football" },
+  verse: { label: "Bonus versé", tone: "border-emerald-500/60 text-emerald-500" },
 };
 
 /** Onglet « Parrainage » : qui a amené qui, et les bonus à verser. */

@@ -60,7 +60,7 @@ function Trend({ value }: { value: number | null }) {
   if (value === 0) return <span className="text-xs text-mist">= stable vs période précédente</span>;
   const up = value > 0;
   return (
-    <span className={`text-xs ${up ? "text-football" : "text-red-300"}`}>
+    <span className={`text-xs ${up ? "text-emerald-500" : "text-red-300"}`}>
       <span aria-hidden="true">{up ? "▲" : "▼"}</span> {up ? "+" : ""}{value} % <span className="text-mist">vs période précédente</span>
     </span>
   );
@@ -295,7 +295,7 @@ function FollowUps({ followUps, onOpenTab }: { followUps: AdminStats["followUps"
                   <p className="truncate text-xs text-mist">{c.formations.length ? c.formations.join(", ") : PROFILE_LABELS[c.profile] ?? "Demande générale"}</p>
                 </div>
                 <div className="flex shrink-0 gap-2">
-                  {wa && <a href={wa} target="_blank" rel="noreferrer" className="border border-football/50 px-3 py-1.5 text-xs uppercase tracking-wider text-football hover:bg-football/10">WhatsApp</a>}
+                  {wa && <a href={wa} target="_blank" rel="noreferrer" className="border border-emerald-500/50 px-3 py-1.5 text-xs uppercase tracking-wider text-emerald-500 hover:bg-emerald-500/10">WhatsApp</a>}
                   <a href={`tel:${c.phone.replace(/\s/g, "")}`} className="border border-line px-3 py-1.5 text-xs uppercase tracking-wider text-mist hover:border-gold hover:text-gold">Appeler</a>
                 </div>
               </li>

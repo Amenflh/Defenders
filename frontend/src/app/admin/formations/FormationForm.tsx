@@ -64,7 +64,7 @@ export function FormationForm({
             {err("_form") && <span className="mt-1 block">{err("_form")}</span>}
           </div>
         )}
-        {state.status === "success" && <div className="border border-football/50 bg-football/10 p-4 text-sm text-bone">{state.message}</div>}
+        {state.status === "success" && <div className="border border-emerald-500/50 bg-emerald-500/10 p-4 text-sm text-bone">{state.message}</div>}
       </div>
 
       <Section title="Identité">

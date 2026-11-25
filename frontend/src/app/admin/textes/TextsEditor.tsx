@@ -65,7 +65,7 @@ export function TextsEditor({ initial }: { initial: Partial<Values> }) {
 
   return (
     <div>
-      <div className="sticky top-0 z-20 -mx-4 mb-6 flex flex-wrap items-end gap-3 border-b border-line bg-ink/95 px-4 py-4 backdrop-blur">
+      <div className="sticky top-20 z-20 -mx-4 mb-6 flex flex-wrap items-end gap-3 border-b border-line bg-ink/95 px-4 py-4 backdrop-blur">
         <label className="min-w-52 flex-1 text-xs text-mist">Rechercher un texte
           <input value={query} onChange={(e) => { setQuery(e.target.value); setLimit(PAGE); }} placeholder="Ex. encadrement unique" className="input mt-1 !py-2.5 text-sm" />
         </label>

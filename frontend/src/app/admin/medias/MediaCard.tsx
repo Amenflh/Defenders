@@ -44,12 +44,12 @@ export function MediaCard({ m, formations }: { m: AdminMedia; formations: { id: 
 
   return (
     <li className="flex flex-col border border-line bg-ink-2">
-      <div className="relative aspect-video bg-black">
+      <div className="relative aspect-video overflow-hidden bg-black">
         {m.type === "image" ? (
           // eslint-disable-next-line @next/next/no-img-element -- aperçu admin d'un fichier téléversé
-          <img src={m.url} alt={m.title} loading="lazy" className="size-full object-cover" />
+          <img src={m.url} alt={m.title} loading="lazy" className="absolute inset-0 size-full object-cover" />
         ) : isVideoFile(m.url) || m.url.startsWith("/") ? (
-          <video src={m.url} controls preload="metadata" className="size-full" />
+          <video src={m.url} controls preload="metadata" className="absolute inset-0 size-full" />
         ) : (
           <VideoEmbed url={m.url} title={m.title} fit="cover" />
         )}
@@ -85,7 +85,7 @@ export function MediaCard({ m, formations }: { m: AdminMedia; formations: { id: 
           >
             Supprimer
           </button>
-          {feedback && <span role={feedback.ok ? "status" : "alert"} className={`text-xs ${feedback.ok ? "text-football" : "text-red-300"}`}>{feedback.text}</span>}
+          {feedback && <span role={feedback.ok ? "status" : "alert"} className={`text-xs ${feedback.ok ? "text-emerald-500" : "text-red-300"}`}>{feedback.text}</span>}
         </div>
       </form>
     </li>

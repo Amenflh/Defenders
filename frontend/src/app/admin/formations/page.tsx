@@ -9,7 +9,7 @@ import { FormationRowActions } from "./FormationRowActions";
 export const metadata: Metadata = { title: "Formations · Espace admin" };
 
 const STATUS = {
-  published: { label: "Publiée", tone: "border-football/60 text-football" },
+  published: { label: "Publiée", tone: "border-emerald-500/60 text-emerald-500" },
   draft: { label: "Brouillon", tone: "border-gold/60 text-gold" },
   archived: { label: "Archivée", tone: "border-line text-mist" },
 } as const;
@@ -19,11 +19,11 @@ export default async function AdminFormationsPage() {
   const formations = await listAdminFormations();
 
   return (
-    <section className="container-site">
-      <div className="mb-10 flex flex-wrap items-end justify-between gap-6">
+    <section>
+      <div className="mb-6 flex flex-wrap items-end justify-between gap-6">
         <div>
-          <p className="eyebrow mb-2">Espace admin</p>
-          <h1 className="heading-lg">Formations</h1>
+          <p className="eyebrow text-gold">Contenu du site</p>
+          <h1 className="mt-2 font-display text-2xl uppercase text-bone">Formations</h1>
           <p className="mt-2 max-w-2xl text-sm text-mist">
             Le contenu des pages formations se modifie ici. Une formation publiée apparaît immédiatement sur le site ;
             un brouillon reste invisible.

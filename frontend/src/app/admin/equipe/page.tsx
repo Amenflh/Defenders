@@ -12,10 +12,10 @@ export default async function AdminTeamPage() {
   const trainers = res?.ok ? ((await res.json()) as { trainers: Entry[] }).trainers : null;
 
   return (
-    <section className="container-site">
-      <div className="mb-10">
-        <p className="eyebrow mb-2">Espace admin</p>
-        <h1 className="heading-lg">Équipe pédagogique</h1>
+    <section>
+      <div className="mb-6">
+        <p className="eyebrow text-gold">Contenu du site</p>
+        <h1 className="mt-2 font-display text-2xl uppercase text-bone">Équipe pédagogique</h1>
         <p className="mt-2 max-w-2xl text-sm text-mist">
           Formateurs présentés sur la page de leur académie. Pour les afficher aussi sur une formation, cochez-les dans la fiche de la formation.
         </p>
