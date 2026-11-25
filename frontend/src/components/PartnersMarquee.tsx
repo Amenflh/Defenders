@@ -68,10 +68,10 @@ export function PartnersMarquee({ partners: inputPartners, title = "Nos partenai
 
   return (
     <section className="border-b border-line bg-ink py-8" aria-labelledby="partners-title">
-      <p id="partners-title" className="mb-6 text-center font-display text-xs tracking-[0.28em] text-mist uppercase">
+      <p id="partners-title" className="mb-4 text-center font-display text-xs tracking-[0.28em] text-mist uppercase">
         {title}
       </p>
-      <div dir="ltr" className="relative overflow-hidden [mask-image:linear-gradient(90deg,transparent,#000_8%,#000_92%,transparent)]">
+      <div dir="ltr" className="relative overflow-hidden py-2 [mask-image:linear-gradient(90deg,transparent,#000_8%,#000_92%,transparent)]">
         <ul
           className="marquee-track marquee-keep animate-marquee flex w-max"
           style={{ "--marquee-duration": "35s" } as React.CSSProperties}
