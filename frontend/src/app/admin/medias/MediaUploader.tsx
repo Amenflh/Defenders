@@ -23,6 +23,17 @@ export function PlacementFields({ category = "galerie", academy = "", position, 
   );
 }
 
+/** Format d'une vidéo : la galerie la recadre dans un cadre identique aux autres. */
+export function LayoutField({ layout = "portrait", disabled }: { layout?: string; disabled?: boolean }) {
+  return (
+    <select name="layout" defaultValue={layout} aria-label="Format de la vidéo" title="Format de la vidéo" disabled={disabled} className="input !py-2 text-sm">
+      <option value="portrait">Vidéo verticale (reel)</option>
+      <option value="square">Vidéo carrée</option>
+      <option value="landscape">Vidéo horizontale</option>
+    </select>
+  );
+}
+
 /** Vidéo Facebook, Instagram, YouTube ou image déjà en ligne : on colle simplement son lien. */
 export function MediaLinkForm() {
   const router = useRouter();
@@ -42,6 +53,7 @@ export function MediaLinkForm() {
       </select>
       <input name="url" required placeholder="https://www.facebook.com/reel/…" aria-label="Lien" className="input !py-2 text-sm" />
       <input name="title" maxLength={120} placeholder="Titre (facultatif)" aria-label="Titre" className="input !py-2 text-sm" />
+      <LayoutField disabled={pending} />
       <PlacementFields disabled={pending} />
       <button type="submit" disabled={pending} className="btn btn-primary disabled:opacity-60">{pending ? "Ajout…" : "Ajouter"}</button>
       {message && <p role={message.tone === "error" ? "alert" : "status"} className={`text-sm ${message.tone === "ok" ? "text-emerald-500" : "text-red-300"}`}>{message.text}</p>}

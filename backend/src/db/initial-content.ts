@@ -585,7 +585,7 @@ export const TSA_FORMATIONS: Record<string, unknown>[] = [
     "academy": "tsa",
     "accent": "protection",
     "position": 12,
-    "status": "published",
+    "status": "archived",
     "name": "Équipe de protection rapprochée",
     "headline": "Formation spécialisée",
     "summary": "Formez-vous au travail en équipe de protection rapprochée : découvrez la formation en vidéo et contactez l'académie pour le programme détaillé.",
@@ -627,7 +627,7 @@ export const TSA_FORMATIONS: Record<string, unknown>[] = [
     "academy": "tsa",
     "accent": "gold",
     "position": 13,
-    "status": "published",
+    "status": "archived",
     "name": "Formation professionnelle en sécurité",
     "headline": "Programme de formation",
     "summary": "Spécialités, contenus et informations pratiques : téléchargez le programme de formation DSP, puis contactez l'équipe pour préciser votre demande.",
@@ -917,7 +917,7 @@ export const HISTORY: Record<string, unknown>[] = [
   }
 ];
 
-export const MEDIA: { type: "image" | "video"; category: string; academy: "fitness" | "tsa" | null; position: number; url: string; title: string }[] = [
+export const MEDIA: { type: "image" | "video"; category: string; academy: "fitness" | "tsa" | null; position: number; url: string; title: string; layout?: "portrait" | "square" | "landscape" }[] = [
   {
     "type": "image",
     "category": "galerie",
@@ -1107,14 +1107,6 @@ export const MEDIA: { type: "image" | "video"; category: string; academy: "fitne
     "category": "galerie",
     "academy": "tsa",
     "position": 2,
-    "url": "/pics/banner_images/banner18.jpeg",
-    "title": "Remise de certificat à un stagiaire de Defenders Academy"
-  },
-  {
-    "type": "image",
-    "category": "galerie",
-    "academy": "tsa",
-    "position": 3,
     "url": "/pics/banner_images/banner5.jpeg",
     "title": "Promotion de stagiaires réunie en salle de formation"
   },
@@ -1122,17 +1114,41 @@ export const MEDIA: { type: "image" | "video"; category: string; academy: "fitne
     "type": "image",
     "category": "galerie",
     "academy": "tsa",
+    "position": 3,
+    "url": "/pics/tsa/seance-theorique-salon.jpeg",
+    "title": "Séance théorique avec les stagiaires de la Tunisian Security Academy"
+  },
+  {
+    "type": "image",
+    "category": "galerie",
+    "academy": "tsa",
     "position": 4,
-    "url": "/pics/banner_images/banner7.jpeg",
-    "title": "Remise officielle d'un certificat de formation"
+    "url": "/pics/tsa/formation-scanner-bagages.jpeg",
+    "title": "Formation au contrôle des bagages sur scanner à rayons X"
   },
   {
     "type": "image",
     "category": "galerie",
     "academy": "tsa",
     "position": 5,
-    "url": "/pics/banner_images/banner18.jpeg",
-    "title": "Remise de certificat à un stagiaire de Defenders Academy"
+    "url": "/pics/tsa/controle-portique-scanner.jpeg",
+    "title": "Exercice de contrôle d'accès au portique et au scanner"
+  },
+  {
+    "type": "image",
+    "category": "galerie",
+    "academy": "tsa",
+    "position": 6,
+    "url": "/pics/tsa/etude-de-cas-formateur.jpeg",
+    "title": "Formateur animant une étude de cas avec les stagiaires"
+  },
+  {
+    "type": "image",
+    "category": "galerie",
+    "academy": "tsa",
+    "position": 7,
+    "url": "/pics/tsa/atelier-groupe-stagiaires.jpeg",
+    "title": "Atelier en groupe des stagiaires en sécurité"
   },
   {
     "type": "video",
@@ -1148,7 +1164,8 @@ export const MEDIA: { type: "image" | "video"; category: string; academy: "fitne
     "academy": "tsa",
     "position": 1,
     "url": "https://www.facebook.com/reel/1082973183535260/",
-    "title": ""
+    "title": "",
+    "layout": "landscape"
   },
   {
     "type": "video",
@@ -1164,7 +1181,8 @@ export const MEDIA: { type: "image" | "video"; category: string; academy: "fitne
     "academy": "tsa",
     "position": 3,
     "url": "https://www.facebook.com/reel/1591488295804767/",
-    "title": ""
+    "title": "",
+    "layout": "square"
   },
   {
     "type": "video",
@@ -1172,7 +1190,8 @@ export const MEDIA: { type: "image" | "video"; category: string; academy: "fitne
     "academy": "tsa",
     "position": 0,
     "url": "https://www.facebook.com/reel/1082973183535260/",
-    "title": "Équipe de protection rapprochée"
+    "title": "Équipe de protection rapprochée",
+    "layout": "landscape"
   },
   {
     "type": "video",
@@ -1289,6 +1308,9 @@ export const MEDIA: { type: "image" | "video"; category: string; academy: "fitne
 ];
 
 /** Traductions des questions fréquentes d'origine (clé : question en français). */
+/** Photos de la Tunisian Security Academy ajoutées en novembre 2026 (galerie TSA). */
+export const TSA_PHOTOS_202611 = MEDIA.filter((m) => m.url.startsWith("/pics/tsa/"));
+
 export const FAQ_TRANSLATIONS: Record<string, LangText> = {
   "À qui s'adressent les formations ?": {
     "en": {

@@ -12,6 +12,7 @@ const select = {
   category: true,
   academy: true,
   position: true,
+  layout: true,
   mimeType: true,
   sizeBytes: true,
   createdAt: true,

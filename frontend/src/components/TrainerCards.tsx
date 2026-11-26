@@ -9,9 +9,10 @@ const FROM = ["left", "up", "right"] as const;
 const initials = (name: string) => name.split(/\s+/).map((part) => part[0]).join("").slice(0, 2).toUpperCase();
 
 /** Formateurs : photo (ou initiales), spécialité, présentation et formations animées. */
-export function TrainerCards({ trainers, className = "" }: { trainers: Card[]; className?: string }) {
+export function TrainerCards({ trainers, className = "", single = false }: { trainers: Card[]; className?: string; /** Une carte par ligne, sur toute la largeur. */ single?: boolean }) {
+  const cols = single ? "" : trainers.length === 1 ? "max-w-2xl" : trainers.length === 2 ? "sm:grid-cols-2" : "sm:grid-cols-2 lg:grid-cols-3";
   return (
-    <ul className={`grid gap-5 ${trainers.length === 1 ? "max-w-2xl" : trainers.length === 2 ? "sm:grid-cols-2" : "sm:grid-cols-2 lg:grid-cols-3"} ${className}`}>
+    <ul className={`grid gap-5 ${cols} ${className}`}>
       {trainers.map((trainer, index) => (
         <Reveal as="li" key={trainer.id} from={FROM[index % 3]} delay={(index % 3) * 80} className="card-hover group flex gap-5 border border-line bg-ink-2 p-5 sm:p-6">
           <span className="relative grid size-20 shrink-0 place-items-center overflow-hidden rounded-full bg-gold/15 font-display text-2xl text-gold ring-1 ring-gold/40 sm:size-24">

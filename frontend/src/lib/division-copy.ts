@@ -25,7 +25,7 @@ export const divisionCopy: Record<Locale, DivisionCopy> = {
     },
     tsa: {
       galleryEyebrow: "Médias de la filière",
-      galleryTitle: "La Tunisian Security Academy en images",
+      galleryTitle: "Tunisian Security Academy en images",
       galleryText: "Protection rapprochée, première intervention, travail canin et remises de certificats : découvrez nos formations en photos et en vidéos.",
       reviewsEyebrow: "Retours des stagiaires",
       reviewsTitle: "Ils ont suivi nos formations",

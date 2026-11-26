@@ -1,12 +1,12 @@
 import type { Prisma } from "../generated/prisma/client.js";
 import { prisma } from "../lib/prisma.js";
-import { FAQ_TRANSLATIONS, FITNESS_EXTRAS, HISTORY, MEDIA, TRAINERS, TSA_FORMATIONS } from "./initial-content.js";
+import { FAQ_TRANSLATIONS, FITNESS_EXTRAS, HISTORY, MEDIA, TRAINERS, TSA_FORMATIONS, TSA_PHOTOS_202611 } from "./initial-content.js";
 
 /**
  * Données de départ insérées UNE SEULE FOIS : ce que l'admin supprime ensuite ne revient jamais au redémarrage.
  * Les étapes déjà faites sont notées dans site_settings (clé « seed »).
  */
-export type SeedStep = "base" | "dynamicContent";
+export type SeedStep = "base" | "dynamicContent" | "cleanup202611" | "tsaPhotos202611";
 const KEY = "seed";
 
 async function readFlags(db: Prisma.TransactionClient | typeof prisma = prisma): Promise<Partial<Record<SeedStep, boolean>>> {
@@ -120,4 +120,34 @@ export async function seedDynamicContent(): Promise<void> {
     await markSeedStep("dynamicContent", tx);
     console.info("[seed] contenus des académies insérés (formations TSA, équipe, historique, galeries)");
   }, { timeout: 60_000, maxWait: 20_000 });
+}
+
+/** Formations retirées du site (archivées : l'admin peut les republier). */
+const RETIRED_FORMATIONS = ["protection-rapprochee", "securite-protection"];
+/** Remises de certificats de la Fitness Academy, à tort dans la galerie TSA. */
+const MISPLACED_TSA_PHOTOS = ["/pics/banner_images/banner18.jpeg", "/pics/banner_images/banner7.jpeg"];
+
+/** Nettoyage de novembre 2026, fait une seule fois : une republication dans l'admin n'est jamais écrasée. */
+export async function cleanupContent202611(): Promise<void> {
+  await prisma.$transaction(async (tx) => {
+    await tx.$executeRaw`SELECT pg_advisory_xact_lock(340024)`;
+    if ((await readFlags(tx)).cleanup202611) return;
+    await tx.formation.updateMany({ where: { slug: { in: RETIRED_FORMATIONS } }, data: { status: "archived" } });
+    await tx.media.deleteMany({ where: { category: "galerie", academy: "tsa", type: "image", url: { in: MISPLACED_TSA_PHOTOS } } });
+    await markSeedStep("cleanup202611", tx);
+    console.info("[seed] formations retirées archivées, galerie TSA nettoyée");
+  });
+}
+
+/** Nouvelles photos de la Tunisian Security Academy, ajoutées une seule fois à sa galerie (supprimables dans l'admin). */
+export async function addTsaPhotos202611(): Promise<void> {
+  await prisma.$transaction(async (tx) => {
+    await tx.$executeRaw`SELECT pg_advisory_xact_lock(340024)`;
+    if ((await readFlags(tx)).tsaPhotos202611) return;
+    const known = new Set((await tx.media.findMany({ where: { category: "galerie", academy: "tsa" }, select: { url: true } })).map((m) => m.url));
+    const missing = TSA_PHOTOS_202611.filter((m) => !known.has(m.url));
+    if (missing.length) await tx.media.createMany({ data: missing });
+    await markSeedStep("tsaPhotos202611", tx);
+    if (missing.length) console.info(`[seed] ${missing.length} photos ajoutées à la galerie TSA`);
+  });
 }

@@ -30,6 +30,16 @@ const domain = (t: Dictionary): StoryItem[] =>
     points: item.points,
   }));
 
+/** Cartes des formations de l'accueil : une grille régulière, sans carte isolée en fin de ligne quand c'est possible. */
+function homeGridColumns(count: number) {
+  if (count <= 1) return "mx-auto max-w-md";
+  if (count === 2) return "sm:grid-cols-2";
+  if (count === 4) return "sm:grid-cols-2 lg:grid-cols-4";
+  if (count === 5) return "sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5";
+  if (count === 3 || count === 6 || count === 9) return "sm:grid-cols-2 lg:grid-cols-3";
+  return "sm:grid-cols-2 lg:grid-cols-4";
+}
+
 export default async function HomePage({ searchParams }: PageProps<"/">) {
   const params = await searchParams;
   const inscriptionSuccess = params.inscription === "success";
@@ -232,13 +242,13 @@ export default async function HomePage({ searchParams }: PageProps<"/">) {
             </div>
           </Reveal>
 
-          <div className="flex flex-wrap justify-center gap-6">
+          <div className={`grid gap-6 ${homeGridColumns(formationsCms.length)}`}>
             {formationsCms.map((formation) => ({
               ...formation,
               summary: formation.summary || formation.headline,
               cover: formation.coverUrl ? { src: formation.coverUrl, alt: t.pages.formation.imageAlt(formation.name) } : visualFor(formation.accent).cover,
             })).map((d, i) => (
-              <Reveal key={d.slug} from={(["left", "up", "right"] as const)[i % 3]} delay={(i % 3) * 120} className={`w-full sm:w-[calc(50%-0.75rem)] ${formationsCms.length > 6 ? "lg:w-[calc(25%-1.125rem)]" : "lg:w-[calc(33.333%-1rem)]"} ${accentClassFor(d.accent)}`}>
+              <Reveal key={d.slug} from={(["left", "up", "right"] as const)[i % 3]} delay={(i % 3) * 120} className={accentClassFor(d.accent)}>
                 <Link href={formationHref(d)} className="group relative block aspect-[4/5] overflow-hidden bg-black transition duration-500 hover:-translate-y-2 hover:shadow-[0_24px_60px_rgba(205,180,140,0.16)]">
                   <Image
                     src={d.cover.src}
@@ -252,8 +262,8 @@ export default async function HomePage({ searchParams }: PageProps<"/">) {
                   <div className="absolute inset-0 bg-gradient-to-t from-black via-black/50 to-transparent" />
                   <div className="absolute inset-x-0 bottom-0 p-6 text-white">
                     <span className="mb-4 block h-1 w-12 bg-gold transition-all duration-500 group-hover:w-24" />
-                    <h3 className={`font-display tracking-wide uppercase ${formationsCms.length > 6 ? "text-2xl" : "text-3xl"}`}>{d.name}</h3>
-                    <p className="mt-3 text-sm leading-relaxed text-white/85 transition-all duration-500 sm:translate-y-4 sm:opacity-0 sm:group-hover:translate-y-0 sm:group-hover:opacity-100">{d.summary}</p>
+                    <h3 className={`font-display tracking-wide uppercase ${formationsCms.length > 3 ? "text-2xl lg:text-xl xl:text-2xl" : "text-3xl"}`}>{d.name}</h3>
+                    <p className={`mt-3 text-sm ${formationsCms.length > 4 ? "lg:hidden" : ""} leading-relaxed text-white/85 transition-all duration-500 sm:translate-y-4 sm:opacity-0 sm:group-hover:translate-y-0 sm:group-hover:opacity-100`}>{d.summary}</p>
                     <span className="mt-5 inline-flex items-center gap-2 font-display text-sm tracking-[0.15em] uppercase">
                       {t.home.discover} <Icon name="arrow" className="transition-transform group-hover:translate-x-1 rtl:-scale-x-100" />
                     </span>

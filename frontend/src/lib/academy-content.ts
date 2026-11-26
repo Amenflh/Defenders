@@ -24,7 +24,7 @@ export const getTeam = cache(async (academy: Academy): Promise<TeamMember[]> => 
   return (await load<TeamMember>(`/api/trainers?academy=${academy}`, "trainers")).map((trainer) => localize(trainer, locale));
 });
 
-export type SiteMedia = { id: number; type: "image" | "video"; url: string; title: string; category: string; academy: Academy | null };
+export type SiteMedia = { id: number; type: "image" | "video"; url: string; title: string; category: string; academy: Academy | null; layout?: VideoLink["layout"] };
 
 /** Médias d'un emplacement (galerie, temoignage, accueil, videos, bandeau), communs aux deux académies compris. */
 export const getSiteMedia = cache(async (category: string, academy?: Academy): Promise<SiteMedia[]> =>
@@ -36,7 +36,7 @@ export async function getGallery(academy: Academy) {
   const media = await getSiteMedia("galerie", academy);
   return {
     photos: media.filter((m) => m.type === "image").map((m) => ({ src: m.url, alt: m.title })),
-    videos: media.filter((m) => m.type === "video").map((m): VideoLink => ({ url: m.url, title: m.title, layout: "portrait" })),
+    videos: media.filter((m) => m.type === "video").map((m): VideoLink => ({ url: m.url, title: m.title, layout: m.layout ?? "portrait" })),
   };
 }
 

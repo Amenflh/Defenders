@@ -20,8 +20,16 @@ import { VideoEmbed } from "./VideoEmbed";
  */
 
 const FROM = ["left", "up", "right"] as const;
+/** Vidéos de la galerie : toutes sur une seule ligne sur grand écran (jusqu'à 5). */
+const VIDEO_COLUMNS: Record<number, string> = {
+  1: "mx-auto max-w-xs grid-cols-1",
+  2: "mx-auto max-w-2xl grid-cols-2",
+  3: "grid-cols-2 sm:grid-cols-3",
+  4: "grid-cols-2 lg:grid-cols-4",
+  5: "grid-cols-2 sm:grid-cols-3 lg:grid-cols-5",
+};
 const columns = (count: number) =>
-  count === 4 ? "sm:grid-cols-2 xl:grid-cols-4" : count === 2 ? "sm:grid-cols-2" : count === 1 ? "mx-auto max-w-md" : "sm:grid-cols-2 lg:grid-cols-3";
+  count === 4 ? "sm:grid-cols-2 xl:grid-cols-4" : count === 2 ? "mx-auto max-w-4xl sm:grid-cols-2" : count === 1 ? "mx-auto max-w-md" : "sm:grid-cols-2 lg:grid-cols-3";
 
 /** Cartes des formations publiées d'une académie. */
 export async function AcademyProgrammes({ academy, priority = false }: { academy: Academy; priority?: boolean }) {
@@ -46,16 +54,20 @@ export async function AcademyTeam({ academy }: { academy: Academy }) {
   return (
     <section id="equipe" className="scroll-mt-28 py-16 lg:py-24">
       <div className="container-site">
-        <div className="grid gap-8 lg:grid-cols-[0.8fr_1.2fr] lg:items-center">
-          <Reveal from="left">
+        {/* Peu de formateurs : titre à gauche, présentation et cartes alignées dans la colonne de droite. */}
+        <div className="grid gap-8 lg:grid-cols-[0.8fr_1.2fr] lg:items-start">
+          <Reveal from="left" className="lg:sticky lg:top-36">
             <p className="eyebrow mb-3">{S.trainersEyebrow}</p>
             <h2 className="heading-lg">{S.trainersTitle}</h2>
           </Reveal>
-          <Reveal from="right" delay={100} className="border-s-2 border-gold bg-ink-2 p-6 sm:p-8">
-            <p className="leading-relaxed text-mist">{S.trainersText}</p>
-          </Reveal>
+          <div className="flex flex-col gap-5">
+            <Reveal from="right" delay={100} className="border-s-2 border-gold bg-ink-2 p-6 sm:p-8">
+              <p className="leading-relaxed text-mist">{S.trainersText}</p>
+            </Reveal>
+            {team.length > 0 && team.length <= 2 && <TrainerCards trainers={team} single />}
+          </div>
         </div>
-        {team.length > 0 && (
+        {team.length > 2 && (
           <TrainerCards trainers={team} className="mt-10" />
         )}
       </div>
@@ -86,7 +98,7 @@ export async function AcademyGallery({ academy, copy, links }: {
       )}
       <div className="container-site">
         {videos.length > 0 && (
-          <div className="mt-8 grid grid-cols-2 gap-3 sm:gap-5 lg:grid-cols-4">
+          <div className={`mt-8 grid gap-3 sm:gap-5 ${VIDEO_COLUMNS[videos.length] ?? "grid-cols-2 lg:grid-cols-4"}`}>
             {videos.map((video, index) => (
               <Reveal key={video.url} from={FROM[index % 3]} delay={(index % 4) * 80} className="video-card flex flex-col overflow-hidden border border-line bg-ink">
                 <span className="h-1 w-full bg-gold" aria-hidden="true" />

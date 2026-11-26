@@ -306,6 +306,8 @@ model Media {
   category    String    @default("")
   academy     Academy?
   position    Int       @default(0)
+  /// Format d'une vidéo : portrait, square ou landscape (recadrage identique dans les galeries).
+  layout      String    @default("portrait")
   formationId Int?      @map("formation_id")
   createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
 

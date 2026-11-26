@@ -84,9 +84,9 @@ const fitnessCourses: L = {
   ar: "[بيلاتس](/fitness-academy/formations/pilates) و[كرة القدم](/fitness-academy/formations/football) و[المدرب الشخصي](/fitness-academy/formations/personal-training)",
 };
 const tsaCourses: L = {
-  fr: "[Intervention initiale](/tunisian-security-academy/formations/intervention-initiale), [Protection rapprochée](/tunisian-security-academy/formations/protection-rapprochee), [K9](/tunisian-security-academy/formations/k9) et la [sécurité & protection](/tunisian-security-academy#securite)",
-  en: "[Initial Response](/tunisian-security-academy/formations/intervention-initiale), [Close Protection](/tunisian-security-academy/formations/protection-rapprochee), [K9](/tunisian-security-academy/formations/k9) and [security & protection](/tunisian-security-academy#securite)",
-  ar: "[التدخل الأولي](/tunisian-security-academy/formations/intervention-initiale) و[الحماية القريبة](/tunisian-security-academy/formations/protection-rapprochee) و[K9](/tunisian-security-academy/formations/k9) و[الأمن والحماية](/tunisian-security-academy#securite)",
+  fr: "[Intervention initiale](/tunisian-security-academy/formations/intervention-initiale), [K9](/tunisian-security-academy/formations/k9) et la [sécurité & protection](/tunisian-security-academy#securite)",
+  en: "[Initial Response](/tunisian-security-academy/formations/intervention-initiale), [K9](/tunisian-security-academy/formations/k9) and [security & protection](/tunisian-security-academy#securite)",
+  ar: "[التدخل الأولي](/tunisian-security-academy/formations/intervention-initiale) و[K9](/tunisian-security-academy/formations/k9) و[الأمن والحماية](/tunisian-security-academy#securite)",
 };
 
 const TOPICS: Topic[] = [
@@ -118,19 +118,16 @@ const TOPICS: Topic[] = [
       pick({
         fr: `**Defenders Security Protection** (gardiennage, protection rapprochée, formation aux métiers de la sécurité) fait partie de la **Tunisian Security Academy**.\n${bullets([
           "[Découvrir l'offre sécurité](/tunisian-security-academy#securite)",
-          "[Programme de formation](/tunisian-security-academy#securite-programme)",
           `Demande de devis : formulaire sur la page, ou [${site.securityEmail.label}](${site.securityEmail.href})`,
           `Téléphone : **${site.phone2.label}** · [WhatsApp](${site.whatsapp.href})`,
         ])}`,
         en: `**Defenders Security Protection** (guarding, close protection, training for security professions) is part of the **Tunisian Security Academy**.\n${bullets([
           "[Explore the security offer](/tunisian-security-academy#securite)",
-          "[Training programme](/tunisian-security-academy#securite-programme)",
           `Request a quote: form on the page, or [${site.securityEmail.label}](${site.securityEmail.href})`,
           `Phone: **${site.phone2.label}** · [WhatsApp](${site.whatsapp.href})`,
         ])}`,
         ar: `**Defenders Security Protection** (الحراسة، الحماية القريبة، التكوين في مهن الأمن) جزء من **Tunisian Security Academy**.\n${bullets([
           "[اكتشف العرض الأمني](/tunisian-security-academy#securite)",
-          "[برنامج التكوين](/tunisian-security-academy#securite-programme)",
           `طلب عرض سعر: الاستمارة في الصفحة، أو [${site.securityEmail.label}](${site.securityEmail.href})`,
           `الهاتف: **${site.phone2.label}** · [واتساب](${site.whatsapp.href})`,
         ])}`,

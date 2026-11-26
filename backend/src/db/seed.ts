@@ -1,7 +1,7 @@
 import type { Prisma } from "../generated/prisma/client.js";
 import { prisma } from "../lib/prisma.js";
 import { seedAdmin } from "../modules/auth/auth.service.js";
-import { markSeedStep, seedDynamicContent, seedStepDone } from "./dynamic-content.js";
+import { addTsaPhotos202611, cleanupContent202611, markSeedStep, seedDynamicContent, seedStepDone } from "./dynamic-content.js";
 import { FORMATION_CONTENT } from "./formation-content.js";
 
 type SampleSession = Omit<Prisma.TrainingSessionCreateManyInput, "formationId"> & { formation: string };
@@ -39,6 +39,8 @@ export async function ensureSeedData(): Promise<void> {
     await markSeedStep("base");
   }
   await seedDynamicContent();
+  await cleanupContent202611();
+  await addTsaPhotos202611();
 }
 
 async function seedBase(): Promise<void> {

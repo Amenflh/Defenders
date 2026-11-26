@@ -7,6 +7,8 @@ const formationId = z
 /** Académie concernée ; vide : les deux. */
 const academy = z.union([z.literal(""), z.null(), z.enum(["fitness", "tsa"])]).transform((v) => v || null);
 const position = z.coerce.number().int().min(0).max(9999);
+/** Format d'une vidéo (portrait, carré, paysage). */
+const layout = z.enum(["portrait", "square", "landscape"]);
 
 /** Champs texte envoyés avec le fichier (multipart : tout arrive en chaîne). */
 export const uploadFieldsSchema = z.object({
@@ -15,6 +17,7 @@ export const uploadFieldsSchema = z.object({
   formationId: formationId.optional().default(null),
   academy: academy.optional().default(null),
   position: position.optional().default(0),
+  layout: layout.optional().default("portrait"),
 });
 
 /** Chemin local ou URL https. */
@@ -33,6 +36,7 @@ export const linkMediaSchema = z.object({
   formationId: formationId.optional().default(null),
   academy: academy.optional().default(null),
   position: position.optional().default(0),
+  layout: layout.optional().default("portrait"),
 });
 
 export const updateMediaSchema = z
@@ -44,6 +48,7 @@ export const updateMediaSchema = z
     formationId: formationId,
     academy,
     position,
+    layout,
   })
   .partial()
   .refine((v) => Object.keys(v).length > 0, "Aucune modification envoyée");
